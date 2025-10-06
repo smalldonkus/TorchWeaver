@@ -1,0 +1,13 @@
+{
+    "Linear" : {
+        "library" : "torch.nn",
+        "className" : "Linear",
+        "parameters" : {
+            "in_features" : 1,
+            "out_features" : 1,
+            "bias" : true,
+            "device" : null,
+            "dtype" : null
+        }
+    }
+}
