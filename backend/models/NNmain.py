@@ -1,4 +1,4 @@
-from NNdatabase import NNDataBase
+from models.NNdatabase import NNDataBase
 
 """
     this is the file that should control of the proto NN
