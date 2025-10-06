@@ -1,16 +1,14 @@
 {
     "concat" : {
         "library" : "torch",
-        "funcName" : "concat",
+        "className" : "concat",
         
-        "requirements" : {
-            "_comment" : "requirements are error avoidance, state the key/variable with a restriction and state the restriction, be it minLength, maxLength, minValue, maxValue",
-            "tensors" : {
-                "minLength" : 2
-            }
-        },
+        "inputParamName" : "tensors",
+        "maxInputs" : null,
+        "minInputs" : 2,
+        "isFunction" : true,
+
         "parameters" : {
-            "tensors" : [],
             "dim" : 0,
             "out" : null
         }

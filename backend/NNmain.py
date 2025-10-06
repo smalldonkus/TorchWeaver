@@ -13,35 +13,77 @@ class NN():
 
 class Node():
 
-    ID = 0
-    def getID():
-        Node.ID += 1
-        return Node.ID
+    nnLayerID   = 0
+    activatorID = 0
+    tensorOpID  = 0
+    def getNnLayerID():
+        Node.nnLayerID += 1
+        return Node.nnLayerID
     
+    def getActivatorID():
+        Node.activatorID += 1
+        return Node.activatorID
     
-    def __init__(self, layerType, layerName, inLayers, outLayers, arguments: dict):
-        default = None
-        try:
-            match layerType.lower():
-                case "activation":
-                    default = DB.getActivator(layerName)
-                case "nnlayer":
-                    default = DB.getNNLayer(layerName)
-                case "tensoroperator":
-                    default = DB.getTensorOp(layerName)
-        except KeyError:
-            raise KeyError #TODO:
+    def getTensorOpID():
+        Node.tensorOpID += 1
+        return Node.tensorOpID
+    
+    IDfunc = {
+        "nnLayer" : getNnLayerID,
+        "activator" : getActivatorID,
+        "tensorOp" : getTensorOpID
+    }
+
+    
+    def __init__(self, layerType, layerName, parameters: dict, inLayers=None, outLayers=None):
         
-        self.ID = Node.getID()
+        if layerType not in Node.IDfunc.keys(): raise ValueError
+        if layerName not in DB.defaults[layerType].keys(): raise ValueError
+
+        self.ID = layerType + "_" + str(Node.IDfunc[layerType]()) + "_" + layerType
 
         self.inLayers = inLayers
         self.outLayers = outLayers
 
-        self.operation = default # contains the relevant data from the operation
+        self.data = dict(DB.defaults[layerType][layerName]) # see JSON for details
+        try:
+            for k,v in parameters:
+                if k not in self.data["parameters"]: raise KeyError #TODO: make custom error
+                self.data["parameters"][k] = v
+        except KeyError:
+            raise KeyError
 
-# gets the relevant layer information
-def getInfoOnLayer():
-    pass    
+
+def getDefaultLayerParamters(layerType, layerName):
+    """ 
+        returns all default parameters for a given layerType, layerName
+        \nsuch as: "activator, ReLU"
+    """
+    return DB.defaults[layerType][layerName]["parameters"]
+
+def addLayer(layerType, layerName, parameters: dict, inLayers=None, outLayers=None):
+    """
+        adds layer to layerNetwork
+    """
+    pass
+
+def removeLayer(layerID):
+    """removes layer from network, #TODO: repair broken link, or break it permenetly"""
+    pass
+
+def modifyLayer(layerID, key, value):
+    """ for parameters NOT input or outputs, given LayerID, key and value, adjusts value at that key """
+    pass
+
+def addLink(A_layerID, B_LayerID):
+    """given layers A and B, CREATE a link between the output of A and input of B"""
+    pass
+
+def removeLink(A_layerID, B_LayerID):
+    """given layers A and B, REMOVE a link between the output of A and input of B"""
+    pass
+
+
 
 
 

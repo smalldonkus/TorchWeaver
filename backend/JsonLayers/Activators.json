@@ -1,11 +1,15 @@
 {
     "ReLU" : {
+        
         "library" : "torch.nn",
         "className" : "ReLU",
+
+        "inputParamName" : null,
+        "maxInputs" : 1,
+        "minInputs" : 1,
+        "isFunction" : false,
+
         "parameters" : {
-            "input" : [],
-            "output" : [],
-            "inputLimitLen" : 1,
             "inplace" : false
         }
     }

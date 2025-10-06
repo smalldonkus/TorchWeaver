@@ -2,6 +2,12 @@
     "Linear" : {
         "library" : "torch.nn",
         "className" : "Linear",
+
+        "inputParamName" : null,
+        "maxInputs" : 1,
+        "minInputs" : 1,
+        "isFunction" : false,
+
         "parameters" : {
             "in_features" : 1,
             "out_features" : 1,
