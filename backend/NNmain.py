@@ -40,7 +40,7 @@ class Network():
         except ValueError:
             raise ValueError #TODO: custom Error
         
-    def getLayerInfo(self, nodeID):
+    def getLayerInfo(self, nodeID) -> dict: 
         """
             returns in the following format\n
             {
@@ -126,7 +126,6 @@ class Network():
             currN = None if len(currN.outLayers) == 0 else self.getNode(currN.outLayers[0])
         return s
 
-
 class Node():
 
     nnLayerID   = 0 #TODO: edit for persistance
@@ -143,7 +142,12 @@ class Node():
     def getTensorOpID():
         Node.tensorOpID += 1
         return Node.tensorOpID
-    
+        
+    def resetIDs(secrectPassword):
+        assert secrectPassword == "plsNo"
+        Node.nnLayerID, Node.activatorID, Node.tensorOpID = 0, 0, 0
+        # only for testing
+
     IDfunc = {
         "nnLayer" : getNnLayerID,
         "activator" : getActivatorID,
@@ -174,7 +178,7 @@ class Node():
         self.data = dict(DB.defaults[layerType][layerName]) # see JSON for details
         if parameters is not None and len(parameters) != 0:
             try:
-                for k,v in parameters:
+                for k,v in parameters.items():
                     if k not in self.data["parameters"]: raise KeyError #TODO: make custom error
                     self.data["parameters"][k] = v
             except KeyError:
@@ -226,7 +230,7 @@ class Node():
             "layerName" : self.layerName,
             "inLayers"  : self.inLayers,
             "outLayers" : self.outLayers,
-            "paramters" : self.data
+            "parameters" : self.data["parameters"]
         }
     
     def __str__(self):
@@ -308,6 +312,7 @@ if __name__ == "__main__":
     #test 1
     nn = Network()
     assert nn.__str__() == "IN\nOUT"
+    Node.resetIDs("plsNo")
     del nn
 
     #test 2: add link, remove link
@@ -317,6 +322,7 @@ if __name__ == "__main__":
     nn.addLink(node1_ID, nn.output.ID)
     nn.removeLink(nn.input.ID, nn.output.ID)
     assert nn.__str__() == "IN\nnnLayer_1_Linear\nOUT"
+    Node.resetIDs("plsNo")
     del nn
 
     # test 3: remove layer
@@ -326,8 +332,31 @@ if __name__ == "__main__":
     nn.addLink(node1_ID, nn.output.ID)
     nn.removeLayer(node1_ID)
     assert nn.__str__() == "IN\nOUT"
+    Node.resetIDs("plsNo")
     del nn
 
-    # test 4: 
+    # test 4: modify parameters, VER1 adding at init
+    # tests: addLayer, addLink, getLayerInfo
+    nn = Network()
+    node1_ID = nn.addLayer("nnLayer", "Linear", parameters={"in_features" : 256, "out_features" : 128})
+    nn.addLink(nn.input.ID, node1_ID)
+    nn.addLink(node1_ID, nn.output.ID)
+    nn.removeLink(nn.input.ID, nn.output.ID)
+    dct = nn.getLayerInfo(node1_ID)
+    assert dct["parameters"]["in_features"] == 256 and dct["parameters"]["out_features"] == 128
+    assert nn.__str__() == "IN\nnnLayer_1_Linear\nOUT", nn.__str__()
+    Node.resetIDs("plsNo")
+    del nn
 
-
+    nn = Network()
+    node1_ID = nn.addLayer("nnLayer", "Linear")
+    nn.addLink(nn.input.ID, node1_ID)
+    nn.addLink(node1_ID, nn.output.ID)
+    nn.removeLink(nn.input.ID, nn.output.ID)
+    nn.modifyLayer(node1_ID, "in_features", 256)
+    nn.modifyLayer(node1_ID, "out_features", 128)
+    dct = nn.getLayerInfo(node1_ID)
+    assert dct["parameters"]["in_features"] == 256 and dct["parameters"]["out_features"] == 128
+    assert nn.__str__() == "IN\nnnLayer_1_Linear\nOUT", nn.__str__()
+    Node.resetIDs("plsNo")
+    del nn
