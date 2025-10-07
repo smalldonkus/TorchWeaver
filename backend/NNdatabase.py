@@ -1,9 +1,16 @@
 import json
 
+from enum import Enum
+
 class NNDataBase():
 
-    def __init__(self):
+    class NNLayerTypes(Enum):
+        nnLayer = "nnLayer"
+        tensorOP = "tensorOP"
+        activator = "activator"
 
+    def __init__(self):
+        
         self.defaults = {
             "nnLayer" : None,
             "tensorOp" : None,

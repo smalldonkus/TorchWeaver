@@ -7,14 +7,20 @@ from NNdatabase import NNDataBase
 DB = NNDataBase()
 
 class Network():
-    def __init__(self):
-        self.nodes = []#
 
-    def removeNode(self, nodeID):
+    def __init__(self):
+        
+        self.input = InNode() # acts as head
+        assert self.input.outLayers.__len__() == 0, f"{self.input.outLayers}" # avoids odd bug
+        self.output = OutNode()
+        assert self.output.inLayers.__len__() == 0, f"{self.output.inLayers}" # avoids odd bug
+        self.nodes = [self.input, self.output]
+        self.addLink(self.input.ID, self.output.ID)
+
+    def popNode(self, nodeID):
         for i in range(len(self.nodes)):
             if self.nodes[i].ID == nodeID:
-                node = self.nodes.pop(i)
-        # TODO: edit surrounding nodes
+                return self.nodes.pop(i)
 
     def getNode(self, nodeID):
         for node in self.nodes:
@@ -40,8 +46,8 @@ class Network():
             {
                 "layerType"  : <layerType>,
                 "layerType"  : <layerType>,
-                "inLayers"   : [nodeID: node1, nodeID: node2 ...]
-                "outLayers"  : [nodeID: node3, nodeID: node4 ...]
+                "inLayers"   : [nodeID, nodeID ... nodeID]
+                "outLayers"  : [nodeID, nodeID ... nodeID]
                 "parameters" : {
                     param1 : value1,
                     param2 : value2,
@@ -55,7 +61,7 @@ class Network():
         if n == None: raise ValueError
         return n.toDict()
 
-    def addLayer(self, layerType, layerName, parameters: dict, inLayers=None, outLayers=None):
+    def addLayer(self, layerType, layerName, parameters: dict=None, inLayers=None, outLayers=None):
         node = Node(
             layerType,
             layerName,
@@ -64,19 +70,21 @@ class Network():
             outLayers
         )
         self.nodes.append(node)
+        return node.ID
 
     def removeLayer(self, layerID):
-        """removes layer from network, #TODO: repair broken link, or break it permenetly"""
-        n: Node = self.getNode(layerID)
+        """removes layer from network, removes all links i.e creates gap in network #TODO: repair broken link, or break it permenetly"""
+        n: Node = self.popNode(layerID)
         if n is None: raise ValueError #TODO: make custom Error
         # TODO: review functionality
         # clear inlayers reference and outlayers reference of this node
         for nInID in n.inLayers:
             nIn: Node = self.getNode(nInID)
-            nIn.outLayers = [e for e in nIn.outLayers if e.ID != n.ID]
+            nIn.outLayers = [e for e in nIn.outLayers if e != n.ID]
+        
         for nOutID in n.outLayers:
             nOut: Node = self.getNode(nOutID)
-            nOut.inLayers = [e for e in nOut.outLayers if e.ID != n.ID]
+            nOut.inLayers = [e for e in nOut.outLayers if e != n.ID]
 
     def addLink(self, A_layerID, B_LayerID):
         """given layers A and B, CREATE a link between the output of A and input of B"""
@@ -86,6 +94,16 @@ class Network():
 
         a.addOutLayer(b.ID)
         b.addInLayer(a.ID)        
+    
+    def addInBetweenLink(self, A_layerID, B_LayerID, C_LayerID): #UNTESTED: TODO: flesh out
+        """
+            creates a link between A-B-C, with;
+            A being the origin (leftmost)
+            B being the centre,
+            C being the end (rightmost)
+        """
+        self.addLink(A_layerID, B_LayerID)
+        self.addLink(B_LayerID, C_LayerID)
 
     def removeLink(self, A_layerID, B_LayerID):
         """given layers A and B, REMOVE a link between the output of A and input of B"""
@@ -96,6 +114,18 @@ class Network():
         a.removeOutLayer(b.ID)
         b.removeInLayer(a.ID)      
         pass
+
+    def __str__(self):
+        """ prints the network from the top down """
+        # TODO: add BFS like algo, sort out problems relating to broken links
+        # assumes sequential list
+        s = ""
+        currN = self.input
+        while currN != None:
+            s += f"{currN.ID}{"\n" if currN.ID != "OUT" else ""}"
+            currN = None if len(currN.outLayers) == 0 else self.getNode(currN.outLayers[0])
+        return s
+
 
 class Node():
 
@@ -117,10 +147,10 @@ class Node():
     IDfunc = {
         "nnLayer" : getNnLayerID,
         "activator" : getActivatorID,
-        "tensorOp" : getTensorOpID
+        "tensorOP" : getTensorOpID
     }
     
-    def __init__(self, layerType, layerName, parameters: dict, inLayers: list[str], outLayers: list[str]):
+    def __init__(self, layerType, layerName, parameters: dict, inLayers: list[str]=None, outLayers: list[str]=None):
         
         if layerType not in Node.IDfunc.keys(): raise ValueError
         if layerName not in DB.defaults[layerType].keys(): raise ValueError
@@ -138,16 +168,17 @@ class Node():
         self.layerType = layerType
         self.layerName = layerName
 
-        self.inLayers : list[str] = inLayers
-        self.outLayers: list[str] = outLayers
+        self.inLayers : list[str] = [] if inLayers is None else inLayers
+        self.outLayers: list[str] = [] if outLayers is None else outLayers
 
         self.data = dict(DB.defaults[layerType][layerName]) # see JSON for details
-        try:
-            for k,v in parameters:
-                if k not in self.data["parameters"]: raise KeyError #TODO: make custom error
-                self.data["parameters"][k] = v
-        except KeyError:
-            raise KeyError
+        if parameters is not None and len(parameters) != 0:
+            try:
+                for k,v in parameters:
+                    if k not in self.data["parameters"]: raise KeyError #TODO: make custom error
+                    self.data["parameters"][k] = v
+            except KeyError:
+                raise KeyError
         
     def setParameter(self, paramKey, paramValue):
         if paramKey not in self.data["parameters"].keys(): raise ValueError #TODO: make custom error
@@ -180,7 +211,7 @@ class Node():
         if not isinstance(nodeID, str): 
             raise TypeError
         if nodeID in self.outLayers:
-            raise RuntimeError #TODO: make custom error
+            raise RuntimeError(f"{self.outLayers} includes {nodeID}") #TODO: make custom error
         self.outLayers.append(nodeID)
 
     def removeOutLayer(self, nodeID: str):
@@ -195,8 +226,75 @@ class Node():
             "layerName" : self.layerName,
             "inLayers"  : self.inLayers,
             "outLayers" : self.outLayers,
-            "paramters" : self.parameters
+            "paramters" : self.data
         }
+    
+    def __str__(self):
+        return f"{self.ID}"
+
+class InNode(Node):
+
+    def __init__(self, outLayers: list[str] = None):
+        
+        self.ID = "IN"
+
+        self.inLayers : list[str] = []
+        self.outLayers: list[str] = [] if outLayers is None else outLayers
+
+        self.layerType = "TorchWeaver"
+        self.layerName = "IN"
+
+        self.data = {
+            "library" : None,
+            "className" : None,
+
+            "inputParamName" : None,
+            "maxInputs" : 0,
+            "minInputs" : 0,
+            "isFunction" : False,
+
+            "parameters" : {}
+        }
+    def setParameter(self, paramKey, paramValue):
+        raise ReferenceError # TODO: make custom error
+        
+    def addInLayer(self, nodeID: str):
+        raise ReferenceError # TODO: make custom error
+
+    def removeInLayer(self, nodeID: str):
+        raise ReferenceError # TODO: make custom error
+
+class OutNode(Node):
+
+    def __init__(self, inLayers: list[str] = None):
+        
+        self.ID = "OUT"
+
+        self.inLayers : list[str] = [] if inLayers is None else inLayers
+        self.outLayers: list[str] = []
+
+        self.layerType = "TorchWeaver"
+        self.layerName = "OUT"
+
+        self.data = {
+            "library" : None,
+            "className" : None,
+
+            "inputParamName" : None,
+            "maxInputs" : None,
+            "minInputs" : 1,
+            "isFunction" : False,
+
+            "parameters" : {}
+        }
+    def setParameter(self, paramKey, paramValue):
+        raise ReferenceError # TODO: make custom error
+        
+    def addOutLayer(self, nodeID: str):
+        raise ReferenceError # TODO: make custom error
+
+    def removeOutLayer(self, nodeID: str):
+        raise ReferenceError # TODO: make custom error  
 
 def getDefaultLayerParamters(layerType, layerName):
     """ 
@@ -206,4 +304,30 @@ def getDefaultLayerParamters(layerType, layerName):
     return DB.defaults[layerType][layerName]["parameters"]
 
 if __name__ == "__main__":
-    nn = Network() 
+    
+    #test 1
+    nn = Network()
+    assert nn.__str__() == "IN\nOUT"
+    del nn
+
+    #test 2: add link, remove link
+    nn = Network()
+    node1_ID = nn.addLayer("nnLayer", "Linear")
+    nn.addLink(nn.input.ID, node1_ID)
+    nn.addLink(node1_ID, nn.output.ID)
+    nn.removeLink(nn.input.ID, nn.output.ID)
+    assert nn.__str__() == "IN\nnnLayer_1_Linear\nOUT"
+    del nn
+
+    # test 3: remove layer
+    nn = Network()
+    node1_ID = nn.addLayer("nnLayer", "Linear")
+    nn.addLink(nn.input.ID, node1_ID)
+    nn.addLink(node1_ID, nn.output.ID)
+    nn.removeLayer(node1_ID)
+    assert nn.__str__() == "IN\nOUT"
+    del nn
+
+    # test 4: 
+
+
