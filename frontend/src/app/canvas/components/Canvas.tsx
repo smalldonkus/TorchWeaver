@@ -9,6 +9,7 @@ interface Props {
   onNodesChange: any;
   onEdgesChange: any;
   onConnect: any;
+  onSelectionChange : any;
 }
 
 export default function Canvas({
@@ -17,6 +18,7 @@ export default function Canvas({
   onNodesChange,
   onEdgesChange,
   onConnect,
+  onSelectionChange
 }: Props) {
   return (
     <Box
@@ -34,6 +36,7 @@ export default function Canvas({
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onSelectionChange={onSelectionChange}
         fitView
       />
     </Box>

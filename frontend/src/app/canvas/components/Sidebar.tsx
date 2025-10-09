@@ -28,6 +28,9 @@ import { drawerWidth } from "../utils/constants";
 // Import LayerForm component for the "Layers" menu
 import LayerForm from "./LayerForm";
 
+// Import EditLayerForm component for the "Edit Layer" menu
+import EditLayerForm from "./EditLayerForm"
+
 // Define the props expected by the Sidebar component
 interface Props {
     open: boolean; // Whether the sidebar is open
@@ -37,6 +40,9 @@ interface Props {
     nodes: any[]; // Array of nodes (data for LayerForm)
     setNodes: (val: any) => void; // Function to update nodes
     handleExport: () => void; // Function to handle export action
+    selectedNodes: any[]; // shows current selected Nodes
+    updateNodeLabel: (targetID: any, val: any) => void; // allows the update of Label
+    updateNodeLayerType: (targetID: any, val: any) => void; // allows the update of layerType
 }
 
 // Sidebar component definition
@@ -48,6 +54,9 @@ export default function Sidebar({
     nodes,
     setNodes,
     handleExport,
+    selectedNodes,
+    updateNodeLabel,
+    updateNodeLayerType
 }: Props) {
     // Get theme object for direction (ltr/rtl)
     const theme = useTheme();
@@ -102,6 +111,9 @@ export default function Sidebar({
                 {/* Show LayerForm only if "Layers" menu is selected */}
                 {selectedMenu === "Layers" && (
                     <LayerForm nodes={nodes} setNodes={setNodes} />
+                )}
+                {selectedMenu === "Edit Nodes" && (
+                    <EditLayerForm nodes={nodes} setNodes={setNodes} selectedNodes={selectedNodes} updateNodeLabel={updateNodeLabel} updateNodeLayerType={updateNodeLayerType}/>
                 )}
             </div>
             {/* Bottom section of the sidebar */}
