@@ -43,6 +43,7 @@ interface Props {
     selectedNodes: any[]; // shows current selected Nodes
     updateNodeLabel: (targetID: any, val: any) => void; // allows the update of Label
     updateNodeLayerType: (targetID: any, val: any) => void; // allows the update of layerType
+    defaultLayers: any[];
 }
 
 // Sidebar component definition
@@ -56,7 +57,8 @@ export default function Sidebar({
     handleExport,
     selectedNodes,
     updateNodeLabel,
-    updateNodeLayerType
+    updateNodeLayerType,
+    defaultLayers
 }: Props) {
     // Get theme object for direction (ltr/rtl)
     const theme = useTheme();
@@ -110,7 +112,7 @@ export default function Sidebar({
                 </List>
                 {/* Show LayerForm only if "Layers" menu is selected */}
                 {selectedMenu === "Layers" && (
-                    <LayerForm nodes={nodes} setNodes={setNodes} />
+                    <LayerForm nodes={nodes} setNodes={setNodes} defaultLayers={defaultLayers}/>
                 )}
                 {selectedMenu === "Edit Nodes" && (
                     <EditLayerForm nodes={nodes} setNodes={setNodes} selectedNodes={selectedNodes} updateNodeLabel={updateNodeLabel} updateNodeLayerType={updateNodeLayerType}/>
