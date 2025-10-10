@@ -1,0 +1,55 @@
+{
+  "data": [
+    {
+      "library": "torch.tensor_ops",
+      "type": "Add",
+      "maxInputs": 2,
+      "minInputs": 2,
+      "parameters": {}
+    },
+    {
+      "library": "torch.tensor_ops",
+      "type": "Subtract",
+      "maxInputs": 2,
+      "minInputs": 2,
+      "parameters": {}
+    },
+    {
+      "library": "torch.tensor_ops",
+      "type": "Multiply",
+      "maxInputs": 2,
+      "minInputs": 2,
+      "parameters": {}
+    },
+    {
+      "library": "torch.tensor_ops",
+      "type": "Divide",
+      "maxInputs": 2,
+      "minInputs": 2,
+      "parameters": {}
+    },
+    {
+      "library": "torch.tensor_ops",
+      "type": "Average",
+      "maxInputs": 2,
+      "minInputs": 2,
+      "parameters": {}
+    },
+    {
+      "library": "torch.tensor_ops",
+      "type": "ElementwiseMax",
+      "maxInputs": 2,
+      "minInputs": 2,
+      "parameters": {}
+    },
+    {
+      "library": "torch.tensor_ops",
+      "type": "Concat",
+      "maxInputs": -1,
+      "minInputs": 2,
+      "parameters": {
+        "dim": 1
+      }
+    }
+  ]
+}

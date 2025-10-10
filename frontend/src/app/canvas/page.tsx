@@ -11,7 +11,10 @@ import AppBarHeader from "./components/AppBarHeader";
 import Sidebar from "./components/Sidebar";
 import Canvas from "./components/Canvas";
 import useExport from "./hooks/useExport";
+
 import defaultLayersJSON from "./utils/JsonDefaults/Layers.json"
+import defaultTensorOpsJSON from "./utils/JsonDefaults/TensorOperations.json";
+import defaultActivatorsJSON from "./utils/JsonDefaults/Activators.json";
 
 // Main page component for the canvas feature
 export default function CanvasPage() {
@@ -20,6 +23,16 @@ export default function CanvasPage() {
   const [defaultLayers, setDefaultLayers] = useState([]);
   useEffect(() => {
     setDefaultLayers(defaultLayersJSON.data);
+  }, []);
+
+  const [defaultTensorOps, setDefaultTensorOps] = useState<any[]>([]);
+  useEffect(() => {
+    setDefaultTensorOps(defaultTensorOpsJSON.data);
+  }, []);
+
+  const [defaultActivators, setDefaultActivators] = useState<any[]>([]);
+  useEffect(() => {
+    setDefaultActivators(defaultActivatorsJSON.data);
   }, []);
 
   // const [defaultLayers, setDefaultLayers] = useState([]);
@@ -116,6 +129,8 @@ export default function CanvasPage() {
         updateNodeLabel={updateNodeLabel}
         updateNodeLayerType={updateNodeLayerType}
         defaultLayers={defaultLayers}
+        defaultTensorOps={defaultTensorOps}
+        defaultActivators={defaultActivators}
       />
       {/* Main content area for the canvas */}
       <Main open={open}>

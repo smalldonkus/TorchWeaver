@@ -1,75 +1,78 @@
 "use client";
 
-import { useState } from "react";
+// Import React hooks and MUI components
+import { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 
-// Define the props expected by the LayerForm component
+// Define the props that this component expects
 interface Props {
-    // nodes: an array representing the current layers/nodes in the canvas
-    nodes: any[];
-    // setNodes: a function to update the nodes array in the parent component
-    setNodes: (val: any) => void;
-
-    defaultLayers: any[];
+    nodes: any[]; // List of current nodes (layers)
+    setNodes: (val: any) => void; // Function to update nodes
+    defaultLayers: any[]; // List of available layer types
 }
 
-// The LayerForm component allows users to add a new layer to the canvas
+// Main component for the Layer Form
 export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
-    
-    // State for the type of layer (e.g., Linear, Convolutional, Flatten)
+    // If layer types haven't loaded yet, show a loading message
+    if (!defaultLayers || defaultLayers.length === 0) {
+        return <div>Loading layer types...</div>;
+    }
+
+    // State for the new layer's label (name)
     const [newLabel, setNewLabel] = useState("");
-    
+    // State for the currently selected default layer type
+    const [chosenDefault, setChosenDefault] = useState(defaultLayers[0]);
 
-    const [chosenDefault, setChosenDefault] = useState(defaultLayers[0])
-    function setLayer(layerName) {
-        setChosenDefault(defaultLayers.find((layer) => layer.type == layerName))
-    }
-    const updateParam = (paramaterKey, parameterValue) => {
-        setChosenDefault( prev => ({
-                ...prev, parameters : {...prev.parameters, [paramaterKey] : parameterValue}
-            }) 
-        );
+    // When defaultLayers changes (e.g., after loading), update chosenDefault
+    useEffect(() => {
+        setChosenDefault(defaultLayers[0]);
+    }, [defaultLayers]);
+
+    // Change the selected layer type when user picks a new one
+    function setLayer(layerName: string) {
+        setChosenDefault(defaultLayers.find((layer) => layer.type === layerName));
     }
 
-    // Function to add a new layer to the nodes array
+    // Update a parameter value for the selected layer type
+    const updateParam = (paramaterKey: string, parameterValue: string) => {
+        setChosenDefault(prev => ({
+            ...prev,
+            parameters: { ...prev.parameters, [paramaterKey]: parameterValue }
+        }));
+    };
+
+    // Add a new layer node to the list
     const addLayer = () => {
-        // Generate a unique id for the new node based on the current number of nodes
-        const newId = `n${nodes.length + 1}`; //BUG: when nodes are removed
-        // Update the nodes array by adding the new node with its properties
+        const newId = `n${nodes.length + 1}`; // Generate a new id
         setNodes([
             ...nodes,
             {
                 id: newId,
-                // Position the new node below the previous ones
-                position: { x: 100, y: 100 + nodes.length * 60 },
+                position: { x: 100, y: 100 + nodes.length * 60 }, // Position it below previous nodes
                 data: {
-                    // Set the label to the selected layer type and user-provided label, or a default if empty
-                    label: `${chosenDefault.layerType}: ${chosenDefault.newLabel || `Node ${nodes.length + 1}`}`,
-                    // Indicate this node is a Layer operation
+                    label: `${chosenDefault.layerType || chosenDefault.type}: ${newLabel || `Node ${nodes.length + 1}`}`,
                     operationType: "Layer",
-                    // Store the selected layer type
-                    layerType : chosenDefault.type,
-                    // Store parameters relevant to the layer (only used for Linear here)
-                    parameters : {parameters: chosenDefault.parameters}
+                    layerType: chosenDefault.type,
+                    parameters: chosenDefault.parameters
                 },
             },
         ]);
-        // Reset the form fields after adding the layer
-        setChosenDefault("Linear") // Toby: sloppy i know
+        setNewLabel(""); // Reset label input
+        setChosenDefault(defaultLayers[0]); // Reset to first layer type
     };
 
-    // Render the form UI for adding a new layer
+    // Render the form UI
     return (
         <Box sx={{ p: 2 }}>
-            {/* Title for the form */}
+            {/* Title */}
             <Typography variant="subtitle1" sx={{ mb: 2 }}>
                 Add Layer
             </Typography>
-            {/* Input for the layer label */}
+            {/* Input for layer label */}
             <TextField
                 label="Layer label"
                 value={newLabel}
@@ -78,38 +81,36 @@ export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
                 size="small"
                 sx={{ mb: 2 }}
             />
-            {/* Dropdown to select the layer type */}
+            {/* Dropdown to select layer type */}
             <TextField
                 select
                 label="Layer Type"
-                value={chosenDefault == null ? "still Loading" : chosenDefault.type}
+                value={chosenDefault?.type}
                 onChange={(e) => setLayer(e.target.value)}
                 fullWidth
                 size="small"
                 sx={{ mb: 2 }}
             >
+                {/* Show all available layer types */}
                 {defaultLayers.map((dLayer) => (
                     <MenuItem key={dLayer.type} value={dLayer.type}>{dLayer.type}</MenuItem>
                 ))}
             </TextField>
-            {/* Show extra fields for Linear layers only */}
-            {chosenDefault != null &&
-                <>
-                    {Object.keys(chosenDefault.parameters).map((paramterKey, i) => (
-                        <TextField
-                            key={i}
-                            label={paramterKey}
-                            value={chosenDefault.parameters[paramterKey]}
-                            onChange={(e) => updateParam(paramterKey, e.target.value)}
-                            type={chosenDefault.parameters[paramterKey] instanceof Number ? "number" : "checked"}
-                            fullWidth
-                            size="small"
-                            sx={{ mb: 2 }}
-                        />
-                    ))}
-                </>
+            {/* Show parameter inputs for the selected layer type */}
+            {chosenDefault && chosenDefault.parameters &&
+                Object.keys(chosenDefault.parameters).map((paramterKey, i) => (
+                    <TextField
+                        key={i}
+                        label={paramterKey}
+                        value={chosenDefault.parameters[paramterKey]}
+                        onChange={(e) => updateParam(paramterKey, e.target.value)}
+                        type={typeof chosenDefault.parameters[paramterKey] === "number" ? "number" : "text"}
+                        fullWidth
+                        size="small"
+                        sx={{ mb: 2 }}
+                    />
+                ))
             }
-
             {/* Button to add the new layer */}
             <Button variant="contained" fullWidth onClick={addLayer}>
                 Add Layer
@@ -117,6 +118,3 @@ export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
         </Box>
     );
 }
-
-
-

@@ -1,0 +1,11 @@
+{
+  "data": [
+    {
+      "library": "torch.nn",
+      "type": "ReLU",
+      "maxInputs": 1,
+      "minInputs": 1,
+      "parameters": {}
+    }
+  ]
+}

@@ -34,6 +34,8 @@ import LayerForm from "./LayerForm";
 import TensorOpsForm from "./TensorOpsForm";
 // Import InputForm component for the "Inputs" menu
 import InputForm from "./InputForm";
+// Import ActivatorsForm component for the "Activators" menu
+import ActivatorsForm from "./ActivatorsForm";
 
 // Import EditLayerForm component for the "Edit Layer" menu
 import EditLayerForm from "./EditLayerForm"
@@ -51,6 +53,8 @@ interface Props {
     updateNodeLabel: (targetID: any, val: any) => void; // allows the update of Label
     updateNodeLayerType: (targetID: any, val: any) => void; // allows the update of layerType
     defaultLayers: any[];
+    defaultTensorOps: any[];
+    defaultActivators: any[];
 }
 
 // Sidebar component definition
@@ -65,7 +69,9 @@ export default function Sidebar({
     selectedNodes,
     updateNodeLabel,
     updateNodeLayerType,
-    defaultLayers
+    defaultLayers,
+    defaultTensorOps,
+    defaultActivators
 }: Props) {
     // Get theme object for direction (ltr/rtl)
     const theme = useTheme();
@@ -128,10 +134,13 @@ export default function Sidebar({
                 )}
                 {/* Show TensorOpsForm only if "Tensor Operations" menu is selected */}
                 {selectedMenu === "Tensor Operations" && (
-                    <TensorOpsForm nodes={nodes} setNodes={setNodes} />
+                    <TensorOpsForm nodes={nodes} setNodes={setNodes} defaultTensorOps={defaultTensorOps} />
                 )}
                 {selectedMenu === "Inputs" && (
                     <InputForm nodes={nodes} setNodes={setNodes} />
+                )}
+                {selectedMenu === "Activators" && (
+                    <ActivatorsForm nodes={nodes} setNodes={setNodes} defaultActivators={defaultActivators} />
                 )}
             </div>
             {/* Bottom section of the sidebar */}
