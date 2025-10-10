@@ -13,6 +13,9 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import InputIcon from '@mui/icons-material/Input';
+import ApiIcon from '@mui/icons-material/Api';
+
 // Import icons for menu items
 import UploadIcon from "@mui/icons-material/Upload";
 import SaveIcon from "@mui/icons-material/Save";
@@ -27,6 +30,10 @@ import { DrawerHeader } from "../utils/styled";
 import { drawerWidth } from "../utils/constants";
 // Import LayerForm component for the "Layers" menu
 import LayerForm from "./LayerForm";
+// Import TensorOpsForm component for the "Tensor Operations" menu
+import TensorOpsForm from "./TensorOpsForm";
+// Import InputForm component for the "Inputs" menu
+import InputForm from "./InputForm";
 
 // Define the props expected by the Sidebar component
 interface Props {
@@ -85,6 +92,8 @@ export default function Sidebar({
                     {[
                         { text: "Layers", icon: <LayersIcon /> },
                         { text: "Tensor Operations", icon: <FunctionsIcon /> },
+                        { text: "Activators", icon: <ApiIcon /> },
+                        { text: "Inputs", icon: <InputIcon /> },
                         { text: "Edit Nodes", icon: <EditIcon /> },
                     ].map((item) => (
                         // Render each menu item
@@ -102,6 +111,13 @@ export default function Sidebar({
                 {/* Show LayerForm only if "Layers" menu is selected */}
                 {selectedMenu === "Layers" && (
                     <LayerForm nodes={nodes} setNodes={setNodes} />
+                )}
+                {/* Show TensorOpsForm only if "Tensor Operations" menu is selected */}
+                {selectedMenu === "Tensor Operations" && (
+                    <TensorOpsForm nodes={nodes} setNodes={setNodes} />
+                )}
+                {selectedMenu === "Inputs" && (
+                    <InputForm nodes={nodes} setNodes={setNodes} />
                 )}
             </div>
             {/* Bottom section of the sidebar */}

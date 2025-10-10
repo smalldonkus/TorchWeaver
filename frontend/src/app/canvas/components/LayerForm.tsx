@@ -85,8 +85,7 @@ export default function LayerForm({ nodes, setNodes }: Props) {
                 sx={{ mb: 2 }}
             >
                 <MenuItem value="Linear">Linear</MenuItem>
-                <MenuItem value="Convolutional">Convolutional</MenuItem>
-                <MenuItem value="Flatten">Flatten</MenuItem>
+                <MenuItem value="Convolutional">Conv2d</MenuItem>
             </TextField>
             {/* Show extra fields for Linear layers only */}
             {layerType === "Linear" && (
