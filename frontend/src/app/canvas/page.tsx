@@ -1,9 +1,9 @@
 "use client"; // Enables React Server Components with client-side interactivity
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
-import { applyNodeChanges, applyEdgeChanges, addEdge } from "@xyflow/react";
+import { applyNodeChanges, applyEdgeChanges, addEdge, OnSelectionChangeFunc} from "@xyflow/react";
 
 import { initialNodes, initialEdges } from "./utils/constants";
 import { Main, DrawerHeader } from "./utils/styled";
@@ -11,9 +11,26 @@ import AppBarHeader from "./components/AppBarHeader";
 import Sidebar from "./components/Sidebar";
 import Canvas from "./components/Canvas";
 import useExport from "./hooks/useExport";
+import defaultLayersJSON from "./utils/JsonDefaults/Layers.json"
 
 // Main page component for the canvas feature
 export default function CanvasPage() {
+
+  // DEFAULTS: TODO: move
+  const [defaultLayers, setDefaultLayers] = useState([]);
+  useEffect(() => {
+    setDefaultLayers(defaultLayersJSON.data);
+  }, []);
+
+  // const [defaultLayers, setDefaultLayers] = useState([]);
+  // useEffect(() => {
+  //   const fetchFile = async () => {
+  //     const jsonData = await fetch("./utils/JsonDefaults/Layers.json").then(res => res.json).then(data => data.data)
+  //     setDefaultLayers(jsonData)
+  //   }
+  // }, []);
+  // console.log(defaultLayers)
+
   // State to control if the sidebar is open
   const [open, setOpen] = useState(true);
   // State for the nodes in the canvas
@@ -22,6 +39,10 @@ export default function CanvasPage() {
   const [edges, setEdges] = useState(initialEdges);
   // State for which menu is selected in the sidebar
   const [selectedMenu, setSelectedMenu] = useState("Layers");
+  // state for the currently selected Nodes, only the first used currently
+  const[selectedNodes, setSelectedNodes] = useState<Node[]>([])
+  // shows selected edges, not currently used
+  const[selectedEdges, setSelectedEdges] = useState<Edge[]>([])
 
   // Handler for when nodes are changed (moved, edited, etc.)
   const onNodesChange = useCallback(
@@ -38,6 +59,40 @@ export default function CanvasPage() {
     (params) => setEdges((eds) => addEdge(params, eds)),
     []
   );
+
+  const onSelectionChange: OnSelectionChangeFunc = useCallback(
+    ({nodes, edges}) => {
+      setSelectedNodes((nodes));
+      setSelectedEdges((edges));
+    },[]
+  );
+
+  const updateNodeParameter = (elementID, parameterKey, parameterValue) => {
+    setNodes(oldNodes =>
+      oldNodes.map(e => e.id == elementID ? {...e, data: {...e.data, parameters : {...e.data.parameters, [parameterKey] : parameterValue}}} : e)
+    )
+    setSelectedNodes(oldNodes =>
+      oldNodes.map(e => e.id == elementID ? {...e, data: {...e.data, parameters : {...e.data.parameters, [parameterKey] : parameterValue}}} : e)
+    )
+  }
+
+  const updateNodeLabel = (elementID, newLabel) => {
+    setNodes(oldNodes =>
+      oldNodes.map(e => e.id == elementID ? {...e, data: {...e.data, label: newLabel}} : e)
+    )
+    setSelectedNodes(oldNodes =>
+      oldNodes.map(e => e.id == elementID ? {...e, data: {...e.data, label: newLabel}} : e)
+    )
+  }
+
+  const updateNodeLayerType = (elementID, newLayerType) => {
+    setNodes(oldNodes =>
+      oldNodes.map(e => e.id == elementID ? {...e, data: {...e.data, layerType: newLayerType}} : e)
+    )
+    setSelectedNodes(oldNodes =>
+      oldNodes.map(e => e.id == elementID ? {...e, data: {...e.data, layerType: newLayerType}} : e)
+    )
+  }
 
   // Custom hook to handle exporting the current canvas state
   const handleExport = useExport(nodes, edges);
@@ -57,6 +112,10 @@ export default function CanvasPage() {
         nodes={nodes}
         setNodes={setNodes}
         handleExport={handleExport}
+        selectedNodes={selectedNodes}
+        updateNodeLabel={updateNodeLabel}
+        updateNodeLayerType={updateNodeLayerType}
+        defaultLayers={defaultLayers}
       />
       {/* Main content area for the canvas */}
       <Main open={open}>
@@ -68,6 +127,7 @@ export default function CanvasPage() {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onSelectionChange={onSelectionChange}
         />
       </Main>
     </Box>

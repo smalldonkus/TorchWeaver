@@ -35,6 +35,9 @@ import TensorOpsForm from "./TensorOpsForm";
 // Import InputForm component for the "Inputs" menu
 import InputForm from "./InputForm";
 
+// Import EditLayerForm component for the "Edit Layer" menu
+import EditLayerForm from "./EditLayerForm"
+
 // Define the props expected by the Sidebar component
 interface Props {
     open: boolean; // Whether the sidebar is open
@@ -44,6 +47,10 @@ interface Props {
     nodes: any[]; // Array of nodes (data for LayerForm)
     setNodes: (val: any) => void; // Function to update nodes
     handleExport: () => void; // Function to handle export action
+    selectedNodes: any[]; // shows current selected Nodes
+    updateNodeLabel: (targetID: any, val: any) => void; // allows the update of Label
+    updateNodeLayerType: (targetID: any, val: any) => void; // allows the update of layerType
+    defaultLayers: any[];
 }
 
 // Sidebar component definition
@@ -55,6 +62,10 @@ export default function Sidebar({
     nodes,
     setNodes,
     handleExport,
+    selectedNodes,
+    updateNodeLabel,
+    updateNodeLayerType,
+    defaultLayers
 }: Props) {
     // Get theme object for direction (ltr/rtl)
     const theme = useTheme();
@@ -110,7 +121,10 @@ export default function Sidebar({
                 </List>
                 {/* Show LayerForm only if "Layers" menu is selected */}
                 {selectedMenu === "Layers" && (
-                    <LayerForm nodes={nodes} setNodes={setNodes} />
+                    <LayerForm nodes={nodes} setNodes={setNodes} defaultLayers={defaultLayers}/>
+                )}
+                {selectedMenu === "Edit Nodes" && (
+                    <EditLayerForm nodes={nodes} setNodes={setNodes} selectedNodes={selectedNodes} updateNodeLabel={updateNodeLabel} updateNodeLayerType={updateNodeLayerType}/>
                 )}
                 {/* Show TensorOpsForm only if "Tensor Operations" menu is selected */}
                 {selectedMenu === "Tensor Operations" && (
