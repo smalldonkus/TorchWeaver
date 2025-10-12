@@ -2,9 +2,7 @@ import Link from "next/link"
 
 export default function LandingBody() {
     return (
-
         <>
-        
         <div id="landingBody">
             <div id="landingInfo">
                 <h1 id="landingSynopsis">Free, Innovative Neural Network Design</h1>
@@ -14,9 +12,8 @@ export default function LandingBody() {
                 </Link>
             </div>
             <div id="landingImgContainer">
-                <img id="canvasImg"></img>
+                <div id="landingImg"></div>
             </div>
-            
         </div>
         </>
     )
