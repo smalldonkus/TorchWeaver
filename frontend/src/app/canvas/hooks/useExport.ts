@@ -1,3 +1,6 @@
+import { Ephesis } from "next/font/google";
+import { lazy } from "react";
+
 export default function useExport(nodes: any[], edges: any[]) {
   return () => {
     const inputMap: Record<string, string[]> = {};
@@ -120,37 +123,37 @@ Recurrent Layers:
 - lstmcell: input_size, hidden_size
 - grucell: input_size, hidden_size
 
-Activation Layers:
-- relu
-- leakyrelu: negative_slope
-- prelu: num_parameters, init
-- gelu
-- silu
-- elu: alpha
-- selu
-- celu: alpha
-- hardswish
-- hardsigmoid
-- softmax: dim
-- logsoftmax: dim
-- tanh
-- sigmoid
-- softplus
-- softsign
-- threshold: threshold, value
-- hardtanh: min_val, max_val
-- softshrink: lambda
-- hardshrink: lambd
-- rrelu: lower, upper
-- celu: alpha
-- glu: dim
-- mish
-- swish
-- tanhshrink
-- threshold: threshold, value
-- logsigmoid
-- multiheadattention: embed_dim, num_heads
-- multiheadattention: embed_dim, num_heads, kdim, vdim
+Activation Layers: not sure of activation layers params
+// - relu
+// - leakyrelu: negative_slope
+// - prelu: num_parameters, init
+// - gelu
+// - silu
+// - elu: alpha
+// - selu
+// - celu: alpha
+// - hardswish
+// - hardsigmoid
+// - softmax: dim
+// - logsoftmax: dim
+// - tanh
+// - sigmoid
+// - softplus
+// - softsign
+// - threshold: threshold, value
+// - hardtanh: min_val, max_val
+// - softshrink: lambda
+// - hardshrink: lambd
+// - rrelu: lower, upper
+// - celu: alpha
+// - glu: dim
+// - mish
+// - swish
+// - tanhshrink
+// - threshold: threshold, value
+// - logsigmoid
+// - multiheadattention: embed_dim, num_heads
+// - multiheadattention: embed_dim, num_heads, kdim, vdim
 
 Transofrmation Layers:
 // - transformer
@@ -213,6 +216,24 @@ const layerParamMap: Record<string, (params: any) => any> = {
   pad: (p) => paddingParams(p),
   constantpad1d: (p) => paddingParams(p),
 
+  // normalization layers
+  localresponsenorm: (p) => localresponsenorm(p),
+  batchnorm1d: (p) => normalizationParams(p),
+  batchnorm2d: (p) => normalizationParams(p),
+  batchnorm3d: (p) => normalizationParams(p),
+  instancenorm1d: (p) => normalizationParams(p),
+  instancenorm2d: (p) => normalizationParams(p),
+  instancenorm3d: (p) => normalizationParams(p),
+  lazybatchnorm1d: (p) => normalizationParams(p),
+  lazybatchnorm2d: (p) => normalizationParams(p),
+  lazybatchnorm3d: (p) => normalizationParams(p),
+  syncbatchnorm: (p) => normalizationParams(p),
+
+  // dropout layers
+  dropout: (p) => ({ p: Number(p.p) || 0.5 }),
+  dropout2d: (p) => ({ p: Number(p.p) || 0.5 }),
+  dropout3d: (p) => ({ p: Number(p.p) || 0.5 }),
+
 
 
 };
@@ -228,21 +249,40 @@ const convParams = (p: any) => ({
   kernel_size: Number(p.kernel_size) || null,
   stride: Number(p.stride) || 1,
   padding: Number(p.padding) || 0,
+  output_padding: Number(p.output_padding) || 0,
+  dilation: Number(p.dilation) || 1,
+  groups: Number(p.groups) || 1,
+  bias: Boolean(p.bias) || true,
+  padding_mode: p.padding_mode || "zeros",
 });
 
 const poolParams = (p: any) => ({
   kernel_size: Number(p.kernel_size) || null,
-  stride: Number(p.stride) || 1,
+  stride: Number(p.stride) || null,
   padding: Number(p.padding) || 0,
+  dilation: Number(p.dilation) || 1,
+  return_indices: Boolean(p.return_indices) || false,
+  ceil_mode: Boolean(p.ceil_mode) || false,
 }); 
 
-const rnnParams = (p: any) => ({
-  input_size: Number(p.input_size) || null,
-  hidden_size: Number(p.hidden_size) || null,
-  num_layers: Number(p.num_layers) || 1,
-  bidirectional: Boolean(p.bidirectional) || false,
+const paddingParams = (p: any) => ({
+  in_channels: Number(p.in_channels) || null,
+  out_channels: Number(p.out_channels) || null,
+  padding: p.padding || null,
 });
 
-const paddingParams = (p: any) => ({
-  padding: p.padding || null,
+const normalizationParams = (p: any) => ({
+  num_features: Number(p.num_features) || null,
+  eps: Number(p.eps) || 1e-5,
+  momentum: Number(p.momentum) || 0.1,
+  affine: Boolean(p.affine) || true,
+  track_running_stats: Boolean(p.track_running_stats) || true,
+  process_group: p.process_group || null,
+});
+
+const localresponsenorm = (p: any) => ({
+  size: Number(p.size) || null,
+  alpha: Number(p.alpha) || 0.0001,
+  beta: Number(p.beta) || 0.75,
+  k: Number(p.k) || 1.0,
 });
