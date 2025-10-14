@@ -54,6 +54,7 @@ interface Props {
     updateNodeType: (targetID: any, valA: any, valB: any) => void; // allows the update of layerType
     updateNodeOperationType: (targetID: any, val: any) => void;
     updateNodeParameter: (targetID: any, valA: any, valB: any) => void;
+    deleteNode: (targetID: any) => void;
     defaultLayers: any[];
     defaultTensorOps: any[];
     defaultActivators: any[];
@@ -73,6 +74,7 @@ export default function Sidebar({
     updateNodeType,
     updateNodeOperationType,
     updateNodeParameter,
+    deleteNode,
     defaultLayers,
     defaultTensorOps,
     defaultActivators
@@ -137,7 +139,7 @@ export default function Sidebar({
                     <LayerForm nodes={nodes} setNodes={setNodes} defaultLayers={defaultLayers}/>
                 )}
                 {selectedMenu === "Edit Nodes" && (
-                    <EditLayerForm nodes={nodes} setNodes={setNodes} selectedNodes={selectedNodes} defaultActivators={defaultActivators} defaultTensorOps={defaultTensorOps} defaultLayers={defaultLayers} updateNodeLabel={updateNodeLabel} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter}/>
+                    <EditLayerForm selectedNodes={selectedNodes} defaultActivators={defaultActivators} defaultTensorOps={defaultTensorOps} defaultLayers={defaultLayers} updateNodeLabel={updateNodeLabel} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter} deleteNode={deleteNode}/>
                 )}
                 {/* Show TensorOpsForm only if "Tensor Operations" menu is selected */}
                 {selectedMenu === "Tensor Operations" && (

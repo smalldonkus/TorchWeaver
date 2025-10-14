@@ -8,10 +8,6 @@ import Button from "@mui/material/Button";
 
 // Define the props expected by the LayerForm component
 interface Props {
-    // nodes: an array representing the current layers/nodes in the canvas
-    nodes: any[];
-    // setNodes: a function to update the nodes array in the parent component
-    setNodes: (val: any) => void;
     // shows the selected nodes at a given time
     selectedNodes: any[];
     // the defaultnodes available,
@@ -26,10 +22,16 @@ interface Props {
     updateNodeOperationType: (targetID: any, val: any) => void;
     // allows for the update of node paramters
     updateNodeParameter: (targetID: any, valA: any, valB: any) => void;
+    // allows for the deletion of the selectedNode
+    deleteNode: (targetID: any) => void;
 }
 
 // The LayerForm component allows users to add a new layer to the canvas
-export default function EditLayerForm({ nodes, setNodes, selectedNodes, defaultActivators, defaultTensorOps, defaultLayers, updateNodeLabel, updateNodeType, updateNodeOperationType, updateNodeParameter}: Props) {
+export default function EditLayerForm({selectedNodes, defaultActivators, defaultTensorOps, defaultLayers, updateNodeLabel, updateNodeType, updateNodeOperationType, updateNodeParameter , deleteNode}: Props) {
+
+    const deleteNodeLocal = () => {
+        deleteNode(selectedNodes[0].id)
+    }
 
     return (
         selectedNodes[0] != null && (
@@ -101,8 +103,10 @@ export default function EditLayerForm({ nodes, setNodes, selectedNodes, defaultA
                         />
                     ))
                 }
-                 
-                
+                <Button variant="contained" fullWidth style={{backgroundColor: "red"}} onClick={deleteNodeLocal}>
+                    Delete
+                </Button>
+
             </Box>
         )
     );

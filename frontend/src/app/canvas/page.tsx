@@ -124,6 +124,15 @@ export default function CanvasPage() {
     );
   }
 
+  const deleteNode = (elementID) => {
+    setNodes(oldNodes =>
+      oldNodes.filter((e) => e.id != elementID)
+    );
+    setSelectedNodes(oldNodes =>
+      oldNodes.filter((e) => e.id != elementID)
+    );
+  }
+
   // Custom hook to handle exporting the current canvas state
   const handleExport = useExport(nodes, edges);
 
@@ -147,10 +156,10 @@ export default function CanvasPage() {
         updateNodeType={updateNodeType}
         updateNodeOperationType={updateNodeOperationType}
         updateNodeParameter={updateNodeParameter}
+        deleteNode={deleteNode}
         defaultLayers={defaultLayers}
         defaultTensorOps={defaultTensorOps}
         defaultActivators={defaultActivators}
-
       />
       {/* Main content area for the canvas */}
       <Main open={open}>
