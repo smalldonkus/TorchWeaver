@@ -46,12 +46,12 @@ const layerParamMap: Record<string, (params: any) => any> = {
   linear: (p) => linearParams(p),
 
   // convolutional layers
-  conv1d: (p) => convParams,
-  conv2d: (p) => convParams,
-  conv3d: (p) => convParams,
-  convtransposed1d: (p) => convParams,
-  convtransposed2d: (p) => convParams,
-  convtransposed3d: (p) => convParams,
+  conv1d: (p) => convParams(p),
+  conv2d: (p) => convParams(p),
+  conv3d: (p) => convParams(p),
+  convtransposed1d: (p) => convParams(p),
+  convtransposed2d: (p) => convParams(p),
+  convtransposed3d: (p) => convParams(p),
 
   // pooling layers
   maxpool1d: (p) => poolParams(p),
@@ -63,6 +63,7 @@ const layerParamMap: Record<string, (params: any) => any> = {
   avgpool1d: (p) => poolParams(p),
   avgpool2d: (p) => poolParams(p),
   avgpool3d: (p) => poolParams(p),
+
   adaptivemaxpool1d : (p) => adaptivePool(p),
   adaptivemaxpool2d : (p) => adaptivePool(p),
   adaptivemaxpool3d : (p) => adaptivePool(p),
@@ -71,11 +72,12 @@ const layerParamMap: Record<string, (params: any) => any> = {
   adaptiveavgpool3d : (p) => adaptivePool(p),
 
   // padding layers
-  pad: (p) => paddingParams(p),
+  padding: (p) => paddingParams(p),
   constantpad1d: (p) => paddingParams(p),
 
   // normalization layers
   localresponsenorm: (p) => localresponsenorm(p),
+
   batchnorm1d: (p) => normalizationParams(p),
   batchnorm2d: (p) => normalizationParams(p),
   batchnorm3d: (p) => normalizationParams(p),
@@ -88,11 +90,16 @@ const layerParamMap: Record<string, (params: any) => any> = {
   syncbatchnorm: (p) => normalizationParams(p),
 
   // dropout layers
-  dropout1d: (p) => ({ p: Number(p.p) || 0.5 }),
-  dropout2d: (p) => ({ p: Number(p.p) || 0.5 }),
-  dropout3d: (p) => ({ p: Number(p.p) || 0.5 }),
+  dropout1d: (p) => dropoutParams(p),
+  dropout2d: (p) => dropoutParams(p),
+  dropout3d: (p) => dropoutParams(p),
+  dropout: (p) => dropoutParams(p),
 
+  // activation layers
+  relu: (p) => reluParams(p),
 
+  // flatten layers
+  flatten: (p) => flattenParams(p),
 
 };
 
@@ -107,7 +114,7 @@ const convParams = (p: any) => ({
   kernel_size: Number(p.kernel_size) || null,
   stride: Number(p.stride) || 1,
   padding: Number(p.padding) || 0,
-  output_padding: Number(p.output_padding) || 0,
+  // output_padding: Number(p.output_padding) || 0, // for transposed conv
   dilation: Number(p.dilation) || 1,
   groups: Number(p.groups) || 1,
   bias: Boolean(p.bias) || true,
@@ -150,6 +157,23 @@ const localresponsenorm = (p: any) => ({
   k: Number(p.k) || 1.0,
 });
 
+const dropoutParams = (p: any) => ({
+  p: Number(p.p) || 0.5,
+  inplace: Boolean(p.inplace) || false,
+});
+
+const reluParams = (p: any) => ({
+  inplace: Boolean(p.inplace) || false,
+});
+
+const flattenParams = (p: any) => ({
+  start_dim: Number(p.start_dim) || 1,
+  end_dim: Number(p.end_dim) || -1,
+});
+
+
+// ["MaxPool2d", "LocalResponseNorm", "Linear", "Conv2d", "Dropout,", "ReLU"]
+// focusing on these for now
 
 /* 
 
@@ -235,7 +259,7 @@ Recurrent Layers:
 - grucell: input_size, hidden_size
 
 Activation Layers: not sure of activation layers params
-// - relu
+- relu
 // - leakyrelu: negative_slope
 // - prelu: num_parameters, init
 // - gelu
