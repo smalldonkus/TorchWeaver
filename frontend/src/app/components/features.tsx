@@ -12,7 +12,7 @@ export default function Features() {
                     />
                     <Component 
                         image={"layers.gif"}
-                        heading={"Pre-designed Selection of Layers and Tensor Operations"}
+                        heading={"Pre-designed Selection of Layers and Tensors"}
                         notes={"Torchweaver comes with a range of pre-built nodes to place in layers and tensor operations of your choosing. Currently supports the full design of AlexNet."}
                     />
                     <Component 
