@@ -4,39 +4,29 @@ export default function Features() {
         <>
             <div id="featuresBody">
                 <h1 id="featuresTitle">Features</h1>
+                <div className="featureColumn">
+                    <Component 
+                        image={"background-img.jpg"}
+                        heading={"Drag-and-Drop Functionality"}
+                        notes={"This works for sure!This works for sure!This works for sure!This works for sure!This works for sure!This works for sure!"}
+                    />
+                    <Component 
+                        image={"background-img.jpg"}
+                        heading={"Pre-designed Selection of Layers and Tensor Operations"}
+                        notes={"This works for sure!This works for sure!This works for sure!This works for sure!This works for sure!This works for sure!"}
+                    />
+                    <Component 
+                        image={"background-img.jpg"}
+                        heading={"Export Architecture Capabilities"}
+                        notes={"This works for sure!This works for sure!This works for sure!This works for sure!This works for sure!This works for sure!"}
+                    />
 
-                {/* <div className="feature">
-                    <div className="featureInfo">
-                        <h2 className="featureText">Seamless Integration</h2>
-                        <h3 className="featureExplanation">feature information will eventually be placed here.</h3>
-                    </div>
-                        <div className="featureImg"></div>
+                    <Component 
+                        image={"background-img.jpg"}
+                        heading={"Streamlined Access and Design"}
+                        notes={"This works for sure!This works for sure!This works for sure!This works for sure!This works for sure!This works for sure!"}
+                    />
                 </div>
-                <div className="featureSeperator"></div>
-
-                <div className="feature">
-                    <div className="featureInfo">
-                        <h2 className="featureText">Drag-and-Drop Functionality</h2>
-                        <h3 className="featureExplanation">feature information will eventually be placed here.</h3>
-                    </div>
-                        <div className="featureImg"></div>
-                </div>
-                <div className="featureSeperator"></div> */}
-
-                <Component 
-
-                    image={"sample.jpg"}
-                    heading={"Hello this works!"}
-                    notes={"This works for sure!"}
-                />
-
-
-
-
-
-
-
-
             </div>
 
             
