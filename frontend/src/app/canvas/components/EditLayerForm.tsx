@@ -32,7 +32,6 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
     const deleteNodeLocal = () => {
         deleteNode(selectedNodes[0].id)
     }
-
     return (
         selectedNodes[0] != null && (
             <Box sx={{ p: 2 }}>
@@ -106,7 +105,6 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
                 <Button variant="contained" fullWidth style={{backgroundColor: "red"}} onClick={deleteNodeLocal}>
                     Delete
                 </Button>
-
             </Box>
         )
     );
