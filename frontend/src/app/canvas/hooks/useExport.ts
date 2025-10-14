@@ -40,6 +40,117 @@ export default function useExport(nodes: any[], edges: any[]) {
   };
 }
 
+const layerParamMap: Record<string, (params: any) => any> = {
+
+  // linear layers
+  linear: (p) => linearParams(p),
+
+  // convolutional layers
+  conv1d: (p) => convParams,
+  conv2d: (p) => convParams,
+  conv3d: (p) => convParams,
+  convtransposed1d: (p) => convParams,
+  convtransposed2d: (p) => convParams,
+  convtransposed3d: (p) => convParams,
+
+  // pooling layers
+  maxpool1d: (p) => poolParams(p),
+  maxpool2d: (p) => poolParams(p),
+  maxpool3d: (p) => poolParams(p),
+  maxunpool1d: (p) => poolParams(p),
+  maxunpool2d: (p) => poolParams(p),
+  maxunpool3d: (p) => poolParams(p),
+  avgpool1d: (p) => poolParams(p),
+  avgpool2d: (p) => poolParams(p),
+  avgpool3d: (p) => poolParams(p),
+  adaptivemaxpool1d : (p) => adaptivePool(p),
+  adaptivemaxpool2d : (p) => adaptivePool(p),
+  adaptivemaxpool3d : (p) => adaptivePool(p),
+  adaptiveavgpool1d : (p) => adaptivePool(p),
+  adaptiveavgpool2d : (p) => adaptivePool(p),
+  adaptiveavgpool3d : (p) => adaptivePool(p),
+
+  // padding layers
+  pad: (p) => paddingParams(p),
+  constantpad1d: (p) => paddingParams(p),
+
+  // normalization layers
+  localresponsenorm: (p) => localresponsenorm(p),
+  batchnorm1d: (p) => normalizationParams(p),
+  batchnorm2d: (p) => normalizationParams(p),
+  batchnorm3d: (p) => normalizationParams(p),
+  instancenorm1d: (p) => normalizationParams(p),
+  instancenorm2d: (p) => normalizationParams(p),
+  instancenorm3d: (p) => normalizationParams(p),
+  lazybatchnorm1d: (p) => normalizationParams(p),
+  lazybatchnorm2d: (p) => normalizationParams(p),
+  lazybatchnorm3d: (p) => normalizationParams(p),
+  syncbatchnorm: (p) => normalizationParams(p),
+
+  // dropout layers
+  dropout1d: (p) => ({ p: Number(p.p) || 0.5 }),
+  dropout2d: (p) => ({ p: Number(p.p) || 0.5 }),
+  dropout3d: (p) => ({ p: Number(p.p) || 0.5 }),
+
+
+
+};
+
+const linearParams = (p: any) => ({
+  in_features: Number(p.in_features) || null,
+  out_features: Number(p.out_features) || null,
+});
+
+const convParams = (p: any) => ({
+  in_channels: Number(p.in_channels) || null,
+  out_channels: Number(p.out_channels) || null,
+  kernel_size: Number(p.kernel_size) || null,
+  stride: Number(p.stride) || 1,
+  padding: Number(p.padding) || 0,
+  output_padding: Number(p.output_padding) || 0,
+  dilation: Number(p.dilation) || 1,
+  groups: Number(p.groups) || 1,
+  bias: Boolean(p.bias) || true,
+  padding_mode: p.padding_mode || "zeros",
+});
+
+const poolParams = (p: any) => ({
+  kernel_size: Number(p.kernel_size) || null,
+  stride: Number(p.stride) || null,
+  padding: Number(p.padding) || 0,
+  dilation: Number(p.dilation) || 1,
+  return_indices: Boolean(p.return_indices) || false,
+  ceil_mode: Boolean(p.ceil_mode) || false,
+}); 
+
+const adaptivePool = (p: any) => ({
+  output_size: Number(p.output_size) || null,
+  return_indices: Boolean(p.return_indices) || false,
+});
+
+const paddingParams = (p: any) => ({
+  in_channels: Number(p.in_channels) || null,
+  out_channels: Number(p.out_channels) || null,
+  padding: p.padding || null,
+});
+
+const normalizationParams = (p: any) => ({
+  num_features: Number(p.num_features) || null,
+  eps: Number(p.eps) || 1e-5,
+  momentum: Number(p.momentum) || 0.1,
+  affine: Boolean(p.affine) || true,
+  track_running_stats: Boolean(p.track_running_stats) || true,
+  process_group: p.process_group || null,
+});
+
+const localresponsenorm = (p: any) => ({
+  size: Number(p.size) || null,
+  alpha: Number(p.alpha) || 0.0001,
+  beta: Number(p.beta) || 0.75,
+  k: Number(p.k) || 1.0,
+});
+
+
 /* 
 
 all layers types and their parameters --- torch nn module
@@ -187,102 +298,3 @@ DataParallel Layers:
 - distributeddataparallel
 
 */
-
-const layerParamMap: Record<string, (params: any) => any> = {
-
-  // linear layers
-  linear: (p) => linearParams(p),
-
-  // convolutional layers
-  conv1d: (p) => convParams,
-  conv2d: (p) => convParams,
-  conv3d: (p) => convParams,
-  convtransposed1d: (p) => convParams,
-  convtransposed2d: (p) => convParams,
-  convtransposed3d: (p) => convParams,
-
-  // pooling layers
-  maxpool1d: (p) => poolParams(p),
-  maxpool2d: (p) => poolParams(p),
-  maxpool3d: (p) => poolParams(p),
-  maxunpool1d: (p) => poolParams(p),
-  maxunpool2d: (p) => poolParams(p),
-  maxunpool3d: (p) => poolParams(p),
-  avgpool1d: (p) => poolParams(p),
-  avgpool2d: (p) => poolParams(p),
-  avgpool3d: (p) => poolParams(p),
-
-  // padding layers
-  pad: (p) => paddingParams(p),
-  constantpad1d: (p) => paddingParams(p),
-
-  // normalization layers
-  localresponsenorm: (p) => localresponsenorm(p),
-  batchnorm1d: (p) => normalizationParams(p),
-  batchnorm2d: (p) => normalizationParams(p),
-  batchnorm3d: (p) => normalizationParams(p),
-  instancenorm1d: (p) => normalizationParams(p),
-  instancenorm2d: (p) => normalizationParams(p),
-  instancenorm3d: (p) => normalizationParams(p),
-  lazybatchnorm1d: (p) => normalizationParams(p),
-  lazybatchnorm2d: (p) => normalizationParams(p),
-  lazybatchnorm3d: (p) => normalizationParams(p),
-  syncbatchnorm: (p) => normalizationParams(p),
-
-  // dropout layers
-  dropout: (p) => ({ p: Number(p.p) || 0.5 }),
-  dropout2d: (p) => ({ p: Number(p.p) || 0.5 }),
-  dropout3d: (p) => ({ p: Number(p.p) || 0.5 }),
-
-
-
-};
-
-const linearParams = (p: any) => ({
-  in_features: Number(p.in_features) || null,
-  out_features: Number(p.out_features) || null,
-});
-
-const convParams = (p: any) => ({
-  in_channels: Number(p.in_channels) || null,
-  out_channels: Number(p.out_channels) || null,
-  kernel_size: Number(p.kernel_size) || null,
-  stride: Number(p.stride) || 1,
-  padding: Number(p.padding) || 0,
-  output_padding: Number(p.output_padding) || 0,
-  dilation: Number(p.dilation) || 1,
-  groups: Number(p.groups) || 1,
-  bias: Boolean(p.bias) || true,
-  padding_mode: p.padding_mode || "zeros",
-});
-
-const poolParams = (p: any) => ({
-  kernel_size: Number(p.kernel_size) || null,
-  stride: Number(p.stride) || null,
-  padding: Number(p.padding) || 0,
-  dilation: Number(p.dilation) || 1,
-  return_indices: Boolean(p.return_indices) || false,
-  ceil_mode: Boolean(p.ceil_mode) || false,
-}); 
-
-const paddingParams = (p: any) => ({
-  in_channels: Number(p.in_channels) || null,
-  out_channels: Number(p.out_channels) || null,
-  padding: p.padding || null,
-});
-
-const normalizationParams = (p: any) => ({
-  num_features: Number(p.num_features) || null,
-  eps: Number(p.eps) || 1e-5,
-  momentum: Number(p.momentum) || 0.1,
-  affine: Boolean(p.affine) || true,
-  track_running_stats: Boolean(p.track_running_stats) || true,
-  process_group: p.process_group || null,
-});
-
-const localresponsenorm = (p: any) => ({
-  size: Number(p.size) || null,
-  alpha: Number(p.alpha) || 0.0001,
-  beta: Number(p.beta) || 0.75,
-  k: Number(p.k) || 1.0,
-});
