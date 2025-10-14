@@ -46,7 +46,7 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: P
         data: {
           label: `${chosenActivator.type}: ${newLabel || `Activator ${nodes.length + 1}`}`,
           operationType: "Activator",
-          activatorType: chosenActivator.type,
+          type: chosenActivator.type,
           parameters: chosenActivator.parameters
         },
       },

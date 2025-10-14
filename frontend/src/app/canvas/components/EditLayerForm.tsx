@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
@@ -9,23 +8,30 @@ import Button from "@mui/material/Button";
 
 // Define the props expected by the LayerForm component
 interface Props {
-    // nodes: an array representing the current layers/nodes in the canvas
-    nodes: any[];
-    // setNodes: a function to update the nodes array in the parent component
-    setNodes: (val: any) => void;
     // shows the selected nodes at a given time
     selectedNodes: any[];
+    // the defaultnodes available,
+    defaultLayers: any[];
+    defaultActivators: any[];
+    defaultTensorOps: any[];
     // allows the update of Label
     updateNodeLabel: (targetID: any, val: any) => void;
     // allows the update of layerType
-    updateNodeLayerType: (targetID: any, val: any) => void;
+    updateNodeType: (targetID: any, valA: any, valB: any) => void;
+    // allows for the update of operationType
+    updateNodeOperationType: (targetID: any, val: any) => void;
+    // allows for the update of node paramters
+    updateNodeParameter: (targetID: any, valA: any, valB: any) => void;
+    // allows for the deletion of the selectedNode
+    deleteNode: (targetID: any) => void;
 }
 
 // The LayerForm component allows users to add a new layer to the canvas
-export default function EditLayerForm({ nodes, setNodes, selectedNodes, updateNodeLabel, updateNodeLayerType }: Props) {
+export default function EditLayerForm({selectedNodes, defaultActivators, defaultTensorOps, defaultLayers, updateNodeLabel, updateNodeType, updateNodeOperationType, updateNodeParameter , deleteNode}: Props) {
 
-    // if (selectedNodes[0] != null) {console.log(selectedNodes[0].data.label)}
-    // Render the form UI for adding a new layer
+    const deleteNodeLocal = () => {
+        deleteNode(selectedNodes[0].id)
+    }
     return (
         selectedNodes[0] != null && (
             <Box sx={{ p: 2 }}>
@@ -42,22 +48,63 @@ export default function EditLayerForm({ nodes, setNodes, selectedNodes, updateNo
                     size="small"
                     sx={{ mb: 2 }}
                 />
-                {/* Dropdown to select the layer type */}
                 <TextField
                     select
-                    label="Layer Type"
-                    value={selectedNodes[0].data.layerType}
-                    onChange={(e) => {updateNodeLayerType(selectedNodes[0].id, e.target.value)}}
+                    label="Operation Type"
+                    value={selectedNodes[0].data.operationType}
+                    onChange={(e) => {updateNodeOperationType(selectedNodes[0].id, e.target.value)}}
                     fullWidth
                     size="small"
                     sx={{ mb: 2 }}
-                >
-                    <MenuItem value="Linear">Linear</MenuItem>
-                    <MenuItem value="Convolutional">Convolutional</MenuItem>
-                    <MenuItem value="Flatten">Flatten</MenuItem>
+                >   
+                        <MenuItem key={"Layer"} value={"Layer"}>{"Layer"}</MenuItem>
+                        <MenuItem key={"TensorOp"} value={"TensorOp"}>{"Tensor Operation"}</MenuItem>
+                        <MenuItem key={"Activator"} value={"Activator"}>{"Activator"}</MenuItem>
                 </TextField>
 
-                {/** TODO: make custom param setters */}
+                <TextField
+                    select
+                    label={
+                        selectedNodes[0].data.operationType === "Layer" ? "Layer Type" : 
+                        selectedNodes[0].data.operationType === "TensorOp" ? "Tensor Operation Type" 
+                        : "Activator Type"
+                     }
+                    value={selectedNodes[0].data.type}
+                    onChange={(e) => {updateNodeType(selectedNodes[0].id, selectedNodes[0].data.operationType, e.target.value)}}
+                    fullWidth
+                    size="small"
+                    sx={{ mb: 2 }}
+                >   
+                    {(selectedNodes[0].data.operationType === "Layer") && 
+                        defaultLayers.map((dLayer) => (
+                            <MenuItem key={dLayer.type} value={dLayer.type}>{dLayer.type}</MenuItem>
+                    ))}
+                    {(selectedNodes[0].data.operationType === "TensorOp") && 
+                        defaultTensorOps.map((dLayer) => (
+                            <MenuItem key={dLayer.type} value={dLayer.type}>{dLayer.type}</MenuItem>
+                    ))}
+                    {(selectedNodes[0].data.operationType === "Activator") && 
+                        defaultActivators.map((dLayer) => (
+                            <MenuItem key={dLayer.type} value={dLayer.type}>{dLayer.type}</MenuItem>
+                    ))}
+                </TextField>
+                
+                {   Object.keys(selectedNodes[0].data.parameters).map((parameterKey, i) => (
+                        <TextField
+                            key={i}
+                            label={parameterKey}
+                            value={selectedNodes[0].data.parameters[parameterKey]}
+                            onChange={(e) => {updateNodeParameter(selectedNodes[0].id, parameterKey, e.target.value)}}
+                            type={typeof selectedNodes[0].data.parameters[parameterKey] === "number" ? "number" : "text"}
+                            fullWidth
+                            size="small"
+                            sx={{ mb: 2 }}
+                        />
+                    ))
+                }
+                <Button variant="contained" fullWidth style={{backgroundColor: "red"}} onClick={deleteNodeLocal}>
+                    Delete
+                </Button>
             </Box>
         )
     );

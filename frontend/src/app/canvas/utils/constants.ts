@@ -7,7 +7,7 @@ export const initialNodes = [
     data: {
       label: "Linear: Node 1",
       operationType: "Layer",
-      layerType: "Linear",
+      type: "Linear",
       parameters: { in_features: "2", out_features: "1" },
     },
   },
@@ -17,7 +17,7 @@ export const initialNodes = [
     data: {
       label: "Linear: Node 2",
       operationType: "Layer",
-      layerType: "Linear",
+      type: "Linear",
       parameters: { in_features: "4", out_features: "2" },
     },
   },
@@ -27,7 +27,7 @@ export const initialNodes = [
     data: {
       label: "Linear: Node 3",
       operationType: "Layer",
-      layerType: "Linear",
+      type: "Linear",
       parameters: { in_features: "8", out_features: "4" },
     },
   },

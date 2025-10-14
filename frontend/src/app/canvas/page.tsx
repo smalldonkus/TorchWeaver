@@ -11,10 +11,10 @@ import AppBarHeader from "./components/AppBarHeader";
 import Sidebar from "./components/Sidebar";
 import Canvas from "./components/Canvas";
 import useExport from "./hooks/useExport";
-
 import defaultLayersJSON from "./utils/JsonDefaults/Layers.json"
-import defaultTensorOpsJSON from "./utils/JsonDefaults/TensorOperations.json";
-import defaultActivatorsJSON from "./utils/JsonDefaults/Activators.json";
+import defaultTensorOpsJSON from "./utils/JsonDefaults/TensorOperations.json"
+import defaultActivatorsJSON from "./utils/JsonDefaults/Activators.json"
+
 
 // Main page component for the canvas feature
 export default function CanvasPage() {
@@ -24,13 +24,11 @@ export default function CanvasPage() {
   useEffect(() => {
     setDefaultLayers(defaultLayersJSON.data);
   }, []);
-
-  const [defaultTensorOps, setDefaultTensorOps] = useState<any[]>([]);
+  const [defaultTensorOps, setDefaultTensorOps] = useState([]);
   useEffect(() => {
     setDefaultTensorOps(defaultTensorOpsJSON.data);
   }, []);
-
-  const [defaultActivators, setDefaultActivators] = useState<any[]>([]);
+  const [defaultActivators, setDefaultActivators] = useState([]);
   useEffect(() => {
     setDefaultActivators(defaultActivatorsJSON.data);
   }, []);
@@ -98,13 +96,41 @@ export default function CanvasPage() {
     )
   }
 
-  const updateNodeLayerType = (elementID, newLayerType) => {
-    setNodes(oldNodes =>
-      oldNodes.map(e => e.id == elementID ? {...e, data: {...e.data, layerType: newLayerType}} : e)
+  const updateNodeType = (elementID, operationType, newtype) => {
+    const newDefault = 
+      operationType === "Layer" ? defaultLayers.find(e => newtype == e.type) :
+      operationType === "TensorOp" ? defaultTensorOps.find(e => newtype == e.type) :
+      operationType === "Activator" ? defaultActivators.find(e => newtype == e.type) : null;
+      setNodes(oldNodes =>
+      oldNodes.map(e => e.id == elementID ? {...e, data: {...e.data, type: newtype, parameters : newDefault.parameters}} : e)
     )
     setSelectedNodes(oldNodes =>
-      oldNodes.map(e => e.id == elementID ? {...e, data: {...e.data, layerType: newLayerType}} : e)
+      oldNodes.map(e => e.id == elementID ? {...e, data: {...e.data, type: newtype, parameters : newDefault.parameters}} : e)
     )
+  }
+
+  const updateNodeOperationType = (elementID, newOperationType) => {
+    const newDefault = 
+      newOperationType === "Layer" ? defaultLayers[0] :
+      newOperationType === "TensorOp" ? defaultTensorOps[0] :
+      newOperationType === "Activator" ? defaultActivators[0] : null;
+    setNodes(oldNodes =>
+      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, type: newDefault.type, 
+        operationType: newOperationType, parameters: newDefault.parameters}} : e)
+    );
+    setSelectedNodes(oldNodes =>
+      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, type: newDefault.type, 
+        operationType: newOperationType, parameters: newDefault.parameters}} : e)
+    );
+  }
+
+  const deleteNode = (elementID) => {
+    setNodes(oldNodes =>
+      oldNodes.filter((e) => e.id != elementID)
+    );
+    setSelectedNodes(oldNodes =>
+      oldNodes.filter((e) => e.id != elementID)
+    );
   }
 
   // Custom hook to handle exporting the current canvas state
@@ -127,7 +153,10 @@ export default function CanvasPage() {
         handleExport={handleExport}
         selectedNodes={selectedNodes}
         updateNodeLabel={updateNodeLabel}
-        updateNodeLayerType={updateNodeLayerType}
+        updateNodeType={updateNodeType}
+        updateNodeOperationType={updateNodeOperationType}
+        updateNodeParameter={updateNodeParameter}
+        deleteNode={deleteNode}
         defaultLayers={defaultLayers}
         defaultTensorOps={defaultTensorOps}
         defaultActivators={defaultActivators}
