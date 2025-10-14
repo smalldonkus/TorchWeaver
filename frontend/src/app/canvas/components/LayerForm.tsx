@@ -56,7 +56,7 @@ export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
                 data: {
                     label: `${chosenDefault.layerType || chosenDefault.type}: ${newLabel || `Node ${nodes.length + 1}`}`,
                     operationType: "Layer",
-                    layerType: chosenDefault.type,
+                    type: chosenDefault.type,
                     parameters: chosenDefault.parameters
                 },
             },

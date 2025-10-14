@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
-import { applyNodeChanges, applyEdgeChanges, addEdge, OnSelectionChangeFunc} from "@xyflow/react";
+import { applyNodeChanges, applyEdgeChanges, addEdge, OnSelectionChangeFunc, Node, Edge} from "@xyflow/react";
 
 import { initialNodes, initialEdges } from "./utils/constants";
 import { Main, DrawerHeader } from "./utils/styled";
@@ -19,18 +19,22 @@ import defaultActivatorsJSON from "./utils/JsonDefaults/Activators.json"
 // Main page component for the canvas feature
 export default function CanvasPage() {
 
-  // DEFAULTS: TODO: move
-  const [defaultLayers, setDefaultLayers] = useState([]);
+  // Initialize default data directly to avoid multiple state updates
+  const [defaultLayers, setDefaultLayers] = useState(defaultLayersJSON.data || []);
+  const [defaultTensorOps, setDefaultTensorOps] = useState(defaultTensorOpsJSON.data || []);
+  const [defaultActivators, setDefaultActivators] = useState(defaultActivatorsJSON.data || []);
+
+  // Single useEffect to ensure all default data is loaded consistently
   useEffect(() => {
-    setDefaultLayers(defaultLayersJSON.data);
-  }, []);
-  const [defaultTensorOps, setDefaultTensorOps] = useState([]);
-  useEffect(() => {
-    setDefaultTensorOps(defaultTensorOpsJSON.data);
-  }, []);
-  const [defaultActivators, setDefaultActivators] = useState([]);
-  useEffect(() => {
-    setDefaultActivators(defaultActivatorsJSON.data);
+    if (defaultLayersJSON.data && defaultLayersJSON.data.length > 0) {
+      setDefaultLayers(defaultLayersJSON.data);
+    }
+    if (defaultTensorOpsJSON.data && defaultTensorOpsJSON.data.length > 0) {
+      setDefaultTensorOps(defaultTensorOpsJSON.data);
+    }
+    if (defaultActivatorsJSON.data && defaultActivatorsJSON.data.length > 0) {
+      setDefaultActivators(defaultActivatorsJSON.data);
+    }
   }, []);
 
   // const [defaultLayers, setDefaultLayers] = useState([]);
@@ -78,58 +82,64 @@ export default function CanvasPage() {
     },[]
   );
 
-  const updateNodeParameter = (elementID, parameterKey, parameterValue) => {
-    setNodes(oldNodes =>
-      oldNodes.map(e => e.id == elementID ? {...e, data: {...e.data, parameters : {...e.data.parameters, [parameterKey] : parameterValue}}} : e)
+  const updateNodeParameter = (elementID: string, parameterKey: string, parameterValue: any) => {
+    setNodes((oldNodes: any[]) =>
+      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, parameters : {...(e.data.parameters || {}), [parameterKey] : parameterValue}}} : e)
     )
-    setSelectedNodes(oldNodes =>
-      oldNodes.map(e => e.id == elementID ? {...e, data: {...e.data, parameters : {...e.data.parameters, [parameterKey] : parameterValue}}} : e)
-    )
-  }
-
-  const updateNodeLabel = (elementID, newLabel) => {
-    setNodes(oldNodes =>
-      oldNodes.map(e => e.id == elementID ? {...e, data: {...e.data, label: newLabel}} : e)
-    )
-    setSelectedNodes(oldNodes =>
-      oldNodes.map(e => e.id == elementID ? {...e, data: {...e.data, label: newLabel}} : e)
+    setSelectedNodes((oldNodes: any[]) =>
+      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, parameters : {...(e.data.parameters || {}), [parameterKey] : parameterValue}}} : e)
     )
   }
 
-  const updateNodeType = (elementID, operationType, newtype) => {
+  const updateNodeLabel = (elementID: string, newLabel: string) => {
+    setNodes((oldNodes: any[]) =>
+      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, label: newLabel}} : e)
+    )
+    setSelectedNodes((oldNodes: any[]) =>
+      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, label: newLabel}} : e)
+    )
+  }
+
+  const updateNodeType = (elementID: string, operationType: string, newtype: string) => {
     const newDefault = 
-      operationType === "Layer" ? defaultLayers.find(e => newtype == e.type) :
-      operationType === "TensorOp" ? defaultTensorOps.find(e => newtype == e.type) :
-      operationType === "Activator" ? defaultActivators.find(e => newtype == e.type) : null;
-      setNodes(oldNodes =>
-      oldNodes.map(e => e.id == elementID ? {...e, data: {...e.data, type: newtype, parameters : newDefault.parameters}} : e)
+      operationType === "Layer" ? defaultLayers.find(e => newtype === e.type) :
+      operationType === "TensorOp" ? defaultTensorOps.find(e => newtype === e.type) :
+      operationType === "Activator" ? defaultActivators.find(e => newtype === e.type) : null;
+    
+    if (!newDefault) return;
+      
+    setNodes((oldNodes: any[]) =>
+      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, type: newtype, parameters : newDefault.parameters || {}}} : e)
     )
-    setSelectedNodes(oldNodes =>
-      oldNodes.map(e => e.id == elementID ? {...e, data: {...e.data, type: newtype, parameters : newDefault.parameters}} : e)
+    setSelectedNodes((oldNodes: any[]) =>
+      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, type: newtype, parameters : newDefault.parameters || {}}} : e)
     )
   }
 
-  const updateNodeOperationType = (elementID, newOperationType) => {
+  const updateNodeOperationType = (elementID: string, newOperationType: string) => {
     const newDefault = 
       newOperationType === "Layer" ? defaultLayers[0] :
       newOperationType === "TensorOp" ? defaultTensorOps[0] :
       newOperationType === "Activator" ? defaultActivators[0] : null;
-    setNodes(oldNodes =>
+    
+    if (!newDefault) return;
+      
+    setNodes((oldNodes: any[]) =>
       oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, type: newDefault.type, 
-        operationType: newOperationType, parameters: newDefault.parameters}} : e)
+        operationType: newOperationType, parameters: newDefault.parameters || {}}} : e)
     );
-    setSelectedNodes(oldNodes =>
+    setSelectedNodes((oldNodes: any[]) =>
       oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, type: newDefault.type, 
-        operationType: newOperationType, parameters: newDefault.parameters}} : e)
+        operationType: newOperationType, parameters: newDefault.parameters || {}}} : e)
     );
   }
 
-  const deleteNode = (elementID) => {
+  const deleteNode = (elementID: string) => {
     setNodes(oldNodes =>
-      oldNodes.filter((e) => e.id != elementID)
+      oldNodes.filter((e) => e.id !== elementID)
     );
     setSelectedNodes(oldNodes =>
-      oldNodes.filter((e) => e.id != elementID)
+      oldNodes.filter((e) => e.id !== elementID)
     );
   }
 
