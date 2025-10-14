@@ -51,7 +51,9 @@ interface Props {
     handleExport: () => void; // Function to handle export action
     selectedNodes: any[]; // shows current selected Nodes
     updateNodeLabel: (targetID: any, val: any) => void; // allows the update of Label
-    updateNodeLayerType: (targetID: any, val: any) => void; // allows the update of layerType
+    updateNodeType: (targetID: any, valA: any, valB: any) => void; // allows the update of layerType
+    updateNodeOperationType: (targetID: any, val: any) => void;
+    updateNodeParameter: (targetID: any, valA: any, valB: any) => void;
     defaultLayers: any[];
     defaultTensorOps: any[];
     defaultActivators: any[];
@@ -68,7 +70,9 @@ export default function Sidebar({
     handleExport,
     selectedNodes,
     updateNodeLabel,
-    updateNodeLayerType,
+    updateNodeType,
+    updateNodeOperationType,
+    updateNodeParameter,
     defaultLayers,
     defaultTensorOps,
     defaultActivators
@@ -117,7 +121,10 @@ export default function Sidebar({
                         <ListItem key={item.text} disablePadding>
                             <ListItemButton
                                 selected={selectedMenu === item.text} // Highlight if selected
-                                onClick={() => setSelectedMenu(item.text)} // Change selected menu
+                                onClick={() => {
+                                    setSelectedMenu(item.text);
+                                    {item.text == "Edit Notes"}
+                                }} // Change selected menu
                             >
                                 <ListItemIcon>{item.icon}</ListItemIcon>
                                 <ListItemText primary={item.text} />
@@ -130,7 +137,7 @@ export default function Sidebar({
                     <LayerForm nodes={nodes} setNodes={setNodes} defaultLayers={defaultLayers}/>
                 )}
                 {selectedMenu === "Edit Nodes" && (
-                    <EditLayerForm nodes={nodes} setNodes={setNodes} selectedNodes={selectedNodes} updateNodeLabel={updateNodeLabel} updateNodeLayerType={updateNodeLayerType}/>
+                    <EditLayerForm nodes={nodes} setNodes={setNodes} selectedNodes={selectedNodes} defaultActivators={defaultActivators} defaultTensorOps={defaultTensorOps} defaultLayers={defaultLayers} updateNodeLabel={updateNodeLabel} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter}/>
                 )}
                 {/* Show TensorOpsForm only if "Tensor Operations" menu is selected */}
                 {selectedMenu === "Tensor Operations" && (

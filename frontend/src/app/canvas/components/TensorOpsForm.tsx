@@ -46,7 +46,7 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Pro
         data: {
           label: `${chosenOp.type}: ${newLabel || `TensorOp ${nodes.length + 1}`}`,
           operationType: "TensorOp",
-          opType: chosenOp.type,
+          type: chosenOp.type,
           parameters: chosenOp.parameters
         },
       },
