@@ -125,7 +125,6 @@ export default function Sidebar({
                                 selected={selectedMenu === item.text} // Highlight if selected
                                 onClick={() => {
                                     setSelectedMenu(item.text);
-                                    {item.text == "Edit Notes"}
                                 }} // Change selected menu
                             >
                                 <ListItemIcon>{item.icon}</ListItemIcon>
