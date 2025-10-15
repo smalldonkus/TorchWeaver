@@ -144,7 +144,7 @@ export default function CanvasPage() {
   }
 
   // Custom hook to handle exporting the current canvas state
-  const handleExport = useExport(nodes, edges);
+  const handleExport = useExport(nodes, edges, defaultLayers, defaultTensorOps, defaultActivators);
 
   // Render the main layout
   return (
