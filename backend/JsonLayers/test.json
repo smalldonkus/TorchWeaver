@@ -1,0 +1,240 @@
+{
+  "version": 1.0,
+  "libaries" : {
+    "torch.nn" : ["MaxPool2d", "LocalResponseNorm", "Linear", "Conv2d", "Dropout,", "ReLU"]
+  },
+  "inputs": ["input", "3x224x224"],
+  "layers": [
+    {
+      "id": "conv1",
+      "type" : "Conv2d",
+      "inputs": ["input"],
+      "outputs": ["conv1_out"],
+      "parameters" : {  
+        "in_channels": 3,
+        "out_channels": 96,
+        "kernel_size": 11,
+        "stride": 4,
+        "padding": 2,
+        "bias": true
+      }
+    },
+    {
+      "id": "relu1",
+      "type": "ReLU",
+      "inputs": ["conv1_out"],
+      "outputs": ["relu1_out"],
+      "parameters" : {}
+    },
+    {
+      "id": "lrn1",
+      "type": "LocalResponseNorm",
+      "inputs": ["relu1_out"],
+      "outputs": ["lrn1_out"],
+      "parameters" : {
+        "size": 5,
+        "alpha": 1e-4,
+        "beta": 0.75,
+        "k": 2.0
+      }
+    },
+    {
+      "id": "pool1",
+      "type": "MaxPool2d",
+      "inputs": ["lrn1_out"],
+      "outputs": ["pool1_out"],
+      "parameters" : {
+        "kernel_size": 3,
+        "stride": 2
+      }
+    },
+    {
+      "id": "conv2",
+      "type": "Conv2d",
+      "inputs": ["pool1_out"],
+      "outputs": ["conv2_out"],
+      "parameters" : {
+        "in_channels": 96,
+        "out_channels": 256,
+        "kernel_size": 5,
+        "stride": 1,
+        "padding": 2,
+        "bias": true
+      }
+    },
+    {
+      "id": "relu2",
+      "type": "ReLU",
+      "inputs": ["conv2_out"],
+      "outputs": ["relu2_out"]
+    },
+    {
+      "id": "lrn2",
+      "type": "LocalResponseNorm",
+      "inputs": ["relu2_out"],
+      "outputs": ["lrn2_out"],
+      "parameters" : {
+        "size": 5,
+        "alpha": 1e-4,
+        "beta": 0.75,
+        "k": 2.0
+      }
+    },
+    {
+      "id": "pool2",
+      "type": "MaxPool2d",
+      "inputs": ["lrn2_out"],
+      "outputs": ["pool2_out"],
+      "parameters" : {
+        "kernel_size": 3,
+        "stride": 2
+      }
+    },
+    {
+      "id": "conv3",
+      "type": "Conv2d",
+      "inputs": ["pool2_out"],
+      "outputs": ["conv3_out"],
+      "parameters" : {
+        "in_channels": 256,
+        "out_channels": 384,
+        "kernel_size": 3,
+        "stride": 1,
+        "padding": 1,
+        "bias": true
+      }
+    },
+    {
+      "id": "relu3",
+      "type": "ReLU",
+      "inputs": ["conv3_out"],
+      "outputs": ["relu3_out"],
+      "parameters" : {}
+    },
+    {
+      "id": "conv4",
+      "type": "Conv2d",
+      "inputs": ["relu3_out"],
+      "outputs": ["conv4_out"],
+      "parameters" : {
+        "in_channels": 384,
+        "out_channels": 384,
+        "kernel_size": 3,
+        "stride": 1,
+        "padding": 1,
+        "bias": true
+      }
+    },
+    {
+      "id": "relu4",
+      "type": "ReLU",
+      "inputs": ["conv4_out"],
+      "outputs": ["relu4_out"],
+      "parameters" : {}
+    },
+    {
+      "id": "conv5",
+      "type": "Conv2d",
+      "inputs": ["relu4_out"],
+      "outputs": ["conv5_out"],
+      "parameters" : {
+        "in_channels": 384,
+        "out_channels": 256,
+        "kernel_size": 3,
+        "stride": 1,
+        "padding": 1,
+        "bias": true
+      }
+    },
+    {
+      "id": "relu5",
+      "type": "ReLU",
+      "inputs": ["conv5_out"],
+      "outputs": ["relu5_out"],
+      "parameters" : {}
+    },
+    {
+      "id": "pool5",
+      "type": "MaxPool2d",
+      "inputs": ["relu5_out"],
+      "outputs": ["pool5_out"],
+      "parameters" : {
+        "kernel_size": 3,
+        "stride": 2
+      }
+    },
+    {
+      "id": "flatten",
+      "type": "flatten",
+      "inputs": ["pool5_out"],
+      "outputs": ["flat_out"],
+      "parameters" : {}
+    },
+    {
+      "id": "dropout1",
+      "type": "Dropout",
+      "inputs": ["flat_out"],
+      "outputs": ["drop1_out"],
+      "parameters" : {
+        "p": 0.5
+      }
+    },
+    {
+      "id": "fc1",
+      "type": "Linear",
+      "inputs": ["drop1_out"],
+      "outputs": ["fc1_out"],
+      "parameters" : {
+        "in_features": 9216,
+        "out_features": 4096,
+        "bias": true
+      }
+    },
+    {
+      "id": "relu6",
+      "type": "ReLU",
+      "inputs": ["fc1_out"],
+      "outputs": ["relu6_out"],
+      "parameters" : {}
+    },
+    {
+      "id": "dropout2",
+      "type": "Dropout",
+      "inputs": ["relu6_out"],
+      "outputs": ["drop2_out"],
+      "parameters" : {
+        "p": 0.5
+      }
+    },
+    {
+      "id": "fc2",
+      "type": "Linear",
+      "inputs": ["drop2_out"],
+      "outputs": ["fc2_out"],
+      "parameters" : {
+        "in_features": 4096,
+        "out_features": 4096,
+        "bias": true
+      }
+    },
+    {
+      "id": "relu7",
+      "type": "ReLU",
+      "inputs": ["fc2_out"],
+      "outputs": ["relu7_out"],
+      "parameters" : {}
+    },
+    {
+      "id": "fc3",
+      "type": "Linear",
+      "inputs": ["relu7_out"],
+      "outputs": ["fc3_out"],
+      "parameters" : {
+        "in_features": 4096,
+        "out_features": 1000,
+        "bias": true
+      }
+    }
+  ],
+  "outputs": ["fc3_out"]
+}
