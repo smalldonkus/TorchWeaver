@@ -164,16 +164,16 @@
       }
     },
     {
-      "id": "flatten",
-      "type": "flatten",
+      "id": "flatten1",
+      "type": "Flatten",
       "inputs": ["pool5_out"],
-      "outputs": ["flat_out"],
+      "outputs": ["flatten1_out"],
       "parameters" : {}
     },
     {
       "id": "dropout1",
       "type": "Dropout",
-      "inputs": ["flat_out"],
+      "inputs": ["flatten1_out"],
       "outputs": ["drop1_out"],
       "parameters" : {
         "p": 0.5

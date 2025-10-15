@@ -1,5 +1,5 @@
 export default function useExport(nodes: any[], edges: any[], defaultLayers: any[] = [], defaultTensorOps: any[] = [], defaultActivators: any[] = []) {
-  return () => {
+  return async () => {
     // Build adjacency maps for traversal
     const outgoingEdges: Record<string, string[]> = {};
     const incomingEdges: Record<string, string[]> = {};
@@ -108,14 +108,51 @@ export default function useExport(nodes: any[], edges: any[], defaultLayers: any
       outputs: outputs
     };
 
-    const json = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "model.json";
-    link.click();
-    URL.revokeObjectURL(url);
+    // Send JSON to backend API for Python conversion
+    try {
+      const response = await fetch('http://localhost:5000/convert-json-to-python', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(exportData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // Download the Python code
+        const blob = new Blob([result.python_code], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "model.py";
+        link.click();
+        URL.revokeObjectURL(url);
+        
+        alert("Python code generated successfully!");
+      } else {
+        alert(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error converting JSON to Python:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert(`Failed to convert JSON to Python: ${errorMessage}`);
+      
+      // Fallback: download JSON if API fails
+      const json = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "model.json";
+      link.click();
+      URL.revokeObjectURL(url);
+    }
   };
 }
 

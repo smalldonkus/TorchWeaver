@@ -57,7 +57,7 @@
         },
         {   
             "library" : "torch.nn",
-            "type": "flatten",
+            "type": "Flatten",
             "maxInputs" : 1,
             "minInputs" : 1,
             "parameters" : {}
