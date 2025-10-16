@@ -6,6 +6,7 @@ import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
+import { generateUniqueNodeId } from "../utils/idGenerator";
 
 interface Props {
   nodes: any[];
@@ -31,7 +32,7 @@ export default function InputForm({ nodes, setNodes }: Props) {
   };
 
   const addInput = () => {
-    const newId = `input${nodes.length + 1}`;
+    const newId = generateUniqueNodeId("input", nodes);
     setNodes([
       ...nodes,
       {

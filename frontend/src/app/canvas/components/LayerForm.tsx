@@ -7,6 +7,7 @@ import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
+import { generateUniqueNodeId } from "../utils/idGenerator";
 
 // Define the props that this component expects
 interface Props {
@@ -47,7 +48,7 @@ export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
 
     // Add a new layer node to the list
     const addLayer = () => {
-        const newId = `n${nodes.length + 1}`; // Generate a new id
+        const newId = generateUniqueNodeId("n", nodes); // Generate a unique id
         setNodes([
             ...nodes,
             {

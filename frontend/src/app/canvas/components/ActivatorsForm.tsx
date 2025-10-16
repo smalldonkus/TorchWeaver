@@ -6,6 +6,7 @@ import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
+import { generateUniqueNodeId } from "../utils/idGenerator";
 
 interface Props {
   nodes: any[];
@@ -37,7 +38,7 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: P
   };
 
   const addActivator = () => {
-    const newId = `activator${nodes.length + 1}`;
+    const newId = generateUniqueNodeId("activator", nodes);
     setNodes([
       ...nodes,
       {

@@ -37,7 +37,7 @@ export const drawerWidth = 240;
 
 // AlexNet predefined network
 export const initialNodes = [
-  // Input node
+  //Input node
   {
     id: "input",
     position: { x: 100, y: 50 },
