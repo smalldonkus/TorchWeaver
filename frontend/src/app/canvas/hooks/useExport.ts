@@ -55,48 +55,168 @@ export default function useExport(nodes: any[], edges: any[], defaultLayers: any
       ...defaultActivators
     ];
 
-    // Traverse the graph starting from input nodes
-    const visitedNodes = new Set<string>();
-    const orderedLayers: any[] = [];
+    // BFS with dynamic branch tracking
+interface BranchTracker {
+  branchCounter: number;
+  nodeToBranch: Record<string, string>;
+  branchInputs: Record<string, Set<string>>;
+}
+
+const createBranchTracker = (): BranchTracker => ({
+  branchCounter: 0,
+  nodeToBranch: {},
+  branchInputs: {}
+});
+
+const createNewBranch = (tracker: BranchTracker): string => {
+  tracker.branchCounter += 1;
+  return `branch_${tracker.branchCounter}`;
+};
+
+const detectConvergence = (
+  nodeInputs: string[], 
+  tracker: BranchTracker, 
+  inputNodes: any[]
+): { isConvergence: boolean; newBranch: string | null } => {
+  if (nodeInputs.length <= 1) {
+    return { isConvergence: false, newBranch: null };
+  }
+
+  // Get branches of all input nodes
+  const inputBranches = new Set<string>();
+  for (const inputRef of nodeInputs) {
+    if (inputRef === "input") continue; // Skip input tensor
     
-    // Function to traverse and build layers in order
-    const traverseFromNode = (nodeId: string) => {
-      if (visitedNodes.has(nodeId)) return;
-      
-      const node = nodes.find(n => n.id === nodeId);
-      if (!node) return;
-      
-      visitedNodes.add(nodeId);
-      
-      // Skip input nodes in the layers array (they're handled in inputs)
-      if (node.data.operationType !== "Input") {
-        // Build layer object
-        const layer = buildLayerFromNode(node, incomingEdges, inputNodes, allDefaults, nodes);
-        orderedLayers.push(layer);
+    // Find the source node from inputNodes or regular nodes
+    const sourceNode = inputNodes.find(n => {
+      const inputLabel = n.data.label || n.id;
+      const inputName = inputLabel.replace("Input: ", "").trim() || "input";
+      return inputName === inputRef;
+    }) || nodes.find(n => `${n.id}_out` === inputRef);
+    
+    if (sourceNode) {
+      const branch = tracker.nodeToBranch[sourceNode.id];
+      if (branch) {
+        inputBranches.add(branch);
       }
-      
-      // Continue traversing to connected nodes
-      const connectedNodes = outgoingEdges[nodeId] || [];
-      connectedNodes.forEach(targetNodeId => {
-        traverseFromNode(targetNodeId);
-      });
-    };
+    }
+  }
 
-    // Start traversal from each input node
-    inputNodes.forEach(inputNode => {
-      traverseFromNode(inputNode.id);
-    });
+  // If inputs come from multiple branches, this is a convergence point
+  if (inputBranches.size > 1) {
+    const newBranch = createNewBranch(tracker);
+    tracker.branchInputs[newBranch] = new Set(inputBranches);
+    console.log(`Convergence detected: branches [${Array.from(inputBranches).join(', ')}] -> ${newBranch}`);
+    return { isConvergence: true, newBranch };
+  }
 
-    // Find output nodes (nodes with no outgoing connections, excluding inputs)
-    const layerNodes = nodes.filter(node => node.data.operationType !== "Input");
-    const outputNodes = layerNodes.filter(node => 
-      !outgoingEdges[node.id] || outgoingEdges[node.id].length === 0
-    );
-    
-    const outputs = outputNodes.map(node => `${node.id}_out`);
+  return { isConvergence: false, newBranch: null };
+};
 
-    // Get unique library types used from the defaults
-    const usedTypes = [...new Set(orderedLayers.map(layer => layer.type))];
+// BFS traversal with branch tracking
+const branchTracker = createBranchTracker();
+const layerNodes = nodes.filter(node => node.data.operationType !== "Input");
+
+// Build in-degree count for topological sort
+const inDegree: Record<string, number> = {};
+layerNodes.forEach(node => {
+  inDegree[node.id] = (incomingEdges[node.id] || []).length;
+});
+
+// Initialize queue with nodes that have no dependencies or only depend on input
+const queue: string[] = [];
+layerNodes.forEach(node => {
+  const deps = incomingEdges[node.id] || [];
+  const nonInputDeps = deps.filter(dep => 
+    !inputNodes.some(inp => inp.id === dep)
+  );
+  if (nonInputDeps.length === 0) {
+    queue.push(node.id);
+  }
+});
+
+const orderedLayers: any[] = [];
+const processedNodes = new Set<string>();
+
+while (queue.length > 0) {
+  const currentId = queue.shift()!;
+  if (processedNodes.has(currentId)) continue;
+
+  const currentNode = nodes.find(n => n.id === currentId);
+  if (!currentNode) continue;
+
+  // Get node inputs for branch detection
+  const nodeInputs = (incomingEdges[currentId] || []).map(sourceId => {
+    // Check if source is an input node
+    const inputNode = inputNodes.find(inp => inp.id === sourceId);
+    if (inputNode) {
+      const inputLabel = inputNode.data.label || inputNode.id;
+      return inputLabel.replace("Input: ", "").trim() || "input";
+    }
+    // Otherwise it's a regular node output
+    return `${sourceId}_out`;
+  });
+
+  // Detect convergence and assign branch
+  const { isConvergence, newBranch } = detectConvergence(nodeInputs, branchTracker, inputNodes);
+  
+  if (isConvergence && newBranch) {
+    // This node represents a convergence - assign to new branch
+    branchTracker.nodeToBranch[currentId] = newBranch;
+  } else {
+    // Assign to same branch as first input (if any)
+    if (nodeInputs.length > 0 && nodeInputs[0] !== "input") {
+      // Find the source node
+      const firstInputRef = nodeInputs[0];
+      const sourceNode = nodes.find(n => `${n.id}_out` === firstInputRef);
+      if (sourceNode) {
+        const inputBranch = branchTracker.nodeToBranch[sourceNode.id];
+        if (inputBranch) {
+          branchTracker.nodeToBranch[currentId] = inputBranch;
+        } else {
+          // First node in a new branch
+          const newBranch = createNewBranch(branchTracker);
+          branchTracker.nodeToBranch[currentId] = newBranch;
+        }
+      } else {
+        // Direct connection to input - create new branch
+        const newBranch = createNewBranch(branchTracker);
+        branchTracker.nodeToBranch[currentId] = newBranch;
+      }
+    } else {
+      // Node directly connected to input or no inputs - create new branch
+      const newBranch = createNewBranch(branchTracker);
+      branchTracker.nodeToBranch[currentId] = newBranch;
+    }
+  }
+
+  // Build layer object and add branch info
+  const layer = buildLayerFromNode(currentNode, incomingEdges, inputNodes, allDefaults, nodes) as any;
+  layer.branch = branchTracker.nodeToBranch[currentId];
+  layer.operation_type = currentNode.data.operationType === "TensorOp" ? "tensor_op" : "layer";
+  orderedLayers.push(layer);
+  
+  processedNodes.add(currentId);
+
+  // Add dependent nodes to queue
+  const dependents = outgoingEdges[currentId] || [];
+  dependents.forEach(depId => {
+    inDegree[depId] -= 1;
+    if (inDegree[depId] === 0) {
+      queue.push(depId);
+    }
+  });
+}
+
+// Find output nodes (nodes with no outgoing connections, excluding inputs)
+const outputNodes = layerNodes.filter(node => 
+  !outgoingEdges[node.id] || outgoingEdges[node.id].length === 0
+);
+
+const outputs = outputNodes.map(node => `${node.id}_out`);
+
+// Get unique library types used from the defaults
+const usedTypes = [...new Set(orderedLayers.map(layer => layer.type))];
     
     const exportData = {
       version: 1.0,
@@ -104,9 +224,17 @@ export default function useExport(nodes: any[], edges: any[], defaultLayers: any
         "torch.nn": usedTypes
       },
       inputs: inputs,
-      layers: orderedLayers,
+      nodes: orderedLayers,  // Changed from "layers" to "nodes" for BFS compatibility
       outputs: outputs
     };
+
+    // DEBUG: Show the generated JSON structure
+    console.log("=== GENERATED JSON STRUCTURE ===");
+    console.log(JSON.stringify(exportData, null, 2));
+    console.log("=== END DEBUG ===");
+    
+    // Uncomment this line to see the JSON in an alert popup
+    // alert("Generated JSON (check console for full structure):\n" + JSON.stringify(exportData, null, 2).substring(0, 500) + "...");
 
     // Send JSON to backend API for Python conversion
     try {

@@ -1,0 +1,25 @@
+{
+  "data": [
+    {
+      "library": "torch.nn",
+      "type": "ReLU",
+      "maxInputs": 1,
+      "minInputs": 1,
+      "parameters": {}
+    },
+    {
+      "library": "torch.nn",
+      "type": "Sigmoid",
+      "maxInputs": 1,
+      "minInputs": 1,
+      "parameters": {}
+    },
+    {
+      "library": "torch.nn",
+      "type": "Tanh",
+      "maxInputs": 1,
+      "minInputs": 1,
+      "parameters": {}
+    }
+  ]
+}

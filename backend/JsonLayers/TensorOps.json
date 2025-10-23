@@ -1,0 +1,72 @@
+{
+  "data": [
+    {
+      "library": "torch",
+      "type": "cat",
+      "maxInputs": -1,
+      "minInputs": 2,
+      "parameters": {
+        "dim": 1
+      },
+      "codeGeneration": {
+        "inputFormat": "tuple"
+      }
+    },
+    {
+      "library": "torch", 
+      "type": "stack",
+      "maxInputs": -1,
+      "minInputs": 2,
+      "parameters": {
+        "dim": 0
+      },
+      "codeGeneration": {
+        "inputFormat": "tuple"
+      }
+    },
+    {
+      "library": "torch",
+      "type": "add",
+      "maxInputs": 2,
+      "minInputs": 2,
+      "parameters": {
+        "alpha": 1
+      },
+      "codeGeneration": {
+        "inputFormat": "separate"
+      }
+    },
+    {
+      "library": "torch",
+      "type": "mul",
+      "maxInputs": 2,
+      "minInputs": 2,
+      "parameters": {},
+      "codeGeneration": {
+        "inputFormat": "separate"
+      }
+    },
+    {
+      "library": "torch",
+      "type": "sub",
+      "maxInputs": 2,
+      "minInputs": 2,
+      "parameters": {
+        "alpha": 1
+      },
+      "codeGeneration": {
+        "inputFormat": "separate"
+      }
+    },
+    {
+      "library": "torch",
+      "type": "div",
+      "maxInputs": 2,
+      "minInputs": 2,
+      "parameters": {},
+      "codeGeneration": {
+        "inputFormat": "separate"
+      }
+    }
+  ]
+}

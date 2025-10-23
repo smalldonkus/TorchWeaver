@@ -1,0 +1,142 @@
+{
+  "inputs": ["input", "3x32x32"],
+  "nodes": [
+    {
+      "id": "conv1a",
+      "type": "Conv2d",
+      "operation_type": "layer",
+      "branch": "branch_1",
+      "position": { "x": 100, "y": 100 },
+      "inputs": ["input"],
+      "outputs": ["conv1a_out"],
+      "parameters": {
+        "in_channels": 3,
+        "out_channels": 16,
+        "kernel_size": 3,
+        "padding": 1
+      }
+    },
+    {
+      "id": "conv2a",
+      "type": "Conv2d",
+      "operation_type": "layer",
+      "branch": "branch_2",
+      "position": { "x": 100, "y": 300 },
+      "inputs": ["input"],
+      "outputs": ["conv2a_out"],
+      "parameters": {
+        "in_channels": 3,
+        "out_channels": 32,
+        "kernel_size": 5,
+        "padding": 2
+      }
+    },
+    {
+      "id": "relu1a",
+      "type": "ReLU",
+      "operation_type": "layer",
+      "branch": "branch_1",
+      "position": { "x": 250, "y": 100 },
+      "inputs": ["conv1a_out"],
+      "outputs": ["relu1a_out"],
+      "parameters": {}
+    },
+    {
+      "id": "relu2a",
+      "type": "ReLU",
+      "operation_type": "layer",
+      "branch": "branch_2",
+      "position": { "x": 250, "y": 300 },
+      "inputs": ["conv2a_out"],
+      "outputs": ["relu2a_out"],
+      "parameters": {}
+    },
+    {
+      "id": "pool1a",
+      "type": "MaxPool2d",
+      "operation_type": "layer",
+      "branch": "branch_1",
+      "position": { "x": 400, "y": 100 },
+      "inputs": ["relu1a_out"],
+      "outputs": ["pool1a_out"],
+      "parameters": {
+        "kernel_size": 2
+      }
+    },
+    {
+      "id": "pool2a",
+      "type": "MaxPool2d",
+      "operation_type": "layer",
+      "branch": "branch_2",
+      "position": { "x": 400, "y": 300 },
+      "inputs": ["relu2a_out"],
+      "outputs": ["pool2a_out"],
+      "parameters": {
+        "kernel_size": 2
+      }
+    },
+    {
+      "id": "concat_op",
+      "type": "cat",
+      "operation_type": "tensor_op",
+      "branch": "branch_3",
+      "position": { "x": 550, "y": 200 },
+      "inputs": ["pool1a_out", "pool2a_out"],
+      "outputs": ["concat_out"],
+      "parameters": {
+        "dim": 1
+      }
+    },
+    {
+      "id": "combined_conv",
+      "type": "Conv2d",
+      "operation_type": "layer",
+      "branch": "branch_3",
+      "position": { "x": 700, "y": 200 },
+      "inputs": ["concat_out"],
+      "outputs": ["combined_conv_out"],
+      "parameters": {
+        "in_channels": 48,
+        "out_channels": 64,
+        "kernel_size": 3,
+        "padding": 1
+      }
+    },
+    {
+      "id": "relu_combined",
+      "type": "ReLU",
+      "operation_type": "layer",
+      "branch": "branch_3",
+      "position": { "x": 850, "y": 200 },
+      "inputs": ["combined_conv_out"],
+      "outputs": ["relu_combined_out"],
+      "parameters": {}
+    },
+    {
+      "id": "flatten",
+      "type": "Flatten",
+      "operation_type": "layer",
+      "branch": "branch_3",
+      "position": { "x": 1000, "y": 200 },
+      "inputs": ["relu_combined_out"],
+      "outputs": ["flattened_out"],
+      "parameters": {
+        "start_dim": 1
+      }
+    },
+    {
+      "id": "fc",
+      "type": "Linear",
+      "operation_type": "layer",
+      "branch": "branch_3",
+      "position": { "x": 1150, "y": 200 },
+      "inputs": ["flattened_out"],
+      "outputs": ["fc_out"],
+      "parameters": {
+        "in_features": 16384,
+        "out_features": 10
+      }
+    }
+  ],
+  "outputs": ["fc_out"]
+}
