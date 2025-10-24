@@ -19,7 +19,6 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: P
     return <div>Loading activators...</div>;
   }
 
-  const [newLabel, setNewLabel] = useState("");
   const [chosenActivator, setChosenActivator] = useState(defaultActivators[0]);
 
   useEffect(() => {
@@ -45,14 +44,14 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: P
         id: newId,
         position: { x: 300, y: 100 + nodes.length * 60 },
         data: {
-          label: `${chosenActivator.type}: ${newLabel || `Activator ${nodes.length + 1}`}`,
+          label: chosenActivator.type,
           operationType: "Activator",
           type: chosenActivator.type,
           parameters: chosenActivator.parameters
         },
       },
     ]);
-    setNewLabel("");
+    setChosenActivator(defaultActivators[0]);
     setChosenActivator(defaultActivators[0]);
   };
 
@@ -61,14 +60,6 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: P
       <Typography variant="subtitle1" sx={{ mb: 2 }}>
         Add Activator
       </Typography>
-      <TextField
-        label="Activator label"
-        value={newLabel}
-        onChange={e => setNewLabel(e.target.value)}
-        fullWidth
-        size="small"
-        sx={{ mb: 2 }}
-      />
       <TextField
         select
         label="Activator Type"

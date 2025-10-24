@@ -50,7 +50,6 @@ interface Props {
     setNodes: (val: any) => void; // Function to update nodes
     handleExport: () => void; // Function to handle export action
     selectedNodes: any[]; // shows current selected Nodes
-    updateNodeLabel: (targetID: any, val: any) => void; // allows the update of Label
     updateNodeType: (targetID: any, valA: any, valB: any) => void; // allows the update of layerType
     updateNodeOperationType: (targetID: any, val: any) => void;
     updateNodeParameter: (targetID: any, valA: any, valB: any) => void;
@@ -70,7 +69,6 @@ export default function Sidebar({
     setNodes,
     handleExport,
     selectedNodes,
-    updateNodeLabel,
     updateNodeType,
     updateNodeOperationType,
     updateNodeParameter,
@@ -138,7 +136,7 @@ export default function Sidebar({
                     <LayerForm nodes={nodes} setNodes={setNodes} defaultLayers={defaultLayers}/>
                 )}
                 {selectedMenu === "Edit Nodes" && (
-                    <EditLayerForm selectedNodes={selectedNodes} defaultActivators={defaultActivators} defaultTensorOps={defaultTensorOps} defaultLayers={defaultLayers} updateNodeLabel={updateNodeLabel} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter} deleteNode={deleteNode}/>
+                    <EditLayerForm selectedNodes={selectedNodes} defaultActivators={defaultActivators} defaultTensorOps={defaultTensorOps} defaultLayers={defaultLayers} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter} deleteNode={deleteNode}/>
                 )}
                 {/* Show TensorOpsForm only if "Tensor Operations" menu is selected */}
                 {selectedMenu === "Tensor Operations" && (

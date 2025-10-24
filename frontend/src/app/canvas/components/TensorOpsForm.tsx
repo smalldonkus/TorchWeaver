@@ -19,7 +19,6 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Pro
     return <div>Loading tensor operations...</div>;
   }
 
-  const [newLabel, setNewLabel] = useState("");
   const [chosenOp, setChosenOp] = useState(defaultTensorOps[0]);
 
   useEffect(() => {
@@ -45,14 +44,13 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Pro
         id: newId,
         position: { x: 200, y: 100 + nodes.length * 60 },
         data: {
-          label: `${chosenOp.type}: ${newLabel || `TensorOp ${nodes.length + 1}`}`,
+          label: chosenOp.type,
           operationType: "TensorOp",
           type: chosenOp.type,
           parameters: chosenOp.parameters
         },
       },
     ]);
-    setNewLabel("");
     setChosenOp(defaultTensorOps[0]);
   };
 
@@ -61,14 +59,6 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Pro
       <Typography variant="subtitle1" sx={{ mb: 2 }}>
         Add Tensor Operation
       </Typography>
-      <TextField
-        label="Tensor Op label"
-        value={newLabel}
-        onChange={e => setNewLabel(e.target.value)}
-        fullWidth
-        size="small"
-        sx={{ mb: 2 }}
-      />
       <TextField
         select
         label="Operation Type"

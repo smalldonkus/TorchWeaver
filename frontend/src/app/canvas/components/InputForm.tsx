@@ -14,7 +14,6 @@ interface Props {
 }
 
 export default function InputForm({ nodes, setNodes }: Props) {
-  const [label, setLabel] = useState("");
   const [shapeType, setShapeType] = useState("1D");
   const [dims, setDims] = useState<string[]>([""]);
 
@@ -39,7 +38,7 @@ export default function InputForm({ nodes, setNodes }: Props) {
         id: newId,
         position: { x: 50, y: 100 + nodes.length * 60 },
         data: {
-          label: `Input: ${label || `Input ${nodes.length + 1}`}`,
+          label: "Input",
           operationType: "Input",
           parameters: {
             shapeType,
@@ -48,7 +47,6 @@ export default function InputForm({ nodes, setNodes }: Props) {
         },
       },
     ]);
-    setLabel("");
     setShapeType("1D");
     setDims([""]);
   };
@@ -58,14 +56,6 @@ export default function InputForm({ nodes, setNodes }: Props) {
       <Typography variant="subtitle1" sx={{ mb: 2 }}>
         Add Input
       </Typography>
-      <TextField
-        label="Input label"
-        value={label}
-        onChange={e => setLabel(e.target.value)}
-        fullWidth
-        size="small"
-        sx={{ mb: 2 }}
-      />
       <TextField
         select
         label="Shape Type"

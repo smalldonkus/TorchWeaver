@@ -66,15 +66,6 @@ export default function CanvasPage() {
     )
   }
 
-  const updateNodeLabel = (elementID: string, newLabel: string) => {
-    setNodes((oldNodes: any[]) =>
-      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, label: newLabel}} : e)
-    )
-    setSelectedNodes((oldNodes: any[]) =>
-      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, label: newLabel}} : e)
-    )
-  }
-
   const updateNodeType = (elementID: string, operationType: string, newtype: string) => {
     const newDefault = 
       operationType === "Layer" ? defaultLayers.find(e => newtype === e.type) :
@@ -84,10 +75,10 @@ export default function CanvasPage() {
     if (!newDefault) return;
       
     setNodes((oldNodes: any[]) =>
-      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, type: newtype, parameters : newDefault.parameters || {}}} : e)
+      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, type: newtype, label: newtype, parameters : newDefault.parameters || {}}} : e)
     )
     setSelectedNodes((oldNodes: any[]) =>
-      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, type: newtype, parameters : newDefault.parameters || {}}} : e)
+      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, type: newtype, label: newtype, parameters : newDefault.parameters || {}}} : e)
     )
   }
 
@@ -165,7 +156,6 @@ export default function CanvasPage() {
         setNodes={setNodes}
         handleExport={handleExport}
         selectedNodes={selectedNodes}
-        updateNodeLabel={updateNodeLabel}
         updateNodeType={updateNodeType}
         updateNodeOperationType={updateNodeOperationType}
         updateNodeParameter={updateNodeParameter}

@@ -23,8 +23,6 @@ export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
         return <div>Loading layer types...</div>;
     }
 
-    // State for the new layer's label (name)
-    const [newLabel, setNewLabel] = useState("");
     // State for the currently selected default layer type
     const [chosenDefault, setChosenDefault] = useState(defaultLayers[0]);
 
@@ -55,14 +53,14 @@ export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
                 id: newId,
                 position: { x: 100, y: 100 + nodes.length * 60 }, // Position it below previous nodes
                 data: {
-                    label: `${chosenDefault.layerType || chosenDefault.type}: ${newLabel || `Node ${nodes.length + 1}`}`,
+                    label: chosenDefault.type,
                     operationType: "Layer",
                     type: chosenDefault.type,
                     parameters: chosenDefault.parameters
                 },
             },
         ]);
-        setNewLabel(""); // Reset label input
+        setChosenDefault(defaultLayers[0]); // Reset to first option
         setChosenDefault(defaultLayers[0]); // Reset to first layer type
     };
 
@@ -73,15 +71,6 @@ export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
             <Typography variant="subtitle1" sx={{ mb: 2 }}>
                 Add Layer
             </Typography>
-            {/* Input for layer label */}
-            <TextField
-                label="Layer label"
-                value={newLabel}
-                onChange={(e) => setNewLabel(e.target.value)}
-                fullWidth
-                size="small"
-                sx={{ mb: 2 }}
-            />
             {/* Dropdown to select layer type */}
             <TextField
                 select
