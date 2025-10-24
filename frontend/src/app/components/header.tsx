@@ -1,4 +1,7 @@
+'use client';
+
 import Link from "next/link"
+import AuthenticationButton from "./AuthenticationButton";
 
 export default function Header() {
     return (
@@ -6,10 +9,7 @@ export default function Header() {
             <div id="heading">
                 <h1 className="title">Torchweaver</h1>
                 <div className="toolbar">
-                    <a className="toolbarBtn" href="/auth/login">Login</a>
-                    <Link href="/login">
-                        <button className="toolbarBtn">Register</button>
-                    </Link>
+                    <AuthenticationButton />
                 </div>
             </div>
         </>
