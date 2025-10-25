@@ -22,6 +22,7 @@ export default function OutputForm({ nodes, setNodes }: Props) {
           label: "Output",
           operationType: "Output",
           parameters: {},
+          outgoing_edges_count: 0 // Initialize with 0 outgoing edges (outputs typically have 0)
         },
       },
     ]);

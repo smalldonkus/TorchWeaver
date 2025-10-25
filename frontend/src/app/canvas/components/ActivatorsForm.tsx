@@ -47,7 +47,8 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: P
           label: chosenActivator.type,
           operationType: "Activator",
           type: chosenActivator.type,
-          parameters: chosenActivator.parameters
+          parameters: chosenActivator.parameters,
+          outgoing_edges_count: 0 // Initialize with 0 outgoing edges
         },
       },
     ]);

@@ -44,6 +44,7 @@ export default function InputForm({ nodes, setNodes }: Props) {
             shapeType,
             dims: dims.map(Number),
           },
+          outgoing_edges_count: 0 // Initialize with 0 outgoing edges
         },
       },
     ]);

@@ -47,7 +47,8 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Pro
           label: chosenOp.type,
           operationType: "TensorOp",
           type: chosenOp.type,
-          parameters: chosenOp.parameters
+          parameters: chosenOp.parameters,
+          outgoing_edges_count: 0 // Initialize with 0 outgoing edges
         },
       },
     ]);

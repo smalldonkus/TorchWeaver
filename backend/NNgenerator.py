@@ -171,6 +171,7 @@ def generate_tensor_operation(node, tensor_ops_config):
     node_type = node.get("type")
     parent = node.get("parent")
     user_parameters = node.get("parameters", {})
+    outgoing_edges_count = node.get("outgoing_edges_count", 0)
     
     # Find the tensor operation configuration
     op_config = None
@@ -178,9 +179,9 @@ def generate_tensor_operation(node, tensor_ops_config):
         if config.get("type") == node_type:
             op_config = config
             break
-    
     library = op_config.get("library", "torch")
-    input_format = op_config.get("codeGeneration", {}).get("inputFormat", "separate")
+    parent_parameter_format = op_config.get("codeGeneration", {}).get("parentParameterFormat", "separate")
+    operation_pattern = op_config.get("codeGeneration", {}).get("operationPattern", "merge")
     default_parameters = op_config.get("parameters", {})
     
     # Merge default parameters with user parameters
@@ -196,7 +197,7 @@ def generate_tensor_operation(node, tensor_ops_config):
         input_vars = [parent]
     
     # Format inputs based on configuration
-    if input_format == "tuple":
+    if parent_parameter_format == "tuple":
         # For operations like torch.cat that expect a list/tuple of tensors
         formatted_inputs = f"[{', '.join(input_vars)}]"
     else:  # separate
@@ -220,7 +221,20 @@ def generate_tensor_operation(node, tensor_ops_config):
     else:
         call_params = formatted_inputs
     
-    return f"        {node_id} = {library}.{node_type}({call_params})"
+    # Handle split operations specially
+    if operation_pattern == "split":
+        # Generate multiple assignments for split outputs
+        suffixes = ['a', 'b', 'c', 'd', 'e', 'f']  # Support up to 6 outputs
+        if outgoing_edges_count > 0:
+            output_vars = [f"{node_id}{suffixes[i]}" for i in range(outgoing_edges_count)]
+            output_list = ", ".join(output_vars)
+            return f"        {output_list} = {library}.{node_type}({call_params})"
+        else:
+            # Fallback if outgoing_edges_count is not available
+            return f"        {node_id}_outputs = {library}.{node_type}({call_params})"
+    else:
+        # Regular tensor operation
+        return f"        {node_id} = {library}.{node_type}({call_params})"
 
 def find_layer_definition(layer_type, db):
     """Find layer definition in database"""

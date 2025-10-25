@@ -9,7 +9,8 @@
         "dim": 1
       },
       "codeGeneration": {
-        "inputFormat": "tuple"
+        "operationPattern": "merge",
+        "parentParameterFormat": "tuple"
       }
     },
     {
@@ -21,7 +22,8 @@
         "dim": 0
       },
       "codeGeneration": {
-        "inputFormat": "tuple"
+        "operationPattern": "merge",
+        "parentParameterFormat": "tuple"
       }
     },
     {
@@ -33,7 +35,8 @@
         "alpha": 1
       },
       "codeGeneration": {
-        "inputFormat": "separate"
+        "operationPattern": "merge",
+        "parentParameterFormat": "separate"
       }
     },
     {
@@ -43,7 +46,8 @@
       "minInputs": 2,
       "parameters": {},
       "codeGeneration": {
-        "inputFormat": "separate"
+        "operationPattern": "merge",
+        "parentParameterFormat": "separate"
       }
     },
     {
@@ -55,7 +59,8 @@
         "alpha": 1
       },
       "codeGeneration": {
-        "inputFormat": "separate"
+        "operationPattern": "merge",
+        "parentParameterFormat": "separate"
       }
     },
     {
@@ -65,7 +70,22 @@
       "minInputs": 2,
       "parameters": {},
       "codeGeneration": {
-        "inputFormat": "separate"
+        "operationPattern": "merge",
+        "parentParameterFormat": "separate"
+      }
+    },
+    {
+      "library": "torch",
+      "type": "split",
+      "maxInputs": 1,
+      "minInputs": 1,
+      "parameters": {
+        "split_size_or_sections": 10,
+        "dim": 1
+      },
+      "codeGeneration": {
+        "operationPattern": "split",
+        "parentParameterFormat": "separate"
       }
     }
   ]

@@ -41,14 +41,48 @@ export default function CanvasPage() {
   );
   // Handler for when edges are changed (added, removed, etc.)
   const onEdgesChange = useCallback(
-    (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
-    []
+    (changes) => {
+      const newEdges = applyEdgeChanges(changes, edges);
+      setEdges(newEdges);
+      
+      // Update outgoing edge counts for affected nodes
+      updateOutgoingEdgeCounts(newEdges);
+    },
+    [edges]
   );
+  
   // Handler for when a new connection (edge) is made between nodes
   const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
-    []
+    (params) => {
+      const newEdges = addEdge(params, edges);
+      setEdges(newEdges);
+      
+      // Update outgoing edge counts for affected nodes
+      updateOutgoingEdgeCounts(newEdges);
+    },
+    [edges]
   );
+
+  // Function to update outgoing edge counts for all nodes
+  const updateOutgoingEdgeCounts = (currentEdges: any[]) => {
+    // Build outgoing edges map
+    const outgoingEdges: Record<string, string[]> = {};
+    currentEdges.forEach((edge) => {
+      if (!outgoingEdges[edge.source]) outgoingEdges[edge.source] = [];
+      outgoingEdges[edge.source].push(edge.target);
+    });
+
+    // Update nodes with new outgoing edge counts
+    setNodes((currentNodes) =>
+      currentNodes.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          outgoing_edges_count: (outgoingEdges[node.id] || []).length
+        }
+      }))
+    );
+  };
 
   const onSelectionChange: OnSelectionChangeFunc = useCallback(
     ({nodes, edges}) => {
@@ -112,9 +146,11 @@ export default function CanvasPage() {
     );
     
     // Remove all edges connected to this node (both incoming and outgoing)
-    setEdges(oldEdges =>
-      oldEdges.filter((edge) => edge.source !== elementID && edge.target !== elementID)
-    );
+    const newEdges = edges.filter((edge) => edge.source !== elementID && edge.target !== elementID);
+    setEdges(newEdges);
+    
+    // Update outgoing edge counts for remaining nodes
+    updateOutgoingEdgeCounts(newEdges);
   }
 
   // Custom hook to handle exporting the current canvas state

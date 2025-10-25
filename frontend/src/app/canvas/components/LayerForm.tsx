@@ -56,7 +56,8 @@ export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
                     label: chosenDefault.type,
                     operationType: "Layer",
                     type: chosenDefault.type,
-                    parameters: chosenDefault.parameters
+                    parameters: chosenDefault.parameters,
+                    outgoing_edges_count: 0 // Initialize with 0 outgoing edges
                 },
             },
         ]);

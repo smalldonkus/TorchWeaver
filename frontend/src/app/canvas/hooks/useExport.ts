@@ -29,6 +29,21 @@ export default function useExport(nodes: any[], edges: any[], defaultLayers: any
       ...defaultActivators
     ];
 
+    // Helper function to check if a node is a split operation
+    const isSplitOperation = (nodeId: string): boolean => {
+      const node = nodes.find(n => n.id === nodeId);
+      if (!node || node.data.operationType !== "TensorOp") return false;
+      
+      const tensorOpDef = defaultTensorOps.find(op => op.type === node.data.type);
+      return tensorOpDef?.codeGeneration?.operationPattern === "split";
+    };
+
+    // Helper function to get split output name for a child of a split operation
+    const getSplitOutputName = (splitNodeId: string, childIndex: number): string => {
+      const suffixes = ['a', 'b', 'c', 'd', 'e', 'f']; // Support up to 6 outputs
+      return `${splitNodeId}${suffixes[childIndex] || childIndex}`;
+    };
+
     // Build the new JSON structure with all nodes and parent relationships
     const exportNodes: any[] = [];
     const processedNodes = new Set<string>();
@@ -61,7 +76,7 @@ export default function useExport(nodes: any[], edges: any[], defaultLayers: any
       }
 
       // Process this node
-      const exportNode = buildNodeFromReactFlowNode(currentNode, incomingEdges, allDefaults);
+      const exportNode = buildNodeFromReactFlowNode(currentNode, incomingEdges, outgoingEdges, allDefaults, isSplitOperation, getSplitOutputName);
       exportNodes.push(exportNode);
       processedNodes.add(currentNodeId);
 
@@ -73,6 +88,30 @@ export default function useExport(nodes: any[], edges: any[], defaultLayers: any
         }
       });
     }
+
+    // Post-process: Update parent references for children of split operations
+    exportNodes.forEach(node => {
+      if (node.parent && typeof node.parent === 'string') {
+        const parentNode = exportNodes.find(n => n.id === node.parent);
+        if (parentNode && isSplitOperation(parentNode.id)) {
+          // Find the index of this node in the parent's children array
+          const childIndex = parentNode.children.indexOf(node.id);
+          if (childIndex >= 0) {
+            node.parent = getSplitOutputName(parentNode.id, childIndex);
+          }
+        }
+      } else if (Array.isArray(node.parent)) {
+        // Handle multiple parents (for concat operations)
+        node.parent = node.parent.map((parentId: string) => {
+          const parentNode = exportNodes.find(n => n.id === parentId);
+          if (parentNode && isSplitOperation(parentNode.id)) {
+            const childIndex = parentNode.children.indexOf(node.id);
+            return childIndex >= 0 ? getSplitOutputName(parentNode.id, childIndex) : parentId;
+          }
+          return parentId;
+        });
+      }
+    });
 
     const exportData = {
       nodes: exportNodes
@@ -133,14 +172,21 @@ export default function useExport(nodes: any[], edges: any[], defaultLayers: any
 }
 
 // Helper function to build a node object from a ReactFlow node using the new parent structure
-function buildNodeFromReactFlowNode(node: any, incomingEdges: Record<string, string[]>, allDefaults: any[]) {
+function buildNodeFromReactFlowNode(
+  node: any, 
+  incomingEdges: Record<string, string[]>, 
+  outgoingEdges: Record<string, string[]>, 
+  allDefaults: any[],
+  isSplitOperation: (nodeId: string) => boolean,
+  getSplitOutputName: (splitNodeId: string, childIndex: number) => string
+) {
   // Find the default definition for this node type
   const defaultDef = allDefaults.find(def => def.type === node.data.type);
   
   // Use operation type directly from node data
   const operation_type = node.data.operationType;
 
-  // Determine parent(s) based on incoming edges
+  // Determine parent(s) based on incoming edges (simple approach - we'll fix split references later)
   const parents = incomingEdges[node.id] || [];
   let parent: string | string[] | null;
   
@@ -151,6 +197,12 @@ function buildNodeFromReactFlowNode(node: any, incomingEdges: Record<string, str
   } else {
     parent = parents; // Multiple parents for operations like concat
   }
+
+  // Calculate outgoing edges count
+  const outgoingEdgesCount = (outgoingEdges[node.id] || []).length;
+  
+  // Get children for this node
+  const children = outgoingEdges[node.id] || [];
 
   // Use the type from the default definition or fall back to node data
   const type = defaultDef ? defaultDef.type : node.data.type;
@@ -163,6 +215,8 @@ function buildNodeFromReactFlowNode(node: any, incomingEdges: Record<string, str
     type: type,
     operation_type: operation_type,
     parent: parent,
+    children: children,
+    outgoing_edges_count: outgoingEdgesCount,
     position: node.position || { x: 0, y: 0 },
     parameters: parameters
   };
