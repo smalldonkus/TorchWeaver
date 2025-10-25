@@ -14,6 +14,7 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import InputIcon from '@mui/icons-material/Input';
+import OutputIcon from '@mui/icons-material/Output';
 import ApiIcon from '@mui/icons-material/Api';
 
 // Import icons for menu items
@@ -34,6 +35,8 @@ import LayerForm from "./LayerForm";
 import TensorOpsForm from "./TensorOpsForm";
 // Import InputForm component for the "Inputs" menu
 import InputForm from "./InputForm";
+// Import OutputForm component for the "Outputs" menu
+import OutputForm from "./OutputForm";
 // Import ActivatorsForm component for the "Activators" menu
 import ActivatorsForm from "./ActivatorsForm";
 
@@ -115,6 +118,7 @@ export default function Sidebar({
                         { text: "Tensor Operations", icon: <FunctionsIcon /> },
                         { text: "Activators", icon: <ApiIcon /> },
                         { text: "Inputs", icon: <InputIcon /> },
+                        { text: "Outputs", icon: <OutputIcon /> },
                         { text: "Edit Nodes", icon: <EditIcon /> },
                     ].map((item) => (
                         // Render each menu item
@@ -144,6 +148,9 @@ export default function Sidebar({
                 )}
                 {selectedMenu === "Inputs" && (
                     <InputForm nodes={nodes} setNodes={setNodes} />
+                )}
+                {selectedMenu === "Outputs" && (
+                    <OutputForm nodes={nodes} setNodes={setNodes} />
                 )}
                 {selectedMenu === "Activators" && (
                     <ActivatorsForm nodes={nodes} setNodes={setNodes} defaultActivators={defaultActivators} />

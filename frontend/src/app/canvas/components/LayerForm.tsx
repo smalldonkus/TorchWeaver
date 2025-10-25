@@ -46,7 +46,7 @@ export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
 
     // Add a new layer node to the list
     const addLayer = () => {
-        const newId = generateUniqueNodeId("n", nodes); // Generate a unique id
+        const newId = generateUniqueNodeId("layer", nodes); // Generate a unique id
         setNodes([
             ...nodes,
             {
