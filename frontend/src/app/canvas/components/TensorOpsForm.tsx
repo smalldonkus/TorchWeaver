@@ -6,6 +6,7 @@ import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
+import { generateUniqueNodeId } from "../utils/idGenerator";
 
 interface Props {
   nodes: any[];
@@ -18,7 +19,6 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Pro
     return <div>Loading tensor operations...</div>;
   }
 
-  const [newLabel, setNewLabel] = useState("");
   const [chosenOp, setChosenOp] = useState(defaultTensorOps[0]);
 
   useEffect(() => {
@@ -37,21 +37,21 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Pro
   };
 
   const addTensorOp = () => {
-    const newId = `tensorop${nodes.length + 1}`;
+    const newId = generateUniqueNodeId("tensorop", nodes);
     setNodes([
       ...nodes,
       {
         id: newId,
         position: { x: 200, y: 100 + nodes.length * 60 },
         data: {
-          label: `${chosenOp.type}: ${newLabel || `TensorOp ${nodes.length + 1}`}`,
+          label: chosenOp.type,
           operationType: "TensorOp",
           type: chosenOp.type,
-          parameters: chosenOp.parameters
+          parameters: chosenOp.parameters,
+          outgoing_edges_count: 0 // Initialize with 0 outgoing edges
         },
       },
     ]);
-    setNewLabel("");
     setChosenOp(defaultTensorOps[0]);
   };
 
@@ -60,14 +60,6 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Pro
       <Typography variant="subtitle1" sx={{ mb: 2 }}>
         Add Tensor Operation
       </Typography>
-      <TextField
-        label="Tensor Op label"
-        value={newLabel}
-        onChange={e => setNewLabel(e.target.value)}
-        fullWidth
-        size="small"
-        sx={{ mb: 2 }}
-      />
       <TextField
         select
         label="Operation Type"

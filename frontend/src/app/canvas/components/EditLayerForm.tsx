@@ -14,8 +14,6 @@ interface Props {
     defaultLayers: any[];
     defaultActivators: any[];
     defaultTensorOps: any[];
-    // allows the update of Label
-    updateNodeLabel: (targetID: any, val: any) => void;
     // allows the update of layerType
     updateNodeType: (targetID: any, valA: any, valB: any) => void;
     // allows for the update of operationType
@@ -27,7 +25,7 @@ interface Props {
 }
 
 // The LayerForm component allows users to add a new layer to the canvas
-export default function EditLayerForm({selectedNodes, defaultActivators, defaultTensorOps, defaultLayers, updateNodeLabel, updateNodeType, updateNodeOperationType, updateNodeParameter , deleteNode}: Props) {
+export default function EditLayerForm({selectedNodes, defaultActivators, defaultTensorOps, defaultLayers, updateNodeType, updateNodeOperationType, updateNodeParameter , deleteNode}: Props) {
 
     // Early return if no nodes are selected
     if (!selectedNodes || selectedNodes.length === 0 || !selectedNodes[0]) {
@@ -46,15 +44,6 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
             <Typography variant="subtitle1" sx={{ mb: 2 }}>
                 Edit Node
             </Typography>
-            {/* Input for the layer label */}
-            <TextField
-                label="Layer label"
-                value={selectedNode.data.label || ""}
-                onChange={(e) => {updateNodeLabel(selectedNode.id, e.target.value)}}
-                fullWidth
-                size="small"
-                sx={{ mb: 2 }}
-            />
                 <TextField
                     select
                     label="Operation Type"

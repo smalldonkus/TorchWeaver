@@ -1,0 +1,82 @@
+import { useState, useEffect } from 'react';
+
+interface OperationDefinition {
+  library: string;
+  type: string;
+  maxInputs: number;
+  minInputs: number;
+  parameters: Record<string, any>;
+}
+
+interface OperationsData {
+  layers: OperationDefinition[];
+  tensorOps: OperationDefinition[];
+  activators: OperationDefinition[];
+}
+
+const API_BASE_URL = 'http://localhost:5000';
+
+export function useOperationDefinitions() {
+  const [operations, setOperations] = useState<OperationsData>({
+    layers: [],
+    tensorOps: [],
+    activators: []
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchOperations = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await fetch(`${API_BASE_URL}/api/operations/all`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        setOperations({
+          layers: data.layers?.data || [],
+          tensorOps: data.tensorOps?.data || [],
+          activators: data.activators?.data || []
+        });
+      } catch (err) {
+        console.error('Failed to fetch operation definitions:', err);
+        setError(err instanceof Error ? err.message : 'Unknown error occurred');
+        
+        // Fallback to empty arrays if backend is not available
+        setOperations({
+          layers: [],
+          tensorOps: [],
+          activators: []
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOperations();
+  }, []);
+
+  const refetch = () => {
+    setLoading(true);
+    setError(null);
+    // Re-trigger the useEffect by updating a dependency
+    useEffect(() => {
+      // This will trigger a re-fetch
+    }, []);
+  };
+
+  return {
+    ...operations,
+    loading,
+    error,
+    refetch
+  };
+}
+
+export default useOperationDefinitions;

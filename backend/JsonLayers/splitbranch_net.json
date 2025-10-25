@@ -1,0 +1,66 @@
+{
+  "nodes": [
+    {
+      "id": "input1",
+      "type": "Input",
+      "operation_type": "Input",
+      "parent": null,
+      "outgoing_edges_count": 2,
+      "position": { "x": 50, "y": 200 },
+      "parameters": {
+        "dims": [3, 32, 32]
+      }
+    },
+    {
+      "id": "layer1",
+      "type": "Conv2d",
+      "operation_type": "Layer",
+      "parent": "input1",
+      "outgoing_edges_count": 1,
+      "position": { "x": 100, "y": 100 },
+      "parameters": {
+        "in_channels": 3,
+        "out_channels": 16,
+        "kernel_size": 3,
+        "padding": 1
+      }
+    },
+    {
+        "id": "split1",
+        "type": "split",
+        "operation_type": "TensorOp",
+        "parent": "layer1",
+        "outgoing_edges_count": 2,
+        "position": { "x": 100, "y": 300 },
+        "parameters": {
+            "split_size_or_sections": 2,
+            "dim": 1
+        }
+    },
+    {
+      "id": "layer2",
+      "type": "Linear",
+      "operation_type": "Layer",
+      "parent": "split1a",
+      "outgoing_edges_count": 1,
+      "position": { "x": 100, "y": 100 },
+      "parameters": {
+        "in_features": 16384,
+        "out_features": 10
+      }
+    },
+    {
+      "id": "layer3",
+      "type": "Linear",
+      "operation_type": "Layer",
+      "parent": "split1b",
+      "outgoing_edges_count": 1,
+      "position": { "x": 100, "y": 100 },
+      "parameters": {
+        "in_features": 16384,
+        "out_features": 10
+      }
+    }
+    
+  ]
+}
