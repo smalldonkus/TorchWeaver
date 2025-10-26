@@ -11,15 +11,15 @@ export const FavouriteButton = () => {
     setLiked(!current); // on click, set state to not current state 
 };
 
-  return (
-    <IconButton aria-label="add to favorites"
-      onClick={click}
-      sx={{
+    return (
+        <IconButton aria-label="add to favorites"
+        onClick={click}
+        sx={{
         color: current ? "red" : "grey",
         transition: "color 0.3s ease",
-      }}
+    }}
     >
-      <FavoriteIcon />
+    <FavoriteIcon />
     </IconButton>
   );
 };
