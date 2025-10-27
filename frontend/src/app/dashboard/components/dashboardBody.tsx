@@ -45,7 +45,7 @@ export default function dashboardBody() {
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, justifyContent: "center" }}>
                     {visibleNetworks.map((NeuralNetwork ,index) => (
                         <Card key={index} sx={{ maxWidth: 800 }}>
-                            <CardActionArea>
+                            <CardActionArea href='/canvas'>
                                 <CardMedia
                                     component="img"
                                     height="194"

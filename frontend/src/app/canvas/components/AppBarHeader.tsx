@@ -68,7 +68,7 @@ export default function AppBarHeader({ open, setOpen }: Props) {
                     <MenuItem
                         onClick={() => {
                             handleMenuClose();
-                            router.push("/");
+                            router.push("/dashboard");
                         }}
                     >
                         Return to Dashboard
