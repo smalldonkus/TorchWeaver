@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from parse import parse
 from NNgenerator import generate
 from NNdatabase import NNDataBase
 import json
@@ -107,6 +108,18 @@ def get_all_operations():
         }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/parse', methods=['POST'])
+def parse_nodes():
+    passedToBackend = parse()
+    if passedToBackend:
+        print("here")
+    else:
+        print("not here")
+    return jsonify({
+        "success" : passedToBackend
+    }), 200
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

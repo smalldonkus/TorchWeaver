@@ -14,6 +14,8 @@ import Canvas from "./components/Canvas";
 import useExport from "./hooks/useExport";
 import useOperationDefinitions from "./hooks/useOperationDefinitions";
 
+import useParse from "./hooks/useParse";
+
 
 // Main page component for the canvas feature
 export default function CanvasPage() {
@@ -36,8 +38,15 @@ export default function CanvasPage() {
 
   // Handler for when nodes are changed (moved, edited, etc.)
   const onNodesChange = useCallback(
-    (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
-    []
+    // (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
+    // []
+    (changes) => {
+      const newNodes = applyNodeChanges(changes, nodes);
+      setNodes(newNodes);
+      // Update outgoing edge counts for affected nodes
+      
+    },
+    [nodes]
   );
   // Handler for when edges are changed (added, removed, etc.)
   const onEdgesChange = useCallback(
@@ -94,10 +103,11 @@ export default function CanvasPage() {
   const updateNodeParameter = (elementID: string, parameterKey: string, parameterValue: any) => {
     setNodes((oldNodes: any[]) =>
       oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, parameters : {...(e.data.parameters || {}), [parameterKey] : parameterValue}}} : e)
-    )
+    );
     setSelectedNodes((oldNodes: any[]) =>
       oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, parameters : {...(e.data.parameters || {}), [parameterKey] : parameterValue}}} : e)
-    )
+    );
+    useParse(nodes, defaultLayers, defaultActivators, defaultTensorOps);
   }
 
   const updateNodeType = (elementID: string, operationType: string, newtype: string) => {
@@ -155,6 +165,8 @@ export default function CanvasPage() {
 
   // Custom hook to handle exporting the current canvas state
   const handleExport = useExport(nodes, edges, defaultLayers, defaultTensorOps, defaultActivators);
+
+  
 
   // Show loading state while fetching operations
   if (operationsLoading) {
