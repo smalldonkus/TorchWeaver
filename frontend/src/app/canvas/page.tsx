@@ -211,6 +211,7 @@ export default function CanvasPage() {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onSelectionChange={onSelectionChange}
+          setEdges={setEdges}
         />
       </Main>
     </Box>
