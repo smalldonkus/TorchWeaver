@@ -15,7 +15,6 @@ import { SearchBar, searchFilter } from './SearchBar';
 import { NeuralNetworkInfo } from './NeuralNetworks';
 import { getNeuralNetworks } from './NeuralNetworks';
 import CardActionArea from '@mui/material/CardActionArea';
-import ClearIcon from '@mui/icons-material/Clear';
 import DeleteButton from './DeleteButton';
 
 export default function dashboardBody() {
@@ -58,8 +57,9 @@ export default function dashboardBody() {
                                 <Box sx={{display: "flex", justifyContent: "space-between"}}>
                                         <CardContent>
                                             <Typography variant="h6" sx={{ color: 'text' , flexGrow: 1}}>{NeuralNetwork.title}</Typography>
-                                            <Typography variant="body2" sx={{ color: 'text.secondary', flexGrow: 1}}>
-                                                Last Accessed : {NeuralNetwork.lastAccessed}
+                                            <Typography variant="body2" sx={{ color: 'text.secondary', flexGrow: 1 }}>
+                                                <span>Last Accessed: {NeuralNetwork.lastAccessed}</span>
+                                                <span style={{ marginLeft: 30 }}>Owned By: {NeuralNetwork.Owner}</span>
                                             </Typography>
                                         </CardContent>
                                         <CardActions>
