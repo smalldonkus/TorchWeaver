@@ -74,11 +74,11 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: P
   return (
     <Box sx={{ p: 2 }}>
       <Typography variant="subtitle1" sx={{ mb: 2 }}>
-        Add Activator
+        Add Activation Function
       </Typography>
       <TextField
         select
-        label="Activator Type"
+        label="Activation Function Type"
         value={chosenActivator?.type || ""}
         onChange={e => setActivator(e.target.value)}
         fullWidth
@@ -101,7 +101,7 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: P
       )}
       
       <Button variant="contained" fullWidth onClick={addActivator}>
-        Add Activator
+        Add Activation Function
       </Button>
     </Box>
   );

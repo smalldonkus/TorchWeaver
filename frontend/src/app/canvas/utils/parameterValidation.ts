@@ -21,7 +21,11 @@ export const validateParameter = (value: string, expectedTypes: string[]): {
 
   const trimmedValue = value.trim();
   if (trimmedValue === "") {
-    return { isValid: true, convertedValue: "" };
+    return { 
+      isValid: false, 
+      convertedValue: "", 
+      error: "Value cannot be empty"
+    };
   }
 
   // Try to convert to each expected type
@@ -63,6 +67,7 @@ const convertToType = (value: string, targetType: string): any => {
       // Strict numeric tuple parsing: (1, 2) or 1, 2
       if (value.startsWith("(") && value.endsWith(")")) {
         const content = value.slice(1, -1);
+        if (content.trim() === "") throw new Error("Tuple cannot be empty");
         const items = content.split(",").map(item => {
           const trimmed = item.trim();
           const num = Number(trimmed);
@@ -89,7 +94,7 @@ const convertToType = (value: string, targetType: string): any => {
       // Strict numeric list parsing: [1, 2] or 1, 2
       if (value.startsWith("[") && value.endsWith("]")) {
         const content = value.slice(1, -1);
-        if (content.trim() === "") return [];
+        if (content.trim() === "") throw new Error("List cannot be empty");
         const items = content.split(",").map(item => {
           const trimmed = item.trim();
           const num = Number(trimmed);

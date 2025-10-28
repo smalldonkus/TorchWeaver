@@ -31,7 +31,7 @@ export default function Canvas({
       sx={{
         width: "100%",
         height: "80vh",
-        background: "#f9fafb",
+        background: "#ffffff",
         borderRadius: 2,
         boxShadow: 1,
       }}
@@ -48,7 +48,7 @@ export default function Canvas({
         onReconnectEnd={onReconnectEnd}
         snapToGrid={false}
         fitView
-        style={{ backgroundColor: "#f9fafb" }}
+        style={{ backgroundColor: "#f7f9fb" }}
         attributionPosition="top-right"
       >
         <Controls />
