@@ -7,6 +7,8 @@ import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 import { generateUniqueNodeId } from "../utils/idGenerator";
+import ParameterInputs from "./ParameterInputs";
+import { useParameterHandling } from "../hooks/useParameterHandling";
 
 interface Props {
   nodes: any[];
@@ -15,28 +17,41 @@ interface Props {
 }
 
 export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: Props) {
+  // Use parameter handling hook
+  const { 
+    parameters, 
+    hasValidationErrors, 
+    handleParameterChange, 
+    handleValidationChange, 
+    updateParameters 
+  } = useParameterHandling();
+
+  const [chosenActivator, setChosenActivator] = useState(defaultActivators?.[0] || null);
+
+  // Update parameters when chosen activator changes
+  useEffect(() => {
+    if (defaultActivators && defaultActivators.length > 0) {
+      setChosenActivator(defaultActivators[0]);
+      updateParameters(defaultActivators[0]?.parameters || {});
+    }
+  }, [defaultActivators, updateParameters]);
+
   if (!defaultActivators || defaultActivators.length === 0) {
     return <div>Loading activators...</div>;
   }
 
-  const [chosenActivator, setChosenActivator] = useState(defaultActivators[0]);
-
-  useEffect(() => {
-    setChosenActivator(defaultActivators[0]);
-  }, [defaultActivators]);
-
   function setActivator(type: string) {
-    setChosenActivator(defaultActivators.find((a) => a.type === type));
+    const newActivator = defaultActivators.find((a) => a.type === type);
+    setChosenActivator(newActivator);
+    updateParameters(newActivator?.parameters || {});
   }
 
-  const updateParam = (paramKey: string, paramValue: string) => {
-    setChosenActivator(prev => ({
-      ...prev,
-      parameters: { ...prev.parameters, [paramKey]: paramValue }
-    }));
-  };
-
   const addActivator = () => {
+    if (hasValidationErrors) {
+      alert("Please fix parameter errors before adding the activator.");
+      return;
+    }
+
     const newId = generateUniqueNodeId("activator", nodes);
     setNodes([
       ...nodes,
@@ -47,13 +62,13 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: P
           label: chosenActivator.type,
           operationType: "Activator",
           type: chosenActivator.type,
-          parameters: chosenActivator.parameters,
-          outgoing_edges_count: 0 // Initialize with 0 outgoing edges
+          parameters: parameters,
+          outgoing_edges_count: 0
         },
       },
     ]);
     setChosenActivator(defaultActivators[0]);
-    setChosenActivator(defaultActivators[0]);
+    updateParameters(defaultActivators[0]?.parameters || {});
   };
 
   return (
@@ -64,7 +79,7 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: P
       <TextField
         select
         label="Activator Type"
-        value={chosenActivator?.type}
+        value={chosenActivator?.type || ""}
         onChange={e => setActivator(e.target.value)}
         fullWidth
         size="small"
@@ -74,20 +89,17 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: P
           <MenuItem key={a.type} value={a.type}>{a.type}</MenuItem>
         ))}
       </TextField>
-      {chosenActivator && chosenActivator.parameters &&
-        Object.keys(chosenActivator.parameters).map((paramKey, i) => (
-          <TextField
-            key={i}
-            label={paramKey}
-            value={chosenActivator.parameters[paramKey]}
-            onChange={e => updateParam(paramKey, e.target.value)}
-            type={typeof chosenActivator.parameters[paramKey] === "number" ? "number" : "text"}
-            fullWidth
-            size="small"
-            sx={{ mb: 2 }}
-          />
-        ))
-      }
+      
+      {chosenActivator && (
+        <ParameterInputs
+          operationType="Activator"
+          nodeType={chosenActivator.type}
+          parameters={parameters}
+          onParameterChange={handleParameterChange}
+          onValidationChange={handleValidationChange}
+        />
+      )}
+      
       <Button variant="contained" fullWidth onClick={addActivator}>
         Add Activator
       </Button>

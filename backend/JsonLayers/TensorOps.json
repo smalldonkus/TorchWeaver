@@ -8,6 +8,9 @@
       "parameters": {
         "dim": 1
       },
+      "parameters_format": {
+        "dim": ["int"]
+      },
       "codeGeneration": {
         "operationPattern": "merge",
         "parentParameterFormat": "tuple"
@@ -20,6 +23,9 @@
       "minInputs": 2,
       "parameters": {
         "dim": 0
+      },
+      "parameters_format": {
+        "dim": ["int"]
       },
       "codeGeneration": {
         "operationPattern": "merge",
@@ -34,6 +40,9 @@
       "parameters": {
         "alpha": 1
       },
+      "parameters_format": {
+        "alpha": ["float"]
+      },
       "codeGeneration": {
         "operationPattern": "merge",
         "parentParameterFormat": "separate"
@@ -45,6 +54,7 @@
       "maxInputs": 2,
       "minInputs": 2,
       "parameters": {},
+      "parameters_format": {},
       "codeGeneration": {
         "operationPattern": "merge",
         "parentParameterFormat": "separate"
@@ -58,6 +68,9 @@
       "parameters": {
         "alpha": 1
       },
+      "parameters_format": {
+        "alpha": ["float"]
+      },
       "codeGeneration": {
         "operationPattern": "merge",
         "parentParameterFormat": "separate"
@@ -69,6 +82,7 @@
       "maxInputs": 2,
       "minInputs": 2,
       "parameters": {},
+      "parameters_format": {},
       "codeGeneration": {
         "operationPattern": "merge",
         "parentParameterFormat": "separate"
@@ -77,11 +91,33 @@
     {
       "library": "torch",
       "type": "split",
-      "maxInputs": 1,
+      "maxInputs": -1,
       "minInputs": 1,
       "parameters": {
         "split_size_or_sections": 10,
         "dim": 1
+      },
+      "parameters_format": {
+        "split_size_or_sections": ["int", "list"],
+        "dim": ["int"]
+      },
+      "codeGeneration": {
+        "operationPattern": "split",
+        "parentParameterFormat": "separate"
+      }
+    },
+    {
+      "library": "torch",
+      "type": "chunk",
+      "maxInputs": -1,
+      "minInputs": 1,
+      "parameters": {
+        "chunks": 10,
+        "dim": 1
+      },
+      "parameters_format": {
+        "chunks": ["int"],
+        "dim": ["int"]
       },
       "codeGeneration": {
         "operationPattern": "split",

@@ -9,6 +9,11 @@
         "in_features": 1,
         "out_features": 1,
         "bias": true
+      },
+      "parameters_format": {
+        "in_features": ["int"],
+        "out_features": ["int"],
+        "bias": ["boolean"]
       }
     },
     {
@@ -23,6 +28,14 @@
         "stride": 4,
         "padding": 2,
         "bias": true
+      },
+      "parameters_format" : {
+        "in_channels": ["int"],
+        "out_channels": ["int"],
+        "kernel_size": ["int", "tuple"],
+        "stride": ["int", "tuple"],
+        "padding": ["int", "tuple"],
+        "bias": ["boolean"]
       }
     },
     {
@@ -35,6 +48,12 @@
         "alpha": 1e-4,
         "beta": 0.75,
         "k": 2.0
+      },
+      "parameters_format": {
+        "size": ["int"],
+        "alpha": ["float"],
+        "beta": ["float"],
+        "k": ["float"]
       }
     },
     {
@@ -45,6 +64,10 @@
       "parameters": {
         "kernel_size": 3,
         "stride": 2
+      },
+      "parameters_format": {
+        "kernel_size": ["int", "tuple"],
+        "stride": ["int", "tuple"]
       }
     },
     {
@@ -52,7 +75,8 @@
       "type": "Flatten",
       "maxInputs": 1,
       "minInputs": 1,
-      "parameters": {}
+      "parameters": {},
+      "parameters_format": {}
     },
     {
       "library": "torch.nn",
@@ -61,6 +85,9 @@
       "minInputs": 1,
       "parameters": {
         "p": 0.5
+      },
+      "parameters_format": {
+        "p": ["float"]
       }
     }
   ]
