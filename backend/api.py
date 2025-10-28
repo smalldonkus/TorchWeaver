@@ -109,15 +109,19 @@ def get_all_operations():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/parse', methods=['POST'])
+@app.route('/parser/parse', methods=['POST'])
 def parse_nodes():
-    passedToBackend = parse()
-    if passedToBackend:
-        print("here")
-    else:
-        print("not here")
+    try:
+        json_data = request.get_json()
+
+        if not json_data: print("not getting data")
+        
+        errorsInfo = parse(json_data["nodes"])
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
     return jsonify({
-        "success" : passedToBackend
+        "info" : errorsInfo,
     }), 200
 
 

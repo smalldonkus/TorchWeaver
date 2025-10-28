@@ -15,7 +15,7 @@ import useExport from "./hooks/useExport";
 import useOperationDefinitions from "./hooks/useOperationDefinitions";
 
 import useParse from "./hooks/useParse";
-
+import MySnackBar from "./components/snackBar";
 
 // Main page component for the canvas feature
 export default function CanvasPage() {
@@ -32,9 +32,15 @@ export default function CanvasPage() {
   // State for which menu is selected in the sidebar
   const [selectedMenu, setSelectedMenu] = useState("Layers");
   // state for the currently selected Nodes, only the first used currently
-  const[selectedNodes, setSelectedNodes] = useState<Node[]>([])
+  const [selectedNodes, setSelectedNodes] = useState<Node[]>([])
   // shows selected edges, not currently used
-  const[selectedEdges, setSelectedEdges] = useState<Edge[]>([])
+  const [selectedEdges, setSelectedEdges] = useState<Edge[]>([])
+
+  // used for logging errors
+  const [errors, setErrors] = useState<any[]>([]);
+  // snackBox for errors
+  const [errorSbOpen, setErrorSbOpen] = useState(false);
+  const [errorSbMsgs, setErrorSbMsgs] = useState<any[]>([]);
 
   // Handler for when nodes are changed (moved, edited, etc.)
   const onNodesChange = useCallback(
@@ -107,7 +113,7 @@ export default function CanvasPage() {
     setSelectedNodes((oldNodes: any[]) =>
       oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, parameters : {...(e.data.parameters || {}), [parameterKey] : parameterValue}}} : e)
     );
-    useParse(nodes, defaultLayers, defaultActivators, defaultTensorOps);
+    useParse(nodes, edges).then((e) => {setErrors(e)});
   }
 
   const updateNodeType = (elementID: string, operationType: string, newtype: string) => {
@@ -166,7 +172,12 @@ export default function CanvasPage() {
   // Custom hook to handle exporting the current canvas state
   const handleExport = useExport(nodes, edges, defaultLayers, defaultTensorOps, defaultActivators);
 
-  
+  // open snack box if errors present
+  useEffect( () => {
+      setErrorSbOpen(errors.length == 0 ? false : true);
+      setErrorSbMsgs(errors.map((e) => e.errorMsg));
+  }, [errors]);
+
 
   // Show loading state while fetching operations
   if (operationsLoading) {
@@ -225,6 +236,7 @@ export default function CanvasPage() {
           onSelectionChange={onSelectionChange}
         />
       </Main>
+      {errorSbMsgs.map((msg) => (<MySnackBar isOpen={errorSbOpen} message={msg}/>))}
     </Box>
   );
 }
