@@ -6,6 +6,7 @@ import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
+import { generateUniqueNodeId } from "../utils/idGenerator";
 
 interface Props {
   nodes: any[];
@@ -13,7 +14,6 @@ interface Props {
 }
 
 export default function InputForm({ nodes, setNodes }: Props) {
-  const [label, setLabel] = useState("");
   const [shapeType, setShapeType] = useState("1D");
   const [dims, setDims] = useState<string[]>([""]);
 
@@ -31,23 +31,23 @@ export default function InputForm({ nodes, setNodes }: Props) {
   };
 
   const addInput = () => {
-    const newId = `input${nodes.length + 1}`;
+    const newId = generateUniqueNodeId("input", nodes);
     setNodes([
       ...nodes,
       {
         id: newId,
         position: { x: 50, y: 100 + nodes.length * 60 },
         data: {
-          label: `Input: ${label || `Input ${nodes.length + 1}`}`,
+          label: "Input",
           operationType: "Input",
           parameters: {
             shapeType,
             dims: dims.map(Number),
           },
+          outgoing_edges_count: 0 // Initialize with 0 outgoing edges
         },
       },
     ]);
-    setLabel("");
     setShapeType("1D");
     setDims([""]);
   };
@@ -57,14 +57,6 @@ export default function InputForm({ nodes, setNodes }: Props) {
       <Typography variant="subtitle1" sx={{ mb: 2 }}>
         Add Input
       </Typography>
-      <TextField
-        label="Input label"
-        value={label}
-        onChange={e => setLabel(e.target.value)}
-        fullWidth
-        size="small"
-        sx={{ mb: 2 }}
-      />
       <TextField
         select
         label="Shape Type"

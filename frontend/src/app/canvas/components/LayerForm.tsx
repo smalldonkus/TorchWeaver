@@ -7,6 +7,7 @@ import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
+import { generateUniqueNodeId } from "../utils/idGenerator";
 
 // Define the props that this component expects
 interface Props {
@@ -22,8 +23,6 @@ export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
         return <div>Loading layer types...</div>;
     }
 
-    // State for the new layer's label (name)
-    const [newLabel, setNewLabel] = useState("");
     // State for the currently selected default layer type
     const [chosenDefault, setChosenDefault] = useState(defaultLayers[0]);
 
@@ -47,21 +46,22 @@ export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
 
     // Add a new layer node to the list
     const addLayer = () => {
-        const newId = `n${nodes.length + 1}`; // Generate a new id
+        const newId = generateUniqueNodeId("layer", nodes); // Generate a unique id
         setNodes([
             ...nodes,
             {
                 id: newId,
                 position: { x: 100, y: 100 + nodes.length * 60 }, // Position it below previous nodes
                 data: {
-                    label: `${chosenDefault.layerType || chosenDefault.type}: ${newLabel || `Node ${nodes.length + 1}`}`,
+                    label: chosenDefault.type,
                     operationType: "Layer",
                     type: chosenDefault.type,
-                    parameters: chosenDefault.parameters
+                    parameters: chosenDefault.parameters,
+                    outgoing_edges_count: 0 // Initialize with 0 outgoing edges
                 },
             },
         ]);
-        setNewLabel(""); // Reset label input
+        setChosenDefault(defaultLayers[0]); // Reset to first option
         setChosenDefault(defaultLayers[0]); // Reset to first layer type
     };
 
@@ -72,15 +72,6 @@ export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
             <Typography variant="subtitle1" sx={{ mb: 2 }}>
                 Add Layer
             </Typography>
-            {/* Input for layer label */}
-            <TextField
-                label="Layer label"
-                value={newLabel}
-                onChange={(e) => setNewLabel(e.target.value)}
-                fullWidth
-                size="small"
-                sx={{ mb: 2 }}
-            />
             {/* Dropdown to select layer type */}
             <TextField
                 select

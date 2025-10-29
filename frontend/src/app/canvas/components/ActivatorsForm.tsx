@@ -6,6 +6,7 @@ import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
+import { generateUniqueNodeId } from "../utils/idGenerator";
 
 interface Props {
   nodes: any[];
@@ -18,7 +19,6 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: P
     return <div>Loading activators...</div>;
   }
 
-  const [newLabel, setNewLabel] = useState("");
   const [chosenActivator, setChosenActivator] = useState(defaultActivators[0]);
 
   useEffect(() => {
@@ -37,21 +37,22 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: P
   };
 
   const addActivator = () => {
-    const newId = `activator${nodes.length + 1}`;
+    const newId = generateUniqueNodeId("activator", nodes);
     setNodes([
       ...nodes,
       {
         id: newId,
         position: { x: 300, y: 100 + nodes.length * 60 },
         data: {
-          label: `${chosenActivator.type}: ${newLabel || `Activator ${nodes.length + 1}`}`,
+          label: chosenActivator.type,
           operationType: "Activator",
           type: chosenActivator.type,
-          parameters: chosenActivator.parameters
+          parameters: chosenActivator.parameters,
+          outgoing_edges_count: 0 // Initialize with 0 outgoing edges
         },
       },
     ]);
-    setNewLabel("");
+    setChosenActivator(defaultActivators[0]);
     setChosenActivator(defaultActivators[0]);
   };
 
@@ -60,14 +61,6 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: P
       <Typography variant="subtitle1" sx={{ mb: 2 }}>
         Add Activator
       </Typography>
-      <TextField
-        label="Activator label"
-        value={newLabel}
-        onChange={e => setNewLabel(e.target.value)}
-        fullWidth
-        size="small"
-        sx={{ mb: 2 }}
-      />
       <TextField
         select
         label="Activator Type"
