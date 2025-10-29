@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import CssBaseline from "@mui/material/CssBaseline";
-import { applyNodeChanges, applyEdgeChanges, addEdge, OnSelectionChangeFunc, Node, Edge} from "@xyflow/react";
+import { applyNodeChanges, applyEdgeChanges, addEdge, OnSelectionChangeFunc, Node, Edge, MarkerType} from "@xyflow/react";
 
 import { initialNodes, initialEdges } from "./utils/constants";
 import { Main, DrawerHeader } from "./utils/styled";
@@ -29,6 +29,19 @@ export default function CanvasPage() {
   const [nodes, setNodes] = useState<any[]>(initialNodes);
   // State for the edges (connections) in the canvas
   const [edges, setEdges] = useState<any[]>(initialEdges);
+  
+  // Add arrows to all existing edges on component mount
+  useEffect(() => {
+    if (edges.length > 0) {
+      const edgesWithArrows = edges.map(edge => ({
+        ...edge,
+        markerEnd: {
+          type: MarkerType.Arrow,
+        },
+      }));
+      setEdges(edgesWithArrows);
+    }
+  }, []); // Only run once on mount
   // State for which menu is selected in the sidebar
   const [selectedMenu, setSelectedMenu] = useState("Layers");
   // state for the currently selected Nodes, only the first used currently
@@ -73,7 +86,14 @@ export default function CanvasPage() {
   // Handler for when a new connection (edge) is made between nodes
   const onConnect = useCallback(
     (params) => {
-      const newEdges = addEdge(params, edges);
+      // Add arrow marker to the new edge
+      const edgeWithArrow = {
+        ...params,
+        markerEnd: {
+          type: MarkerType.Arrow,
+        },
+      };
+      const newEdges = addEdge(edgeWithArrow, edges);
       setEdges(newEdges);
       
       // Update outgoing edge counts for affected nodes
@@ -111,6 +131,20 @@ export default function CanvasPage() {
     ({nodes, edges}) => {
       setSelectedNodes((nodes));
       setSelectedEdges((edges));
+      
+      // Update node styling based on selection
+      const selectedNodeIds = nodes.map(node => node.id);
+      setNodes((currentNodes) =>
+        currentNodes.map(node => ({
+          ...node,
+          style: {
+            ...node.style,
+            border: selectedNodeIds.includes(node.id) 
+              ? '1px solid #3b71e4ff'  // Blue border for selected nodes
+              : '1px solid #e5e7eb'  // Default gray border for unselected nodes
+          }
+        }))
+      );
     },[]
   );
 
@@ -262,6 +296,7 @@ export default function CanvasPage() {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onSelectionChange={onSelectionChange}
+          setEdges={setEdges}
         />
       </Main>
       <ErrorBox key={"errorBox"} isOpen={openErrorBox} setOpen={setOpenErrorBox} messages={errorMsgs}/>
