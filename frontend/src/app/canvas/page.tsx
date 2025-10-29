@@ -52,8 +52,8 @@ export default function CanvasPage() {
       const newNodes = applyNodeChanges(changes, nodes);
       setNodes(newNodes);
       // Update outgoing edge counts for affected nodes
-      
-      // Check for errors arising from this action
+
+      // update nodes when nodes update
       useParse(nodes, edges).then((e) => {setErrors(e)});
     },
     [nodes]
@@ -66,9 +66,6 @@ export default function CanvasPage() {
       
       // Update outgoing edge counts for affected nodes
       updateOutgoingEdgeCounts(newEdges);
-
-      // Check for errors arising from this action
-      useParse(nodes, edges).then((e) => {setErrors(e)});
     },
     [edges]
   );
@@ -81,12 +78,13 @@ export default function CanvasPage() {
       
       // Update outgoing edge counts for affected nodes
       updateOutgoingEdgeCounts(newEdges);
-
-      // Check for errors arising from this action
-      useParse(nodes, edges).then((e) => {setErrors(e)});
     },
     [edges]
   );
+
+  useEffect(() => {
+    useParse(nodes, edges).then((e) => {setErrors(e)});
+  }, [edges]) // having this sit inside other functions causes issues
 
   // Function to update outgoing edge counts for all nodes
   const updateOutgoingEdgeCounts = (currentEdges: any[]) => {
@@ -123,7 +121,6 @@ export default function CanvasPage() {
     setSelectedNodes((oldNodes: any[]) =>
       oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, parameters : {...(e.data.parameters || {}), [parameterKey] : parameterValue}}} : e)
     );
-    useParse(nodes, edges).then((e) => {setErrors(e)});
   }
 
   const updateNodeType = (elementID: string, operationType: string, newtype: string) => {
@@ -158,9 +155,6 @@ export default function CanvasPage() {
       oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, type: newDefault.type, 
         operationType: newOperationType, parameters: newDefault.parameters || {}}} : e)
     );
-
-    // Check for errors arising from this action
-    useParse(nodes, edges).then((e) => {setErrors(e)});
   }
 
   const deleteNode = (elementID: string) => {
@@ -180,9 +174,6 @@ export default function CanvasPage() {
     
     // Update outgoing edge counts for remaining nodes
     updateOutgoingEdgeCounts(newEdges);
-
-    // Check for errors arising from this action
-    useParse(nodes, edges).then((e) => {setErrors(e)});
   }
 
   // Custom hook to handle exporting the current canvas state
@@ -206,11 +197,12 @@ export default function CanvasPage() {
       seterrorOpen(errors.length == 0 ? false : true);
       seterrorMsgs(errors.map((e) => e.errorMsg));
       const errorIDs: any[] = unpackErrorIds(errors);
+      console.log(errorIDs)
       setNodes((oldNodes) => 
         oldNodes.map((e) => errorIDs.includes(e.id) ? 
           {...e, style: {...e.style, background: inErrorColour}}
           :
-          {...e, style: {...e.style, background: stdColour}}) // Currently does not work.
+          {...e, style: {...e.style, background: stdColour}})
       );
   }, [errors]);
 

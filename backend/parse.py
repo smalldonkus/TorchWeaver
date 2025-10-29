@@ -68,22 +68,22 @@ def parse(nodesList):
 
     # checks for input's Having a parent
     for n in inputs:
-        print(n["children"], n["parents"])
         if len(n["parents"]) != 0:
             errors.append(ParseError("Inputs cannot have a Parent", nodes=[n]))
 
     # checks for maxInputs and minInputs being obeyed
+    print(" ".join([n["id"] for n in nodesList]))
     for n in nodesList:
         if n["data"]["operationType"] == "Input": continue # checked elsewhere
         if n["data"]["operationType"] == "Output": continue # has no default
 
-        print(n["children"], n["parents"])
+        # print(n["parents"])
 
         dflt = [d for d in defaults if d["type"] == n["data"]["label"]][0]
         if len(n["parents"]) < int(dflt["minInputs"]):
-            errors.append(ParseError(f"Node of Type {dflt["type"]} requires at least {dflt["minInputs"]} inputs, currently has {len(n["parents"])}", nodes=[n]))
+            errors.append(ParseError(f"Node of Type {dflt["type"]} requires at least {dflt["minInputs"]} input{"s" if dflt["minInputs"] > 1 else ""}, currently has {len(n["parents"])}", nodes=[n]))
         if len(n["parents"]) > int(dflt["maxInputs"]):
-            errors.append(ParseError(f"Node of type {dflt["type"]} requires less or equal to {dflt["maxInputs"]} inputs, currently has {len(n["parents"])}", nodes=[n]))
+            errors.append(ParseError(f"Node of type {dflt["type"]} requires less or equal to {dflt["maxInputs"]} input{"s" if dflt["minInputs"] > 1 else ""}, currently has {len(n["parents"])}", nodes=[n]))
 
     # TODO: checks for path from input to output
     inputs = [n for n in nodesList if n["data"]["operationType"] == "Input"]
@@ -93,6 +93,10 @@ def parse(nodesList):
         if not path[0]: errors.append(ParseError(f"Input \'{path[1]["id"]}\' has no path to output", nodes=[path[1]]))
 
     # TODO: checks for matching number of dimensions from output to input
+
+    if CRUDE_REPORT:
+        for i, e in enumerate(errors):
+            print(e.report(i + 1))
 
     return [] if len(errors) == 0 else [
         {

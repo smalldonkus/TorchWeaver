@@ -115,19 +115,14 @@ def get_all_operations():
 def parse_nodes():
     try:
         json_data = request.get_json()
-
-        if not json_data: print("not getting data")
-        
         errorsInfo = parse(json_data["nodes"])
-
+        
     except Exception as e:
         traceback.print_exception(e)
         return jsonify({"error": str(e)}), 500
-        
     return jsonify({
         "info" : errorsInfo,
     }), 200
-
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
