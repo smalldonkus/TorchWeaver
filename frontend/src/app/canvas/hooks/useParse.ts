@@ -11,8 +11,8 @@ import { error } from "console";
     // fetches incoming/outgoing edges by ID only
     const exportNodes = nodes.map((n) => ({
         id: n.id, data: n.data,
-        parents:  edges.filter((e) => e.target == n.id).map((e) => e.id),
-        children: edges.filter((e) => e.source == n.id).map((e) => e.id)
+        parents:  edges.filter((e) => e.target == n.id).map((o) => o.source),
+        children: edges.filter((e) => e.source == n.id).map((o) => o.target)
     }));
 
     const bodyData = {

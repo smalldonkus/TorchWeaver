@@ -3,7 +3,9 @@ from flask_cors import CORS
 from parse import parse
 from NNgenerator import generate
 from NNdatabase import NNDataBase
-import json
+
+import traceback
+
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -119,7 +121,9 @@ def parse_nodes():
         errorsInfo = parse(json_data["nodes"])
 
     except Exception as e:
+        traceback.print_exception(e)
         return jsonify({"error": str(e)}), 500
+        
     return jsonify({
         "info" : errorsInfo,
     }), 200

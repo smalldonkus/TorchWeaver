@@ -15,7 +15,7 @@ import useExport from "./hooks/useExport";
 import useOperationDefinitions from "./hooks/useOperationDefinitions";
 
 import useParse from "./hooks/useParse";
-import MySnackBar from "./components/snackBar";
+import ErrorBox from "./components/ErrorBox";
 
 // Main page component for the canvas feature
 export default function CanvasPage() {
@@ -38,9 +38,11 @@ export default function CanvasPage() {
 
   // used for logging errors
   const [errors, setErrors] = useState<any[]>([]);
-  // snackBox for errors
-  const [errorSbOpen, setErrorSbOpen] = useState(false);
-  const [errorSbMsgs, setErrorSbMsgs] = useState<any[]>([]);
+  // error UI variables
+  const [errorOpen, seterrorOpen] = useState(false);
+  const [errorMsgs, seterrorMsgs] = useState<any[]>([]);
+  // used for opening the error drawer
+  const [openErrorBox, setOpenErrorBox] = useState(false);
 
   // Handler for when nodes are changed (moved, edited, etc.)
   const onNodesChange = useCallback(
@@ -51,6 +53,8 @@ export default function CanvasPage() {
       setNodes(newNodes);
       // Update outgoing edge counts for affected nodes
       
+      // Check for errors arising from this action
+      useParse(nodes, edges).then((e) => {setErrors(e)});
     },
     [nodes]
   );
@@ -62,6 +66,9 @@ export default function CanvasPage() {
       
       // Update outgoing edge counts for affected nodes
       updateOutgoingEdgeCounts(newEdges);
+
+      // Check for errors arising from this action
+      useParse(nodes, edges).then((e) => {setErrors(e)});
     },
     [edges]
   );
@@ -74,6 +81,9 @@ export default function CanvasPage() {
       
       // Update outgoing edge counts for affected nodes
       updateOutgoingEdgeCounts(newEdges);
+
+      // Check for errors arising from this action
+      useParse(nodes, edges).then((e) => {setErrors(e)});
     },
     [edges]
   );
@@ -148,6 +158,9 @@ export default function CanvasPage() {
       oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, type: newDefault.type, 
         operationType: newOperationType, parameters: newDefault.parameters || {}}} : e)
     );
+
+    // Check for errors arising from this action
+    useParse(nodes, edges).then((e) => {setErrors(e)});
   }
 
   const deleteNode = (elementID: string) => {
@@ -167,15 +180,38 @@ export default function CanvasPage() {
     
     // Update outgoing edge counts for remaining nodes
     updateOutgoingEdgeCounts(newEdges);
+
+    // Check for errors arising from this action
+    useParse(nodes, edges).then((e) => {setErrors(e)});
   }
 
   // Custom hook to handle exporting the current canvas state
   const handleExport = useExport(nodes, edges, defaultLayers, defaultTensorOps, defaultActivators);
 
-  // open snack box if errors present
+
+  const unpackErrorIds = (errors: any[]) => {
+    const rtn = [];
+    errors.forEach((value) => {
+      if (value.flaggedNodes != null && value.flaggedNodes.length != 0) {
+        value.flaggedNodes.forEach((v) => rtn.push(v));
+      }
+    })
+    return rtn;
+  }
+
+  const inErrorColour = "#d32f2f"
+  const stdColour = "#ffffff"
+  // updates state variables when errors are added
   useEffect( () => {
-      setErrorSbOpen(errors.length == 0 ? false : true);
-      setErrorSbMsgs(errors.map((e) => e.errorMsg));
+      seterrorOpen(errors.length == 0 ? false : true);
+      seterrorMsgs(errors.map((e) => e.errorMsg));
+      const errorIDs: any[] = unpackErrorIds(errors);
+      setNodes((oldNodes) => 
+        oldNodes.map((e) => errorIDs.includes(e.id) ? 
+          {...e, style: {...e.style, background: inErrorColour}}
+          :
+          {...e, style: {...e.style, background: stdColour}}) // Currently does not work.
+      );
   }, [errors]);
 
 
@@ -204,7 +240,7 @@ export default function CanvasPage() {
     <Box sx={{ display: "flex" }}>
       <CssBaseline /> {/* Resets CSS for consistent styling */}
       {/* Top app bar/header */}
-      <AppBarHeader open={open} setOpen={setOpen} />
+      <AppBarHeader open={open} setOpen={setOpen} openErrorBox={openErrorBox} setOpenErrorBox={setOpenErrorBox}/>
       {/* Sidebar with menu and export functionality */}
       <Sidebar
         open={open}
@@ -236,7 +272,7 @@ export default function CanvasPage() {
           onSelectionChange={onSelectionChange}
         />
       </Main>
-      {errorSbMsgs.map((msg) => (<MySnackBar isOpen={errorSbOpen} message={msg}/>))}
+      <ErrorBox key={"errorBox"} isOpen={openErrorBox} setOpen={setOpenErrorBox} messages={errorMsgs}/>
     </Box>
   );
 }

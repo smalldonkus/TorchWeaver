@@ -15,7 +15,40 @@ class ParseError:
         nodesS = "No nodes"
         if self.nodesDesc is not None:
             nodesS = ", ".join(self.nodes)
-        return f"{ID}: {self.desc}, involving {nodesS}"
+        return f"{ID}: {self.desc}, involving \'{nodesS}\'"
+
+def find(nodesList, nodeId):
+    query = [n for n in nodesList if n["id"] == nodeId]
+    return None if len(query) == 0 else query[0]
+
+def dfs(nodesList, origin):
+
+    q = [origin]
+    v = [] # id list
+
+    while len(q) != 0:
+
+        n = q.pop()
+
+        assert isinstance(n, dict)
+
+        if n["id"] in v: continue
+        v.append(n["id"])
+
+        # assumes children list contains only ID's
+
+        for c in n["children"]:
+            child = find(nodesList, c)
+            if child is None: 
+                print(f"couldn't find {c} in nodes list")
+                continue
+            assert isinstance(child, dict)
+            if child["data"]["operationType"] == "Output":
+                if CRUDE_REPORT: print(f"Input {origin["id"]} found an output")
+                return True
+            q.append(child)
+
+    return False
 
 def parse(nodesList):
     
@@ -35,25 +68,31 @@ def parse(nodesList):
 
     # checks for input's Having a parent
     for n in inputs:
+        print(n["children"], n["parents"])
         if len(n["parents"]) != 0:
             errors.append(ParseError("Inputs cannot have a Parent", nodes=[n]))
 
     # checks for maxInputs and minInputs being obeyed
     for n in nodesList:
         if n["data"]["operationType"] == "Input": continue # checked elsewhere
+        if n["data"]["operationType"] == "Output": continue # has no default
+
+        print(n["children"], n["parents"])
+
         dflt = [d for d in defaults if d["type"] == n["data"]["label"]][0]
         if len(n["parents"]) < int(dflt["minInputs"]):
-            errors.append(ParseError(f"Node of Type {dflt["type"]} requires at least {dflt["minInputs"]} inputs", nodes=[n]))
+            errors.append(ParseError(f"Node of Type {dflt["type"]} requires at least {dflt["minInputs"]} inputs, currently has {len(n["parents"])}", nodes=[n]))
         if len(n["parents"]) > int(dflt["maxInputs"]):
-            errors.append(ParseError(f"Node of Type {dflt["type"]} requires less than {dflt["maxInputs"]} inputs", nodes=[n]))
+            errors.append(ParseError(f"Node of type {dflt["type"]} requires less or equal to {dflt["maxInputs"]} inputs, currently has {len(n["parents"])}", nodes=[n]))
 
-    # TODO: checks for path from input ot output
+    # TODO: checks for path from input to output
+    inputs = [n for n in nodesList if n["data"]["operationType"] == "Input"]
+    # print(inputs)
+    pathCheck = [(dfs(nodesList, i), i) for i in inputs]
+    for path in pathCheck:
+        if not path[0]: errors.append(ParseError(f"Input \'{path[1]["id"]}\' has no path to output", nodes=[path[1]]))
 
     # TODO: checks for matching number of dimensions from output to input
-
-    if CRUDE_REPORT:
-        for ID in range(len(errors)):
-            print(errors[ID].report(ID + 1))
 
     return [] if len(errors) == 0 else [
         {
