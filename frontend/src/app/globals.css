@@ -54,6 +54,7 @@ body {
   justify-content: space-evenly;
   font-size: 1.5rem;
   align-items: center;
+  margin-right: 2rem;
 }
 
 .profileBtn {
@@ -65,10 +66,20 @@ body {
   position: relative;
 }
 
+
+
 .profilePicture {
-  width: 90%;
+  width: 5rem;
   border-radius: 50%;
-  padding: 1rem;
+  border: 3px solid #5C9DEF;
+}
+
+.profilePicture:hover {
+  border-color: #3B7BCF;
+}
+
+.profilePicture:active {
+  border-color: #0D47A2
 }
 
 .dropdown {
@@ -83,8 +94,8 @@ body {
   width: 20rem;
   background: #F1F1F1;
   border: 1px solid #d1d1d1;
-   color: #222222;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  color: #222222;
+  box-shadow: 0 3px 9px #0000041a;
   z-index: 1000;
   height: auto;
   right:0;
@@ -156,6 +167,7 @@ body {
 .toolbarBtn {
   flex: 0 1 auto;
   padding: 1rem 2rem;
+  margin-right: 2rem;
   border-radius: 5px;
   background-color: #1976D3;
   color: #F1F1F1;
