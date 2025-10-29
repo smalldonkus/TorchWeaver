@@ -14,6 +14,8 @@ import Canvas from "./components/Canvas";
 import useExport from "./hooks/useExport";
 import useOperationDefinitions from "./hooks/useOperationDefinitions";
 
+import useParse from "./hooks/useParse";
+import ErrorBox from "./components/ErrorBox";
 
 // Main page component for the canvas feature
 export default function CanvasPage() {
@@ -30,14 +32,31 @@ export default function CanvasPage() {
   // State for which menu is selected in the sidebar
   const [selectedMenu, setSelectedMenu] = useState("Layers");
   // state for the currently selected Nodes, only the first used currently
-  const[selectedNodes, setSelectedNodes] = useState<Node[]>([])
+  const [selectedNodes, setSelectedNodes] = useState<Node[]>([])
   // shows selected edges, not currently used
-  const[selectedEdges, setSelectedEdges] = useState<Edge[]>([])
+  const [selectedEdges, setSelectedEdges] = useState<Edge[]>([])
+
+  // used for logging errors
+  const [errors, setErrors] = useState<any[]>([]);
+  // error UI variables
+  const [errorOpen, seterrorOpen] = useState(false);
+  const [errorMsgs, seterrorMsgs] = useState<any[]>([]);
+  // used for opening the error drawer
+  const [openErrorBox, setOpenErrorBox] = useState(false);
 
   // Handler for when nodes are changed (moved, edited, etc.)
   const onNodesChange = useCallback(
-    (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
-    []
+    // (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
+    // []
+    (changes) => {
+      const newNodes = applyNodeChanges(changes, nodes);
+      setNodes(newNodes);
+      // Update outgoing edge counts for affected nodes
+
+      // update nodes when nodes update
+      useParse(nodes, edges).then((e) => {setErrors(e)});
+    },
+    [nodes]
   );
   // Handler for when edges are changed (added, removed, etc.)
   const onEdgesChange = useCallback(
@@ -62,6 +81,10 @@ export default function CanvasPage() {
     },
     [edges]
   );
+
+  useEffect(() => {
+    useParse(nodes, edges).then((e) => {setErrors(e)});
+  }, [edges]) // having this sit inside other functions causes issues
 
   // Function to update outgoing edge counts for all nodes
   const updateOutgoingEdgeCounts = (currentEdges: any[]) => {
@@ -94,10 +117,10 @@ export default function CanvasPage() {
   const updateNodeParameter = (elementID: string, parameterKey: string, parameterValue: any) => {
     setNodes((oldNodes: any[]) =>
       oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, parameters : {...(e.data.parameters || {}), [parameterKey] : parameterValue}}} : e)
-    )
+    );
     setSelectedNodes((oldNodes: any[]) =>
       oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, parameters : {...(e.data.parameters || {}), [parameterKey] : parameterValue}}} : e)
-    )
+    );
   }
 
   const updateNodeType = (elementID: string, operationType: string, newtype: string) => {
@@ -156,6 +179,34 @@ export default function CanvasPage() {
   // Custom hook to handle exporting the current canvas state
   const handleExport = useExport(nodes, edges, defaultLayers, defaultTensorOps, defaultActivators);
 
+
+  const unpackErrorIds = (errors: any[]) => {
+    const rtn = [];
+    errors.forEach((value) => {
+      if (value.flaggedNodes != null && value.flaggedNodes.length != 0) {
+        value.flaggedNodes.forEach((v) => rtn.push(v));
+      }
+    })
+    return rtn;
+  }
+
+  const inErrorColour = "#d32f2f"
+  const stdColour = "#ffffff"
+  // updates state variables when errors are added
+  useEffect( () => {
+      seterrorOpen(errors.length == 0 ? false : true);
+      seterrorMsgs(errors.map((e) => e.errorMsg));
+      const errorIDs: any[] = unpackErrorIds(errors);
+      console.log(errorIDs)
+      setNodes((oldNodes) => 
+        oldNodes.map((e) => errorIDs.includes(e.id) ? 
+          {...e, style: {...e.style, background: inErrorColour}}
+          :
+          {...e, style: {...e.style, background: stdColour}})
+      );
+  }, [errors]);
+
+
   // Show loading state while fetching operations
   if (operationsLoading) {
     return (
@@ -181,7 +232,7 @@ export default function CanvasPage() {
     <Box sx={{ display: "flex" }}>
       <CssBaseline /> {/* Resets CSS for consistent styling */}
       {/* Top app bar/header */}
-      <AppBarHeader open={open} setOpen={setOpen} />
+      <AppBarHeader open={open} setOpen={setOpen} openErrorBox={openErrorBox} setOpenErrorBox={setOpenErrorBox}/>
       {/* Sidebar with menu and export functionality */}
       <Sidebar
         open={open}
@@ -213,6 +264,7 @@ export default function CanvasPage() {
           onSelectionChange={onSelectionChange}
         />
       </Main>
+      <ErrorBox key={"errorBox"} isOpen={openErrorBox} setOpen={setOpenErrorBox} messages={errorMsgs}/>
     </Box>
   );
 }
