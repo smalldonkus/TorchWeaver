@@ -30,14 +30,11 @@ export const OwnershipBar = ({stateChanger}) => {
 }
 
 export function NewList(owner: string, sortType: string, NeuralNetworks: NeuralNetworkInfo[]): NeuralNetworkInfo[] {
-    // if(sortType === "OwnedByAnyone") {
-    //     return NeuralNetworks;
-    // }
-    if(sortType === "OwnedByMe") {
+    if (sortType === "OwnedByMe") {
         return NeuralNetworks.filter(n => n.Owner === owner);
-    }
-    if(sortType === "NotOwnedByMe") {
+    } else if (sortType === "NotOwnedByMe") {
         return NeuralNetworks.filter(n => n.Owner !== owner);
+    } else {
+        return NeuralNetworks;
     }
-    return NeuralNetworks;
 }

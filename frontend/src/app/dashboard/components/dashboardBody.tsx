@@ -21,17 +21,24 @@ export default function dashboardBody() {
     const [NeuralNetworks, setNeuralNetworks] = React.useState<NeuralNetworkInfo[]>(getNeuralNetworks()); // do not use setNeuralNetworks as that is the master
     const [visibleNetworks, setVisibleNetworks] = React.useState<NeuralNetworkInfo[]>(NeuralNetworks);  //copy of neuralnetworks that gets decimated
 
+    // helper functions to ensure favourited networks appear first
+    const handleFavourites = (networks: NeuralNetworkInfo[]) => {
+        const favourited = getNeuralNetworks().filter(nn => nn.Favourited);
+        const nonFavourited = getNeuralNetworks().filter(nn => !nn.Favourited);
+        return [...favourited, ...nonFavourited];
+    };
+
     const handleSortChange = (sortType: string) => {
-        setVisibleNetworks(NewSort(sortType, getNeuralNetworks())); //Passes full neural network array to newSort
+        setVisibleNetworks(NewSort(sortType, handleFavourites(getNeuralNetworks()))); //Passes full neural network array to newSort
     };
 
     const handleSearch = (input: string) => {
-        setVisibleNetworks(searchFilter(input, getNeuralNetworks())); //Passes full neural network array to searchFilter
+        setVisibleNetworks(searchFilter(input, handleFavourites(getNeuralNetworks()))); //Passes full neural network array to searchFilter
     };
 
     const handleOwnershipSorting = (sortType: string) => {
         const owner = "A";
-        setVisibleNetworks(NewList(owner, sortType, getNeuralNetworks()));
+        setVisibleNetworks(NewList(owner, sortType, handleFavourites(getNeuralNetworks())));
     };
 
     return (
@@ -42,7 +49,6 @@ export default function dashboardBody() {
                     <SearchBar stateChanger={handleSearch}/>
                     {/* passes handlestatechange to child so it can re-render parent (this) */}
                     <SortingBar stateChanger={handleSortChange}/> 
-                    {/* TODO: same thing as sorting bar */}
                     <OwnershipBar stateChanger={handleOwnershipSorting}/>
                 </Box>
 
