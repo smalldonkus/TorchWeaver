@@ -1,26 +1,27 @@
 from flask import Blueprint, request, jsonify
 from NNstorage import NNStorage
 
-network_db  = Blueprint("nn_routes", __name__)
+NNRoutes  = Blueprint("nn_routes", __name__)
 storage = NNStorage()
 
-@network_db .route('/save_network', methods=['POST'])
+@NNRoutes .route('/save_network', methods=['POST'])
 def saveNetwork():
     try:
         data = request.get_json()
         name = data.get("name")
         json_data = data.get("json_data")
         description = data.get("description", None)
+        user_id = data.get("user_id")
 
         if not name or not json_data:
             return jsonify({"error": "Missing 'name' or 'json_data'"}), 400
 
-        storage.save_network(name, json_data, description)
+        storage.save_network(name, json_data, description, user_id)
         return jsonify({"success": True}), 200
     except Exception as e:
         return jsonify({ "error": str(e)}), 500
     
-@network_db .route('/list_network', methods=['GET'])
+@NNRoutes .route('/list_network', methods=['GET'])
 def listNetwork():
     try:
         networks = storage.list_networks()
@@ -28,7 +29,7 @@ def listNetwork():
     except Exception as e:
         return jsonify({ "error": str(e)}), 500
 
-@network_db .route('/load_network', methods=['GET'])
+@NNRoutes .route('/load_network', methods=['GET'])
 def loadNetwork():
     try:
         network_id = request.args.get("id")
@@ -43,7 +44,7 @@ def loadNetwork():
     except Exception as e:
         return jsonify({ "error": str(e)}), 500
 
-@network_db .route('/delete_network', methods=['DELETE'])
+@NNRoutes .route('/delete_network', methods=['DELETE'])
 def deleteNetwork():
     try:
         network_id = request.args.get("id")
@@ -55,7 +56,7 @@ def deleteNetwork():
     except Exception as e:
         return jsonify({ "error": str(e)}), 500
 
-@network_db .route('/update_network', methods=['PUT'])
+@NNRoutes .route('/update_network', methods=['PUT'])
 def updateNetwork():
     try:
         data = request.get_json()

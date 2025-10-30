@@ -17,7 +17,8 @@ class NNStorage:
                 name TEXT NOT NULL,
                 description TEXT,
                 created_at TEXT,
-                json_data TEXT NOT NULL
+                json_data TEXT NOT NULL,
+                user_id INTEGER
             )
         """)
         conn.commit()
@@ -28,8 +29,8 @@ class NNStorage:
         conn = sqlite3.connect(self.db_path)
         cur = conn.cursor()
         cur.execute("""
-            INSERT INTO networks (name, description, created_at, json_data)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO networks (name, description, created_at, json_datam, user_id)
+            VALUES (?, ?, ?, ?, ?)
         """, (name, description, datetime.now().isoformat(), json.dumps(json_data)))
         conn.commit()
         conn.close()
@@ -39,7 +40,7 @@ class NNStorage:
         """Return metadata for all saved networks."""
         conn = sqlite3.connect(self.db_path)
         cur = conn.cursor()
-        cur.execute("SELECT id, name, description, created_at FROM networks ORDER BY id DESC")
+        cur.execute("SELECT id, name, description, created_at FROM networks ORDER BY id DESC, created_at DESC")
         rows = cur.fetchall()
         conn.close()
         return [
