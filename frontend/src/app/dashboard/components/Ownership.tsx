@@ -4,13 +4,15 @@ import InputLabel from '@mui/material/InputLabel';
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import MenuItem from '@mui/material/MenuItem';
 import * as React from 'react';
+import { NeuralNetworkInfo } from './NeuralNetworks';
 
-export const OwnershipBar = () => {
+export const OwnershipBar = ({stateChanger}) => {
     const [Ownership, setOwner] = React.useState("OwnedByAnyone");
 
     const handleChange = (event: SelectChangeEvent) => {
         const owner = event.target.value;
         setOwner(owner);
+        stateChanger(owner);
     };
     
     return (
@@ -25,4 +27,17 @@ export const OwnershipBar = () => {
             </Select>
         </FormControl>
     )
+}
+
+export function NewList(owner: string, sortType: string, NeuralNetworks: NeuralNetworkInfo[]): NeuralNetworkInfo[] {
+    // if(sortType === "OwnedByAnyone") {
+    //     return NeuralNetworks;
+    // }
+    if(sortType === "OwnedByMe") {
+        return NeuralNetworks.filter(n => n.Owner === owner);
+    }
+    if(sortType === "NotOwnedByMe") {
+        return NeuralNetworks.filter(n => n.Owner !== owner);
+    }
+    return NeuralNetworks;
 }

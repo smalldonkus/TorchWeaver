@@ -10,7 +10,7 @@ import CardMedia from '@mui/material/CardMedia';
 import { BackToTopButton } from "./BackToTopButton";
 import { FavouriteButton } from './FavouriteButton';
 import { NewSort, SortingBar } from './Sorting';
-import { OwnershipBar } from './Ownership';
+import { NewList, OwnershipBar } from './Ownership';
 import { SearchBar, searchFilter } from './SearchBar';
 import { NeuralNetworkInfo } from './NeuralNetworks';
 import { getNeuralNetworks } from './NeuralNetworks';
@@ -29,6 +29,11 @@ export default function dashboardBody() {
         setVisibleNetworks(searchFilter(input, getNeuralNetworks())); //Passes full neural network array to searchFilter
     };
 
+    const handleOwnershipSorting = (sortType: string) => {
+        const owner = "A";
+        setVisibleNetworks(NewList(owner, sortType, getNeuralNetworks()));
+    };
+
     return (
         <Container sx={{ bgcolor: "#EDF1F3", minHeight: "100vh", minWidth: "100vw"}}>
             <>
@@ -38,7 +43,7 @@ export default function dashboardBody() {
                     {/* passes handlestatechange to child so it can re-render parent (this) */}
                     <SortingBar stateChanger={handleSortChange}/> 
                     {/* TODO: same thing as sorting bar */}
-                    <OwnershipBar/>
+                    <OwnershipBar stateChanger={handleOwnershipSorting}/>
                 </Box>
 
                 {/* Neural Network, adds them in in the order of cards array*/}
