@@ -7,6 +7,8 @@ import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 import { generateUniqueNodeId } from "../utils/idGenerator";
+import ParameterInputs from "./ParameterInputs";
+import { useParameterHandling } from "../hooks/useParameterHandling";
 
 interface Props {
   nodes: any[];
@@ -15,28 +17,42 @@ interface Props {
 }
 
 export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Props) {
+  // Use parameter handling hook
+  const { 
+    parameters, 
+    hasValidationErrors, 
+    handleParameterChange, 
+    handleValidationChange, 
+    updateParameters 
+  } = useParameterHandling();
+
+  const [chosenOp, setChosenOp] = useState(defaultTensorOps?.[0] || null);
+
+  // Update parameters when chosen operation changes
+  useEffect(() => {
+    if (defaultTensorOps && defaultTensorOps.length > 0) {
+      setChosenOp(defaultTensorOps[0]);
+      updateParameters(defaultTensorOps[0]?.parameters || {});
+    }
+  }, [defaultTensorOps, updateParameters]);
+
+  // Redundant checks for loading and error states
   if (!defaultTensorOps || defaultTensorOps.length === 0) {
     return <div>Loading tensor operations...</div>;
   }
 
-  const [chosenOp, setChosenOp] = useState(defaultTensorOps[0]);
-
-  useEffect(() => {
-    setChosenOp(defaultTensorOps[0]);
-  }, [defaultTensorOps]);
-
   function setOp(opType: string) {
-    setChosenOp(defaultTensorOps.find((op) => op.type === opType));
+    const newOp = defaultTensorOps.find((op) => op.type === opType);
+    setChosenOp(newOp);
+    updateParameters(newOp?.parameters || {});
   }
 
-  const updateParam = (paramKey: string, paramValue: string) => {
-    setChosenOp(prev => ({
-      ...prev,
-      parameters: { ...prev.parameters, [paramKey]: paramValue }
-    }));
-  };
-
   const addTensorOp = () => {
+    if (hasValidationErrors) {
+      alert("Please fix parameter errors before adding the tensor operation.");
+      return;
+    }
+
     const newId = generateUniqueNodeId("tensorop", nodes);
     setNodes([
       ...nodes,
@@ -47,12 +63,13 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Pro
           label: chosenOp.type,
           operationType: "TensorOp",
           type: chosenOp.type,
-          parameters: chosenOp.parameters,
-          outgoing_edges_count: 0 // Initialize with 0 outgoing edges
+          parameters: parameters,
+          outgoing_edges_count: 0
         },
       },
     ]);
     setChosenOp(defaultTensorOps[0]);
+    updateParameters(defaultTensorOps[0]?.parameters || {});
   };
 
   return (
@@ -63,7 +80,7 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Pro
       <TextField
         select
         label="Operation Type"
-        value={chosenOp?.type}
+        value={chosenOp?.type || ""}
         onChange={e => setOp(e.target.value)}
         fullWidth
         size="small"
@@ -73,20 +90,17 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Pro
           <MenuItem key={op.type} value={op.type}>{op.type}</MenuItem>
         ))}
       </TextField>
-      {chosenOp && chosenOp.parameters &&
-        Object.keys(chosenOp.parameters).map((paramKey, i) => (
-          <TextField
-            key={i}
-            label={paramKey}
-            value={chosenOp.parameters[paramKey]}
-            onChange={e => updateParam(paramKey, e.target.value)}
-            type={typeof chosenOp.parameters[paramKey] === "number" ? "number" : "text"}
-            fullWidth
-            size="small"
-            sx={{ mb: 2 }}
-          />
-        ))
-      }
+      
+      {chosenOp && (
+        <ParameterInputs
+          operationType="TensorOp"
+          nodeType={chosenOp.type}
+          parameters={parameters}
+          onParameterChange={handleParameterChange}
+          onValidationChange={handleValidationChange}
+        />
+      )}
+      
       <Button variant="contained" fullWidth onClick={addTensorOp}>
         Add Tensor Operation
       </Button>

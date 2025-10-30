@@ -1,10 +1,12 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
+import ParameterInputs from "./ParameterInputs";
 
 // Define the props expected by the LayerForm component
 interface Props {
@@ -26,6 +28,8 @@ interface Props {
 
 // The LayerForm component allows users to add a new layer to the canvas
 export default function EditLayerForm({selectedNodes, defaultActivators, defaultTensorOps, defaultLayers, updateNodeType, updateNodeOperationType, updateNodeParameter , deleteNode}: Props) {
+    // State for validation errors
+    const [hasValidationErrors, setHasValidationErrors] = useState(false);
 
     // Early return if no nodes are selected
     if (!selectedNodes || selectedNodes.length === 0 || !selectedNodes[0]) {
@@ -36,6 +40,16 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
 
     const deleteNodeLocal = () => {
         deleteNode(selectedNode.id);
+    };
+
+    // Handle parameter changes from ParameterInputs component
+    const handleParameterChange = (parameterKey: string, value: any) => {
+        updateNodeParameter(selectedNode.id, parameterKey, value);
+    };
+
+    // Handle validation state changes from ParameterInputs component
+    const handleValidationChange = (hasErrors: boolean) => {
+        setHasValidationErrors(hasErrors);
     };
 
     return (
@@ -85,19 +99,16 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
                     ))}
                 </TextField>
                 
-                {selectedNode.data.parameters && Object.keys(selectedNode.data.parameters).map((parameterKey, i) => (
-                        <TextField
-                            key={i}
-                            label={parameterKey}
-                            value={selectedNode.data.parameters[parameterKey] || ""}
-                            onChange={(e) => {updateNodeParameter(selectedNode.id, parameterKey, e.target.value)}}
-                            type={typeof selectedNode.data.parameters[parameterKey] === "number" ? "number" : "text"}
-                            fullWidth
-                            size="small"
-                            sx={{ mb: 2 }}
-                        />
-                    ))
-                }
+                {selectedNode.data.parameters && (
+                    <ParameterInputs
+                        operationType={selectedNode.data.operationType}
+                        nodeType={selectedNode.data.type}
+                        parameters={selectedNode.data.parameters}
+                        onParameterChange={handleParameterChange}
+                        onValidationChange={handleValidationChange}
+                    />
+                )}
+                
                 <Button variant="contained" fullWidth style={{backgroundColor: "red"}} onClick={deleteNodeLocal}>
                     Delete
                 </Button>

@@ -5,21 +5,24 @@
       "type": "ReLU",
       "maxInputs": 1,
       "minInputs": 1,
-      "parameters": {}
+      "parameters": {},
+      "parameters_format": {}
     },
     {
       "library": "torch.nn",
       "type": "Sigmoid",
       "maxInputs": 1,
       "minInputs": 1,
-      "parameters": {}
+      "parameters": {},
+      "parameters_format": {}
     },
     {
       "library": "torch.nn",
       "type": "Tanh",
       "maxInputs": 1,
       "minInputs": 1,
-      "parameters": {}
+      "parameters": {},
+      "parameters_format": {}
     }
   ]
 }
