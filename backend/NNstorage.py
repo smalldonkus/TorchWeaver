@@ -29,7 +29,7 @@ class NNStorage:
         conn = sqlite3.connect(self.db_path)
         cur = conn.cursor()
         cur.execute("""
-            INSERT INTO networks (name, description, created_at, json_datam, user_id)
+            INSERT INTO networks (name, description, created_at, json_data, user_id)
             VALUES (?, ?, ?, ?, ?)
         """, (name, description, datetime.now().isoformat(), json.dumps(json_data)))
         conn.commit()

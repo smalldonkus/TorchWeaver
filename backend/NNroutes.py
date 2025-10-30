@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from NNstorage import NNStorage
+import traceback
 
 NNRoutes  = Blueprint("nn_routes", __name__)
 storage = NNStorage()
@@ -7,18 +8,22 @@ storage = NNStorage()
 @NNRoutes .route('/save_network', methods=['POST'])
 def saveNetwork():
     try:
+        print("[NNRoutes] save_network called")
         data = request.get_json()
+        print("[NNRoutes] payload:", data)
         name = data.get("name")
-        json_data = data.get("json_data")
+        json_data = data.get("network")  # Expect the frontend to send the network under the 'network' key
         description = data.get("description", None)
-        user_id = data.get("user_id")
 
         if not name or not json_data:
-            return jsonify({"error": "Missing 'name' or 'json_data'"}), 400
+            return jsonify({"error": "Missing 'name' or 'network' data"}), 400
 
-        storage.save_network(name, json_data, description, user_id)
+        # storage.save_network expects (name, json_data, description=None)
+        storage.save_network(name, json_data, description)
         return jsonify({"success": True}), 200
     except Exception as e:
+        print("[NNRoutes] Exception in save_network:")
+        traceback.print_exc()
         return jsonify({ "error": str(e)}), 500
     
 @NNRoutes .route('/list_network', methods=['GET'])

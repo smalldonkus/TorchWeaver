@@ -16,6 +16,7 @@ import useOperationDefinitions from "./hooks/useOperationDefinitions";
 
 import useParse from "./hooks/useParse";
 import ErrorBox from "./components/ErrorBox";
+import useSave from "./hooks/useSave";
 
 // Main page component for the canvas feature
 export default function CanvasPage() {
@@ -29,6 +30,23 @@ export default function CanvasPage() {
   const [nodes, setNodes] = useState<any[]>(initialNodes);
   // State for the edges (connections) in the canvas
   const [edges, setEdges] = useState<any[]>(initialEdges);
+  
+  // Load saved network if available
+  useEffect(() => {
+    const loadedNetworkData = localStorage.getItem('loadedNetwork');
+    if (loadedNetworkData) {
+      try {
+        const networkData = JSON.parse(loadedNetworkData);
+        if (networkData.nodes) {
+          setNodes(networkData.nodes);
+        }
+        // Clear the loaded network data
+        localStorage.removeItem('loadedNetwork');
+      } catch (error) {
+        console.error('Error loading network data:', error);
+      }
+    }
+  }, []); // Run once on mount
   
   // Add arrows to all existing edges on component mount
   useEffect(() => {
@@ -213,7 +231,9 @@ export default function CanvasPage() {
   // Custom hook to handle exporting the current canvas state
   const handleExport = useExport(nodes, edges, defaultLayers, defaultTensorOps, defaultActivators);
 
+  const handleSave = useSave(nodes, edges, defaultLayers, defaultTensorOps, defaultActivators);
 
+  
   const unpackErrorIds = (errors: any[]) => {
     const rtn = [];
     errors.forEach((value) => {
@@ -276,6 +296,7 @@ export default function CanvasPage() {
         nodes={nodes}
         setNodes={setNodes}
         handleExport={handleExport}
+        handleSave={handleSave}
         selectedNodes={selectedNodes}
         updateNodeType={updateNodeType}
         updateNodeOperationType={updateNodeOperationType}

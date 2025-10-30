@@ -51,6 +51,7 @@ interface Props {
     setSelectedMenu: (val: string) => void; // Function to change selected menu
     nodes: any[]; // Array of nodes (data for LayerForm)
     setNodes: (val: any) => void; // Function to update nodes
+    handleSave: () => void; // Function to handle save action
     handleExport: () => void; // Function to handle export action
     selectedNodes: any[]; // shows current selected Nodes
     updateNodeType: (targetID: any, valA: any, valB: any) => void; // allows the update of layerType
@@ -71,6 +72,7 @@ export default function Sidebar({
     nodes,
     setNodes,
     handleExport,
+    handleSave,
     selectedNodes,
     updateNodeType,
     updateNodeOperationType,
@@ -172,7 +174,7 @@ export default function Sidebar({
                     </ListItem>
                     {/* Save button (no handler attached) */}
                     <ListItem disablePadding>
-                        <ListItemButton>
+                        <ListItemButton onClick={handleSave}>
                             <ListItemIcon>
                                 <SaveIcon />
                             </ListItemIcon>
