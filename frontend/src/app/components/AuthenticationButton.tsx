@@ -2,7 +2,17 @@ import Link from "next/link"
 import { useUser } from "@auth0/nextjs-auth0"
 import { useState } from "react";
 
-export default function AuthenticationButton() {
+interface ProfileItem {
+    title: string;
+    href: string;
+    image: string;
+}
+
+interface ProfileProps {
+    routes: ProfileItem[];
+}
+
+export default function AuthenticationButton({ routes }: ProfileProps) {
     const { user, isLoading } = useUser();
     const [isToggled, setIsToggled] = useState(false)
 
@@ -13,13 +23,9 @@ export default function AuthenticationButton() {
     }
 
     if (user) {
-        // TO BE DONE: ADD USER INFORMATION HERE :)
-        // <pre>{JSON.stringify(user, null, 2)}</pre>
-        // Make Profile Picture look clickable
         const nameGiven = user.given_name || user.nickname || user.name || user.email;
         console.log(nameGiven)
         return (
-            // maybe make fade for menu better in future
             <>
                 <div className="dropdown" onMouseLeave={() => setIsToggled(false)}>
                     <div className="profile">
@@ -37,14 +43,13 @@ export default function AuthenticationButton() {
                                     <h3>{user.email}</h3>
                                 </div>
                             </div>
-                            <a className="dropBtn" href="/auth/logout">
-                                <img src="dashboard.svg" className="dropdownPicture" />
-                                <h2 className="dropdownOption">Dashboard</h2>
-                            </a>
-                            <a className="dropBtn" href="/auth/logout">
-                                    <img src="logout.svg" className="dropdownPicture"/>
-                                    <h2 className="dropdownOption">Logout</h2>
-                            </a>
+
+                            {routes.map((route) => (
+                                <a key={route.href} className="dropBtn" href={route.href}>
+                                    <img src={route.image} alt={route.title} className="dropdownPicture" />
+                                    <h2 className="dropdownOption">{route.title}</h2>
+                                </a>
+                            ))}
                         </div>
                     )}
                 </div>
@@ -52,7 +57,7 @@ export default function AuthenticationButton() {
         )
     } else {
         return (
-            <a className="toolbarBtn" href="/auth/login">Login</a>
+            <a className="toolbarBtn" href="/auth/login?returnTo=/dashboard">Login</a>
         )
     }
 }
