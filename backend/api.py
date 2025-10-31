@@ -1,8 +1,11 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from parse import parse
 from NNgenerator import generate
 from NNdatabase import NNDataBase
 import json
+import traceback
+
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -71,7 +74,7 @@ def get_layers():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/operations/tensor-ops', methods=['GET'])
+@app.route('/api/operations/tensorops', methods=['GET'])
 def get_tensor_ops():
     """Get available tensor operation definitions"""
     try:
@@ -107,6 +110,35 @@ def get_all_operations():
         }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/variables-info', methods=['GET'])
+def get_variables_info():
+    """Get variable type information"""
+    try:
+        import os
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        variables_info_path = os.path.join(script_dir, "JsonLayers", "variables_info.json")
+        
+        with open(variables_info_path, "r") as f:
+            data = json.load(f)
+            return jsonify(data), 200
+    except FileNotFoundError:
+        return jsonify({"error": "variables_info.json not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/parser/parse', methods=['POST'])
+def parse_nodes():
+    try:
+        json_data = request.get_json()
+        errorsInfo = parse(json_data["nodes"])
+        
+    except Exception as e:
+        traceback.print_exception(e)
+        return jsonify({"error": str(e)}), 500
+    return jsonify({
+        "info" : errorsInfo,
+    }), 200
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

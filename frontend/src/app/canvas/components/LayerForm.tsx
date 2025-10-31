@@ -8,6 +8,9 @@ import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 import { generateUniqueNodeId } from "../utils/idGenerator";
+import ParameterInputs from "./ParameterInputs";
+import { useNodeDefinitions } from "../hooks/useNodeDefinitions";
+import { useVariablesInfo } from "../hooks/useVariablesInfo";
 
 // Define the props that this component expects
 interface Props {
@@ -18,51 +21,89 @@ interface Props {
 
 // Main component for the Layer Form
 export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
-    // If layer types haven't loaded yet, show a loading message
-    if (!defaultLayers || defaultLayers.length === 0) {
-        return <div>Loading layer types...</div>;
-    }
+    // All hooks must be called before any conditional returns!
+    
+    // Fetch layer definitions and variables info from backend
+    const { loading: layerDefsLoading, error: layerDefsError } = useNodeDefinitions("layers");
+    const { loading: variablesLoading, error: variablesError } = useVariablesInfo();
 
     // State for the currently selected default layer type
-    const [chosenDefault, setChosenDefault] = useState(defaultLayers[0]);
+    const [chosenDefault, setChosenDefault] = useState(defaultLayers?.[0] || null);
+    
+    // State for validation errors
+    const [hasValidationErrors, setHasValidationErrors] = useState(false);
 
     // When defaultLayers changes (e.g., after loading), update chosenDefault
     useEffect(() => {
-        setChosenDefault(defaultLayers[0]);
+        if (defaultLayers && defaultLayers.length > 0) {
+            setChosenDefault(defaultLayers[0]);
+        }
     }, [defaultLayers]);
+
+    // Now handle conditional rendering AFTER all hooks
+    
+    // Show error if API calls failed
+    if (layerDefsError || variablesError) {
+        return (
+            <div>
+                <Typography color="error">
+                    Error loading data: {layerDefsError || variablesError}
+                </Typography>
+            </div>
+        );
+    }
+    
+    // If layer types haven't loaded yet, show a loading message
+    if (!defaultLayers || defaultLayers.length === 0 || layerDefsLoading || variablesLoading) {
+        return <div>Loading layer types...</div>;
+    }
 
     // Change the selected layer type when user picks a new one
     function setLayer(layerName: string) {
-        setChosenDefault(defaultLayers.find((layer) => layer.type === layerName));
+        const newLayer = defaultLayers.find((layer) => layer.type === layerName);
+        setChosenDefault(newLayer);
     }
 
-    // Update a parameter value for the selected layer type
-    const updateParam = (paramaterKey: string, parameterValue: string) => {
-        setChosenDefault(prev => ({
+    // Handle parameter changes from ParameterInputs component
+    const handleParameterChange = (parameterKey: string, value: any) => {
+        setChosenDefault(prev => prev ? ({
             ...prev,
-            parameters: { ...prev.parameters, [paramaterKey]: parameterValue }
-        }));
+            parameters: { 
+                ...prev.parameters, 
+                [parameterKey]: value 
+            }
+        }) : null);
+    };
+
+    // Handle validation state changes from ParameterInputs component
+    const handleValidationChange = (hasErrors: boolean) => {
+        setHasValidationErrors(hasErrors);
     };
 
     // Add a new layer node to the list
     const addLayer = () => {
-        const newId = generateUniqueNodeId("layer", nodes); // Generate a unique id
+        // Check if there are any validation errors
+        if (hasValidationErrors) {
+            alert("Please fix parameter errors before adding the layer.");
+            return;
+        }
+
+        const newId = generateUniqueNodeId("layer", nodes);
         setNodes([
             ...nodes,
             {
                 id: newId,
-                position: { x: 100, y: 100 + nodes.length * 60 }, // Position it below previous nodes
+                position: { x: 100, y: 100 + nodes.length * 60 },
                 data: {
                     label: chosenDefault.type,
                     operationType: "Layer",
                     type: chosenDefault.type,
                     parameters: chosenDefault.parameters,
-                    outgoing_edges_count: 0 // Initialize with 0 outgoing edges
+                    outgoing_edges_count: 0
                 },
             },
         ]);
-        setChosenDefault(defaultLayers[0]); // Reset to first option
-        setChosenDefault(defaultLayers[0]); // Reset to first layer type
+        setChosenDefault(defaultLayers[0]);
     };
 
     // Render the form UI
@@ -87,21 +128,18 @@ export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
                     <MenuItem key={dLayer.type} value={dLayer.type}>{dLayer.type}</MenuItem>
                 ))}
             </TextField>
+            
             {/* Show parameter inputs for the selected layer type */}
-            {chosenDefault && chosenDefault.parameters &&
-                Object.keys(chosenDefault.parameters).map((paramterKey, i) => (
-                    <TextField
-                        key={i}
-                        label={paramterKey}
-                        value={chosenDefault.parameters[paramterKey]}
-                        onChange={(e) => updateParam(paramterKey, e.target.value)}
-                        type={typeof chosenDefault.parameters[paramterKey] === "number" ? "number" : "text"}
-                        fullWidth
-                        size="small"
-                        sx={{ mb: 2 }}
-                    />
-                ))
-            }
+            {chosenDefault && (
+                <ParameterInputs
+                    operationType="Layer"
+                    nodeType={chosenDefault.type}
+                    parameters={chosenDefault.parameters}
+                    onParameterChange={handleParameterChange}
+                    onValidationChange={handleValidationChange}
+                />
+            )}
+            
             {/* Button to add the new layer */}
             <Button variant="contained" fullWidth onClick={addLayer}>
                 Add Layer
