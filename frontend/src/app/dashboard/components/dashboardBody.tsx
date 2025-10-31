@@ -28,7 +28,7 @@ export default function dashboardBody() {
         return [...favourited, ...nonFavourited];
     };
 
-    const toggleFavourote = (index: number, newState: boolean) => {
+    const handleFavourite = (index: number, newState: boolean) => {
         console.log("debug: favourites = ", newState);
 
         const updated = [...getNeuralNetworks()];
@@ -84,7 +84,7 @@ export default function dashboardBody() {
                                         <CardActions>
                                             <FavouriteButton 
                                                 isFavourtied={NeuralNetwork.Favourited}
-                                                onToggle={(newState) => toggleFavourote(index, newState)}
+                                                onToggle={(newState) => handleFavourite(index, newState)}
                                             />
                                             <DeleteButton/>
                                         </CardActions>
