@@ -4,12 +4,20 @@ import React, { useState } from "react";
 import { IconButton } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 
-export const FavouriteButton = () => {
-    const [current, setLiked] = useState(false); //Stores state and function that updates state
+interface FavouriteButtonProps {
+    isFavourtied: boolean;
+    onToggle: (newState: boolean) => void;
+}
+
+export const FavouriteButton = ({ isFavourtied, onToggle }: FavouriteButtonProps) => {
+    const [current, setLiked] = useState(isFavourtied); //Stores state and function that updates state
 
     const click = () => {
-    setLiked(!current); // on click, set state to not current state 
-};
+        // setLiked(!current); // on click, set state to not current state 
+        const newState = !current;
+        setLiked(newState);
+        onToggle(newState);
+    };
 
     return (
         <IconButton aria-label="add to favorites"

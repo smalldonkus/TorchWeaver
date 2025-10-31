@@ -28,6 +28,14 @@ export default function dashboardBody() {
         return [...favourited, ...nonFavourited];
     };
 
+    const toggleFavourote = (index: number, newState: boolean) => {
+        console.log("debug: favourites = ", newState);
+
+        const updated = [...getNeuralNetworks()];
+        updated[index].Favourited = newState;
+        setVisibleNetworks(updated);
+    };
+
     const handleSortChange = (sortType: string) => {
         setVisibleNetworks(NewSort(sortType, handleFavourites(getNeuralNetworks()))); //Passes full neural network array to newSort
     };
@@ -74,7 +82,10 @@ export default function dashboardBody() {
                                             </Typography>
                                         </CardContent>
                                         <CardActions>
-                                            <FavouriteButton/>
+                                            <FavouriteButton 
+                                                isFavourtied={NeuralNetwork.Favourited}
+                                                onToggle={(newState) => toggleFavourote(index, newState)}
+                                            />
                                             <DeleteButton/>
                                         </CardActions>
                                 </Box>
