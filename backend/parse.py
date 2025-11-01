@@ -9,7 +9,7 @@ class ParseError:
     def __init__(self, desc, nodes:list=None):
         self.desc = desc
         self.nodes     = None if nodes is None else [n["id"] for n in nodes]
-        self.nodesDesc = None if nodes is None else [f"{n["data"]["label"]} {n["id"]}" for n in nodes]
+        self.nodesDesc = None if nodes is None else [f"{n["data"].get("type", "Unknown")} {n["id"]}" for n in nodes]
 
     def report(self, ID):
         nodesS = "No nodes"
@@ -58,7 +58,7 @@ def parse(nodesList):
         need to change, storing in order in a queue is probably the best way.
     """
     DB = NNDataBase() # this object is shit, fixed below
-    defaults = DB.defaults["nnLayer"]["data"] + DB.defaults["tensorOp"]["data"] + DB.defaults["activator"]["data"]
+    
     errors = []
 
     inputs = [n for n in nodesList if (n["data"]["operationType"]).lower() == "input"]
@@ -68,7 +68,7 @@ def parse(nodesList):
 
     # checks for input's Having a parent
     for n in inputs:
-        if len(n["parents"]) != 0:
+        if len(n.get("parents", [])) != 0:
             errors.append(ParseError("Inputs cannot have a Parent", nodes=[n]))
 
     # checks for maxInputs and minInputs being obeyed
@@ -79,11 +79,28 @@ def parse(nodesList):
 
         # print(n["parents"])
 
-        dflt = [d for d in defaults if d["type"] == n["data"]["label"]][0]
-        if len(n["parents"]) < int(dflt["minInputs"]):
-            errors.append(ParseError(f"Node of Type {dflt["type"]} requires at least {dflt["minInputs"]} input{"s" if dflt["minInputs"] > 1 else ""}, currently has {len(n["parents"])}", nodes=[n]))
-        if len(n["parents"]) > int(dflt["maxInputs"]):
-            errors.append(ParseError(f"Node of type {dflt["type"]} requires less or equal to {dflt["maxInputs"]} input{"s" if dflt["minInputs"] > 1 else ""}, currently has {len(n["parents"])}", nodes=[n]))
+        # Find the default configuration for this node type using hierarchical lookup
+        node_type = n["data"].get("type")
+        if not node_type:
+            errors.append(ParseError(f"Node {n['id']} missing type field", nodes=[n]))
+            continue
+            
+        dflt = DB.find_definition(node_type)
+        
+        if dflt is None:
+            errors.append(ParseError(f"No default configuration found for node type {node_type}", nodes=[n]))
+            continue
+            
+        # Check parseCheck constraints if they exist
+        parse_check = dflt.get("parseCheck", {})
+        min_inputs = parse_check.get("minInputs", 0)
+        max_inputs = parse_check.get("maxInputs", float('inf'))
+        
+        parent_count = len(n.get("parents", []))
+        if parent_count < int(min_inputs):
+            errors.append(ParseError(f"Node of Type {dflt['type']} requires at least {min_inputs} input{'s' if min_inputs > 1 else ''}, currently has {parent_count}", nodes=[n]))
+        if parent_count > int(max_inputs):
+            errors.append(ParseError(f"Node of type {dflt['type']} requires less or equal to {max_inputs} input{'s' if max_inputs > 1 else ''}, currently has {parent_count}", nodes=[n]))
 
     # TODO: checks for path from input to output
     inputs = [n for n in nodesList if n["data"]["operationType"] == "Input"]

@@ -1,16 +1,18 @@
 import { error } from "console";
 
- export default async function useParse(nodes: any[], edges: any[]): Promise<any> {
+export default async function useParse(nodes: any[], edges: any[]): Promise<any> {
     
-    // const defaultNodes = [
-    //     ...defaultLayers,
-    //     ...defaultActivators,
-    //     ...defaultTensorOps
-    // ]
+    // Note: The parsing is now handled on the backend with the new hierarchical structure
+    // The backend parse.py has been updated to handle:
+    // - Layers.json (with global classes like "Linear Layers", "Dropout Layers")  
+    // - TensorOperations.json (with global classes like "Merge Tensor Operations", "Split Tensor Operations")
+    // - ActivationFunction.json (with global classes like "Activation Functions")
+    
     // filters nodesList for only stuff needed,
     // fetches incoming/outgoing edges by ID only
     const exportNodes = nodes.map((n) => ({
-        id: n.id, data: n.data,
+        id: n.id, 
+        data: n.data,
         parents:  edges.filter((e) => e.target == n.id).map((o) => o.source),
         children: edges.filter((e) => e.source == n.id).map((o) => o.target)
     }));
@@ -20,7 +22,7 @@ import { error } from "console";
     }
 
     try {
-        const response = await fetch('http://127.0.0.1:5000/parser/parse', {
+            const response = await fetch('http://localhost:5000/api/parse', {
             method: 'POST',
             headers: {
             'Content-Type': 'application/json',
