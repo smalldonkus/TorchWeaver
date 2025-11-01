@@ -116,7 +116,7 @@ export default function Sidebar({
                     {[
                         { text: "Layers", icon: <LayersIcon /> },
                         { text: "Tensor Operations", icon: <FunctionsIcon /> },
-                        { text: "Activators", icon: <ApiIcon /> },
+                        { text: "Activation Functions", icon: <ApiIcon /> },
                         { text: "Inputs", icon: <InputIcon /> },
                         { text: "Outputs", icon: <OutputIcon /> },
                         { text: "Edit Nodes", icon: <EditIcon /> },
@@ -152,7 +152,7 @@ export default function Sidebar({
                 {selectedMenu === "Outputs" && (
                     <OutputForm nodes={nodes} setNodes={setNodes} />
                 )}
-                {selectedMenu === "Activators" && (
+                {selectedMenu === "Activation Functions" && (
                     <ActivatorsForm nodes={nodes} setNodes={setNodes} defaultActivators={defaultActivators} />
                 )}
             </div>

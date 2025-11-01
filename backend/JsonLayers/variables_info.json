@@ -1,0 +1,24 @@
+{
+    "data" : [
+        {
+            "type": "int",
+            "input_description": "Enter an integer value like 0, 1, -2, etc."
+        },
+        {
+            "type": "float",
+            "input_description": "Enter a floating-point value like 0.0, 1.5, -2.3, etc."
+        },
+        {
+            "type": "list",
+            "input_description": "Enter a list of values enclosed in square brackets, e.g., [1, 2, 3] or [0.1, 0.2, 0.3]."
+        },
+        {
+            "type": "tuple",
+            "input_description": "Enter a tuple of values enclosed in parentheses, e.g., (1, 2) or (0.1, 0.2)."
+        },
+        {
+            "type": "boolean",
+            "input_description": "Enter a boolean value (true/false)."
+        }
+    ]
+}
