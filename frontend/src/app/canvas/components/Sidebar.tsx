@@ -57,9 +57,9 @@ interface Props {
     updateNodeOperationType: (targetID: any, val: any) => void;
     updateNodeParameter: (targetID: any, valA: any, valB: any) => void;
     deleteNode: (targetID: any) => void;
-    defaultLayers: any[];
-    defaultTensorOps: any[];
-    defaultActivators: any[];
+    defaultLayers: any; // Changed from any[] to any for new structure
+    defaultTensorOps: any; // Changed from any[] to any for new structure
+    defaultActivators: any; // Changed from any[] to any for new structure
 }
 
 // Sidebar component definition
