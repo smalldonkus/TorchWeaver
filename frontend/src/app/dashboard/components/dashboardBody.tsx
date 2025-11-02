@@ -16,38 +16,33 @@ import { NeuralNetworkInfo } from './NeuralNetworks';
 import { getNeuralNetworks } from './NeuralNetworks';
 import CardActionArea from '@mui/material/CardActionArea';
 import DeleteButton from './DeleteButton';
+import { setNeuralNetworks } from './NeuralNetworks';
 
 export default function dashboardBody() {
-    const [NeuralNetworks, setNeuralNetworks] = React.useState<NeuralNetworkInfo[]>(getNeuralNetworks()); // do not use setNeuralNetworks as that is the master
-    const [visibleNetworks, setVisibleNetworks] = React.useState<NeuralNetworkInfo[]>(NeuralNetworks);  //copy of neuralnetworks that gets decimated
-
-    // helper functions to ensure favourited networks appear first
-    const handleFavourites = (networks: NeuralNetworkInfo[]) => {
-        const favourited = getNeuralNetworks().filter(nn => nn.Favourited);
-        const nonFavourited = getNeuralNetworks().filter(nn => !nn.Favourited);
-        return [...favourited, ...nonFavourited];
-    };
-
-    const handleFavourite = (index: number, newState: boolean) => {
-        console.log("debug: favourites = ", newState);
-
-        const updated = [...getNeuralNetworks()];
-        updated[index].Favourited = newState;
-        setVisibleNetworks(updated);
-    };
+    const [visibleNetworks, setVisibleNetworks] = React.useState<NeuralNetworkInfo[]>(getNeuralNetworks());  //copy of neuralnetworks that gets shown on screen (local and stored in this file
 
     const handleSortChange = (sortType: string) => {
-        setVisibleNetworks(NewSort(sortType, handleFavourites(getNeuralNetworks()))); //Passes full neural network array to newSort
+        setVisibleNetworks(NewSort(sortType, visibleNetworks)); //Passes only visibleNetworks to be sorted, non-destructive so can happen last.
     };
 
     const handleSearch = (input: string) => {
-        setVisibleNetworks(searchFilter(input, handleFavourites(getNeuralNetworks()))); //Passes full neural network array to searchFilter
+        setVisibleNetworks(searchFilter(input, getNeuralNetworks())); //Passes full neural network array to searchFilter
     };
-
+    //ownership sorting and searching are both destructive only one can happen at a time
+    //Oscar note : i dont think this is fixable, sad
     const handleOwnershipSorting = (sortType: string) => {
         const owner = "A";
-        setVisibleNetworks(NewList(owner, sortType, handleFavourites(getNeuralNetworks())));
+        setVisibleNetworks(NewList(owner, sortType, getNeuralNetworks()));
     };
+
+    //function to change favourited boolean in global if toggled
+    const handleFavourite = (title: string) => {
+        const updated = visibleNetworks.map((net) =>
+            net.title === title ? { ...net, Favourited: !net.Favourited } : net
+        );
+        setVisibleNetworks(updated); // Updates visuals
+        setNeuralNetworks(updated); // stores back into global
+    }
 
     return (
         <Container sx={{ bgcolor: "#EDF1F3", minHeight: "100vh", minWidth: "100vw"}}>
@@ -82,10 +77,9 @@ export default function dashboardBody() {
                                             </Typography>
                                         </CardContent>
                                         <CardActions>
-                                            <FavouriteButton 
-                                                isFavourtied={NeuralNetwork.Favourited}
-                                                onToggle={(newState) => handleFavourite(index, newState)}
-                                            />
+                                            <FavouriteButton
+                                                isFavourite={NeuralNetwork.Favourited}
+                                                onClick={() => handleFavourite(NeuralNetwork.title)}/>
                                             <DeleteButton/>
                                         </CardActions>
                                 </Box>
