@@ -31,7 +31,7 @@ class NNStorage:
         cur.execute("""
             INSERT INTO networks (name, description, created_at, json_data, user_id)
             VALUES (?, ?, ?, ?, ?)
-        """, (name, description, datetime.now().isoformat(), json.dumps(json_data)))
+        """, (name, description, datetime.now().isoformat(), json.dumps(json_data), None))
         conn.commit()
         conn.close()
         return True

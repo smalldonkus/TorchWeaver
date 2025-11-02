@@ -1,8 +1,10 @@
 from flask import Blueprint, request, jsonify
+from flask_cors import CORS
 from NNstorage import NNStorage
 import traceback
 
 NNRoutes  = Blueprint("nn_routes", __name__)
+CORS(NNRoutes)
 storage = NNStorage()
 
 @NNRoutes .route('/save_network', methods=['POST'])
