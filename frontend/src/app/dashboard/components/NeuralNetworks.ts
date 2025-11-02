@@ -12,17 +12,15 @@ let NeuralNetworks: NeuralNetworkInfo[] = [
     { title: "C Test Neural Network", lastAccessed: "30/30/3000", image: "/testnetwork.png" , Owner:"B", Favourited: true},
 ];
 
-let VisibleNetworks: NeuralNetworkInfo[];
+let VisibleNetworks: NeuralNetworkInfo[] = [];
 
 export const getNeuralNetworks = () => NeuralNetworks;
 
 export const setNeuralNetworks = (NewNeuralNetworks: NeuralNetworkInfo[]) => {
+  console.log(NewNeuralNetworks);
   NeuralNetworks = NewNeuralNetworks;
 };
 
-export const setVisibleNetworks = (NewVisibleNetworks: NeuralNetworkInfo[]) => {
-  VisibleNetworks = NewVisibleNetworks;
-};
 
 export const createNeuralNetwork = () => {
   //TODO: Write function to add to neuralnetworks
