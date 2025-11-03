@@ -18,6 +18,8 @@ import { generateUniqueNodeId } from "./utils/idGenerator";
 import useParse from "./hooks/useParse";
 import ErrorBox from "./components/ErrorBox";
 
+import TorchNode from "./components/TorchNode";
+
 // Main page component for the canvas feature
 export default function CanvasPage() {
 
@@ -30,6 +32,10 @@ export default function CanvasPage() {
   const [nodes, setNodes] = useState<any[]>(initialNodes);
   // State for the edges (connections) in the canvas
   const [edges, setEdges] = useState<any[]>(initialEdges);
+
+  const nodeTypes = {
+    torchNode : TorchNode
+  };
   
   // Add arrows to all existing edges on component mount
   useEffect(() => {
@@ -307,21 +313,53 @@ export default function CanvasPage() {
     return rtn;
   }
 
-  const inErrorColour = "#d32f2f"
-  const stdColour = "#ffffff"
+  const getAllNodeErrors = (errors: any[], eID) => {
+    const rtn: any[] = [];
+    errors.forEach((v) => {
+      if (v.flaggedNodes != null && v.flaggedNodes.length != 0){
+        if (v.flaggedNodes.includes(eID)) {rtn.push(v.errorMsg)};
+      }
+    });
+    return rtn;
+  }
+
   // updates state variables when errors are added
   useEffect( () => {
       seterrorOpen(errors.length == 0 ? false : true);
       seterrorMsgs(errors.map((e) => e.errorMsg));
+
+      // fills/updates/clears the errors array of each node, if of type: "torchNode"
+      setNodes((oldNodes) =>
+        oldNodes.map((e) => {
+          // find all errors associated with this node
+          const errorsMsgArr = getAllNodeErrors(errors, e.id);
+          return {
+            ...e,
+            data: {
+              ...e.data,
+              errors : errorsMsgArr
+            }            
+          }
+        })
+      );
+
+      // set the border of each "error'd" node to red
       const errorIDs: any[] = unpackErrorIds(errors);
-      console.log(errorIDs)
       setNodes((oldNodes) => 
         oldNodes.map((e) => errorIDs.includes(e.id) ? 
-          {...e, style: {...e.style, background: inErrorColour}}
+          {...e, style: {...e.style, border: "1px solid #d32f2f"}}
           :
-          {...e, style: {...e.style, background: stdColour}})
+          {...e, style: {...e.style, border: "1px solid black"}})
       );
   }, [errors]);
+
+  const getDefaults = () => {
+    return {
+      defaultActivators: defaultActivators, 
+      defaultTensorOps: defaultTensorOps, 
+      defaultLayers: defaultLayers
+    }
+  }
 
 
   // Show loading state while fetching operations
@@ -364,6 +402,7 @@ export default function CanvasPage() {
         updateNodeOperationType={updateNodeOperationType}
         updateNodeParameter={updateNodeParameter}
         deleteNode={deleteNode}
+        getDefaults={getDefaults}
         defaultLayers={defaultLayers}
         defaultTensorOps={defaultTensorOps}
         defaultActivators={defaultActivators}
@@ -375,6 +414,7 @@ export default function CanvasPage() {
         <Canvas
           nodes={nodes}
           edges={edges}
+          nodeTypes={nodeTypes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}

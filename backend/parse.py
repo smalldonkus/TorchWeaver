@@ -11,11 +11,8 @@ class ParseError:
         self.nodes     = None if nodes is None else [n["id"] for n in nodes]
         self.nodesDesc = None if nodes is None else [f"{n["data"].get("type", "Unknown")} {n["id"]}" for n in nodes]
 
-    def report(self, ID):
-        nodesS = "No nodes"
-        if self.nodesDesc is not None:
-            nodesS = ", ".join(self.nodes)
-        return f"{ID}: {self.desc}, involving \'{nodesS}\'"
+    def report(self):
+        return self.desc
 
 def find(nodesList, nodeId):
     query = [n for n in nodesList if n["id"] == nodeId]
@@ -64,12 +61,12 @@ def parse(nodesList):
     inputs = [n for n in nodesList if (n["data"]["operationType"]).lower() == "input"]
     # checks for input existing
     if len(inputs) == 0:
-        errors.append(ParseError("No Input Node, defined", nodes=None))
+        errors.append(ParseError("No \'Input Node\' defined", nodes=None))
 
     # checks for input's Having a parent
     for n in inputs:
         if len(n.get("parents", [])) != 0:
-            errors.append(ParseError("Inputs cannot have a Parent", nodes=[n]))
+            errors.append(ParseError("Inputs cannot have a parent", nodes=[n]))
 
     # checks for maxInputs and minInputs being obeyed
     print(" ".join([n["id"] for n in nodesList]))
@@ -98,7 +95,7 @@ def parse(nodesList):
         
         parent_count = len(n.get("parents", []))
         if parent_count < int(min_inputs):
-            errors.append(ParseError(f"Node of Type {dflt['type']} requires at least {min_inputs} input{'s' if min_inputs > 1 else ''}, currently has {parent_count}", nodes=[n]))
+            errors.append(ParseError(f"Node of type {dflt['type']} requires at least {min_inputs} input{'s' if min_inputs > 1 else ''}, currently has {parent_count}", nodes=[n]))
         if parent_count > int(max_inputs):
             errors.append(ParseError(f"Node of type {dflt['type']} requires less or equal to {max_inputs} input{'s' if max_inputs > 1 else ''}, currently has {parent_count}", nodes=[n]))
 
@@ -113,11 +110,12 @@ def parse(nodesList):
 
     if CRUDE_REPORT:
         for i, e in enumerate(errors):
-            print(e.report(i + 1))
+            print(e.report())
 
     return [] if len(errors) == 0 else [
         {
-            "errorMsg" : e.report(i + 1),
+            "id": i + 1,
+            "errorMsg" : e.report(),
             "flaggedNodes" : e.nodes
         }
         for i, e in enumerate(errors)

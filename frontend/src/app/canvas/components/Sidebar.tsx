@@ -57,6 +57,7 @@ interface Props {
     updateNodeOperationType: (targetID: any, val: any) => void;
     updateNodeParameter: (targetID: any, valA: any, valB: any) => void;
     deleteNode: (targetID: any) => void;
+    getDefaults: () => any;
     defaultLayers: any; // Changed from any[] to any for new structure
     defaultTensorOps: any; // Changed from any[] to any for new structure
     defaultActivators: any; // Changed from any[] to any for new structure
@@ -76,6 +77,7 @@ export default function Sidebar({
     updateNodeOperationType,
     updateNodeParameter,
     deleteNode,
+    getDefaults,
     defaultLayers,
     defaultTensorOps,
     defaultActivators
@@ -137,7 +139,7 @@ export default function Sidebar({
                 </List>
                 {/* Show LayerForm only if "Layers" menu is selected */}
                 {selectedMenu === "Layers" && (
-                    <LayerForm nodes={nodes} setNodes={setNodes} defaultLayers={defaultLayers}/>
+                    <LayerForm nodes={nodes} setNodes={setNodes} defaultLayers={defaultLayers} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter} deleteNode={deleteNode} getDefaults={getDefaults}/>
                 )}
                 {selectedMenu === "Edit Nodes" && (
                     <EditLayerForm selectedNodes={selectedNodes} defaultActivators={defaultActivators} defaultTensorOps={defaultTensorOps} defaultLayers={defaultLayers} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter} deleteNode={deleteNode}/>
