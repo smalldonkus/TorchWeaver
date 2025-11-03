@@ -30,14 +30,14 @@ export default function AuthenticationButton({ routes }: ProfileProps) {
                 <div className="dropdown" onMouseLeave={() => setIsToggled(false)}>
                     <div className="profile">
                         <button  className="profileBtn" onClick={() => setIsToggled(!isToggled)}>
-                            <img src={user.picture} alt="Profile" className="profilePicture"/>
+                            <img src={user.picture} referrerPolicy="no-referrer" alt="Profile" className="profilePicture"/>
                         </button>
                     </div>
 
                     {isToggled && (
                         <div className="profileDropdown">
                             <div className="profileInfo">
-                                <img src={user.picture} alt="Profile" className="userProfilePicture"/>
+                                <img src={user.picture} referrerPolicy="no-referrer" alt="Profile" className="userProfilePicture"/>
                                 <div className="userDisplayedInfo">
                                     <h1>{nameGiven}</h1>
                                     <h3>{user.email}</h3>
