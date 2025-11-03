@@ -1,4 +1,5 @@
 export type NeuralNetworkInfo = {
+  id: number;
   title: string;
   lastAccessed: string;
   image: string;
@@ -6,28 +7,39 @@ export type NeuralNetworkInfo = {
   Favourited: boolean;
 };
 
-let NeuralNetworks: NeuralNetworkInfo[] = [
-    { title: "A Test Neural Network", lastAccessed: "10/10/1000", image: "/testnetwork.png" , Owner:"A", Favourited: true},
-    { title: "B Test Neural Network", lastAccessed: "20/20/2000", image: "/testnetwork.png" , Owner:"A", Favourited: false},
-    { title: "C Test Neural Network", lastAccessed: "30/30/3000", image: "/testnetwork.png" , Owner:"B", Favourited: true},
-];
-
-let VisibleNetworks: NeuralNetworkInfo[];
-
-export const getNeuralNetworks = () => NeuralNetworks;
-
-export const setNeuralNetworks = (NewNeuralNetworks: NeuralNetworkInfo[]) => {
-  NeuralNetworks = NewNeuralNetworks;
+// Fetch list of networks from backend and transform to frontend type
+export const getNeuralNetworks = async (): Promise<NeuralNetworkInfo[]> => {
+  try {
+    const res = await fetch('http://localhost:5000/list_network');
+    if (!res.ok) {
+      console.error('Failed to fetch networks', res.status);
+      return [];
+    }
+    const data = await res.json();
+    // backend returns { networks: [ {id, name, description, created_at} ] }
+    return (data.networks || []).map((n: any) => ({
+      id: n.id,
+      title: n.name || `Network ${n.id}`,
+      lastAccessed: n.created_at ? new Date(n.created_at).toLocaleString() : '',
+      image: '/testnetwork.png',
+      Owner: 'User',
+      Favourited: false
+    }));
+  } catch (err) {
+    console.error('Error fetching neural networks', err);
+    return [];
+  }
 };
 
-export const setVisibleNetworks = (NewVisibleNetworks: NeuralNetworkInfo[]) => {
-  VisibleNetworks = NewVisibleNetworks;
+export const loadNetwork = async (id: number) => {
+  const res = await fetch(`http://localhost:5000/load_network?id=${id}`);
+  if (!res.ok) throw new Error('Failed to load network');
+  const data = await res.json();
+  return data.network;
 };
 
-export const createNeuralNetwork = () => {
-  //TODO: Write function to add to neuralnetworks
-};
-
-export const deleteNeuralNetwork = (NeuralNetwork: NeuralNetworkInfo) => { //TODO:CHECK THIS TYPE
-  //TODO: write function to remove from neuralnetworks
+export const deleteNetwork = async (id: number) => {
+  const res = await fetch(`http://localhost:5000/delete_network?id=${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Failed to delete network');
+  return true;
 };

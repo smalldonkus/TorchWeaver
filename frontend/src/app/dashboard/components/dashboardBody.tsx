@@ -12,21 +12,63 @@ import { FavouriteButton } from './FavouriteButton';
 import { NewSort, SortingBar } from './Sorting';
 import { OwnershipBar } from './Ownership';
 import { SearchBar, searchFilter } from './SearchBar';
-import { NeuralNetworkInfo } from './NeuralNetworks';
-import { getNeuralNetworks } from './NeuralNetworks';
+import { NeuralNetworkInfo, getNeuralNetworks, loadNetwork, deleteNetwork } from './NeuralNetworks';
 import CardActionArea from '@mui/material/CardActionArea';
 import DeleteButton from './DeleteButton';
 
 export default function dashboardBody() {
-    const [NeuralNetworks, setNeuralNetworks] = React.useState<NeuralNetworkInfo[]>(getNeuralNetworks()); // do not use setNeuralNetworks as that is the master
-    const [visibleNetworks, setVisibleNetworks] = React.useState<NeuralNetworkInfo[]>(NeuralNetworks);  //copy of neuralnetworks that gets decimated
+    const [networks, setNetworks] = React.useState<NeuralNetworkInfo[]>([]);
+    const [visibleNetworks, setVisibleNetworks] = React.useState<NeuralNetworkInfo[]>([]);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        const load = async () => {
+            try {
+                setLoading(true);
+                const data = await getNeuralNetworks();
+                setNetworks(data);
+                setVisibleNetworks(data);
+            } catch (err) {
+                setError('Failed to load networks');
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+    }, []);
 
     const handleSortChange = (sortType: string) => {
-        setVisibleNetworks(NewSort(sortType, getNeuralNetworks())); //Passes full neural network array to newSort
+        setVisibleNetworks(NewSort(sortType, networks));
     };
 
     const handleSearch = (input: string) => {
-        setVisibleNetworks(searchFilter(input, getNeuralNetworks())); //Passes full neural network array to searchFilter
+        setVisibleNetworks(searchFilter(input, networks));
+    };
+
+    const handleNetworkClick = async (id: number) => {
+        try {
+            const net = await loadNetwork(id);
+            localStorage.setItem('loadedNetwork', JSON.stringify(net));
+            window.location.href = '/canvas';
+        } catch (err) {
+            console.error('Failed to load network', err);
+            alert('Failed to load network');
+        }
+    };
+
+    const handleDelete = async (id: number) => {
+        if (!confirm('Delete this network?')) return;
+        try {
+            await deleteNetwork(id);
+            const updated = await getNeuralNetworks();
+            setNetworks(updated);
+            setVisibleNetworks(updated);
+        } catch (err) {
+            console.error('Failed to delete network', err);
+            alert('Failed to delete');
+        }
     };
 
     return (
@@ -41,35 +83,43 @@ export default function dashboardBody() {
                     <OwnershipBar/>
                 </Box>
 
-                {/* Neural Network, adds them in in the order of cards array*/}
+                {loading && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><Typography>Loading networks...</Typography></Box>
+                )}
+
+                {error && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><Typography color="error">{error}</Typography></Box>
+                )}
+
+                {/* Neural Network grid */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, justifyContent: "center" }}>
-                    {visibleNetworks.map((NeuralNetwork ,index) => (
-                        <Card key={index} sx={{ maxWidth: 800 }}>
-                            <CardActionArea href='/canvas'>
+                    {visibleNetworks.map((network) => (
+                        <Card key={network.id} sx={{ maxWidth: 800 }}>
+                            <CardActionArea onClick={() => handleNetworkClick(network.id)}>
                                 <CardMedia
                                     component="img"
                                     height="194"
-                                    image={NeuralNetwork.image}
-                                    alt={NeuralNetwork.title}
+                                    image={network.image}
+                                    alt={network.title}
                                 />
                             </CardActionArea>
                                 {/* Align heart and words */}
                                 <Box sx={{display: "flex", justifyContent: "space-between"}}>
                                         <CardContent>
-                                            <Typography variant="h6" sx={{ color: 'text' , flexGrow: 1}}>{NeuralNetwork.title}</Typography>
+                                            <Typography variant="h6" sx={{ color: 'text' , flexGrow: 1}}>{network.title}</Typography>
                                             <Typography variant="body2" sx={{ color: 'text.secondary', flexGrow: 1 }}>
-                                                <span>Last Accessed: {NeuralNetwork.lastAccessed}</span>
-                                                <span style={{ marginLeft: 30 }}>Owned By: {NeuralNetwork.Owner}</span>
+                                                <span>Last Accessed: {network.lastAccessed}</span>
+                                                <span style={{ marginLeft: 30 }}>Owned By: {network.Owner}</span>
                                             </Typography>
                                         </CardContent>
                                         <CardActions>
                                             <FavouriteButton/>
-                                            <DeleteButton/>
+                                            <DeleteButton onClick={() => handleDelete(network.id)}/>
                                         </CardActions>
                                 </Box>
                         </Card>
                     ))}
-                </Box>  
+                </Box>
             </>
 
             <BackToTopButton/>

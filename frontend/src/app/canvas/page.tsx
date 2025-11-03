@@ -32,21 +32,40 @@ export default function CanvasPage() {
   const [edges, setEdges] = useState<any[]>(initialEdges);
   
   // Load saved network if available
-  useEffect(() => {
-    const loadedNetworkData = localStorage.getItem('loadedNetwork');
-    if (loadedNetworkData) {
-      try {
-        const networkData = JSON.parse(loadedNetworkData);
-        if (networkData.nodes) {
-          setNodes(networkData.nodes);
+useEffect(() => {
+  async function fetchNetwork() {
+    const id = new URLSearchParams(window.location.search).get("id");
+    if (!id) return;
+
+    try {
+      const response = await fetch(`http://localhost:5000/load_network?id=${id}`);
+      const data = await response.json();
+
+      console.log("Loaded network data:", data);  // Debug log
+
+      if (data.network) {
+        // Verify the structure of the network data
+        console.log("Network nodes:", data.network.nodes);
+        console.log("Network edges:", data.network.edges);
+        
+        // Ensure we're getting arrays and they have content
+        if (Array.isArray(data.network.nodes) && Array.isArray(data.network.edges)) {
+          setNodes(data.network.nodes);
+          setEdges(data.network.edges);
+          console.log("Network state updated with nodes:", data.network.nodes.length, "edges:", data.network.edges.length);
+        } else {
+          console.error("Invalid network data structure:", data.network);
         }
-        // Clear the loaded network data
-        localStorage.removeItem('loadedNetwork');
-      } catch (error) {
-        console.error('Error loading network data:', error);
+      } else {
+        console.error("No network found for ID:", id);
       }
+    } catch (err) {
+      console.error("Error fetching network:", err);
     }
-  }, []); // Run once on mount
+  }
+  fetchNetwork();
+}, []);
+
   
   // Add arrows to all existing edges on component mount
   useEffect(() => {
@@ -231,7 +250,7 @@ export default function CanvasPage() {
   // Custom hook to handle exporting the current canvas state
   const handleExport = useExport(nodes, edges, defaultLayers, defaultTensorOps, defaultActivators);
 
-  const handleSave = useSave(nodes, edges, defaultLayers, defaultTensorOps, defaultActivators);
+  const handleSave = useSave(nodes, edges);
 
   
   const unpackErrorIds = (errors: any[]) => {

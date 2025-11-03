@@ -10,11 +10,13 @@ storage = NNStorage()
 @NNRoutes .route('/save_network', methods=['POST'])
 def saveNetwork():
     try:
-        print("[NNRoutes] save_network called")
+        print("Save_network called")
         data = request.get_json()
-        print("[NNRoutes] payload:", data)
+
+        print("Printing payload:", data)
+
         name = data.get("name")
-        json_data = data.get("network")  # Expect the frontend to send the network under the 'network' key
+        json_data = data.get("network")
         description = data.get("description", None)
 
         if not name or not json_data:
@@ -46,6 +48,16 @@ def loadNetwork():
         network = storage.load_network(network_id)
         if not network:
             return jsonify({"error": "Network not found"}), 404
+        
+        print("Loading network:", network)  # Debug log
+        # Ensure we have the correct structure
+        if not isinstance(network, dict) or 'nodes' not in network or 'edges' not in network:
+            print("Warning: Network data not in expected format")
+            # If network is direct nodes/edges array, wrap it
+            return jsonify({"network": {
+                "nodes": network.get("nodes", []),
+                "edges": network.get("edges", [])
+            }}), 200
 
         return jsonify({"network": network}), 200
     except Exception as e:
