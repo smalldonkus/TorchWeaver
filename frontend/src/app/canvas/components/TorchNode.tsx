@@ -1,10 +1,11 @@
-import { Box, Button, Grid, MenuItem, Popover, TextField, Typography} from "@mui/material";
+import { Box, Button, Divider, Grid, MenuItem, Popover, Select, TextField, Typography} from "@mui/material";
 import { useState, useCallback, useEffect} from "react"
 import ErrorIcon from '@mui/icons-material/Error';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useParameterHandling } from "../hooks/useParameterHandling";
 import ParameterInputsTorchNode from "./ParamterInputsTorchNode";
 import { Handle, Position } from "@xyflow/react";
+import { connection } from "next/server";
 
 // props contains all the nodes variables (label, id, data ... etc)
 export default function TorchNode(props) {
@@ -187,9 +188,10 @@ export default function TorchNode(props) {
   const errorIconBorderColourMUI = hasError ?  "error" : "primary";
   const buttonSx = {minWidth:0, padding:"5px"};
   const gridSizes = {
-    column: 12,
-    item: 4
+    column: 36,
+    item: 12
   }
+
   return (
     <div className="torch-node">
     <Handle type="source" position={Position.Top}/>
@@ -255,10 +257,11 @@ export default function TorchNode(props) {
                       fullWidth
                       size="small"
                       sx={{ mb: 2 }}
+                      className="nodrag"
                   >   
-                          <MenuItem key={"Layer"} value={"Layer"}>{"Layer"}</MenuItem>
-                          <MenuItem key={"TensorOp"} value={"TensorOp"}>{"Tensor Operation"}</MenuItem>
-                          <MenuItem key={"Activator"} value={"Activator"}>{"Activator"}</MenuItem>
+                    <MenuItem key={"Layer"} value={"Layer"}>{"Layer"}</MenuItem>
+                    <MenuItem key={"TensorOp"} value={"TensorOp"}>{"Tensor Operation"}</MenuItem>
+                    <MenuItem key={"Activator"} value={"Activator"}>{"Activator"}</MenuItem>
                   </TextField>
                 </Grid>
                 <Grid display='flex' justifyContent='center' alignItems='center' size={gridSizes.item}>
@@ -272,6 +275,7 @@ export default function TorchNode(props) {
                         size="small"
                         sx={{ mb: 2 }}
                         disabled={!selectedOperationType}
+                        className="nodrag"
                     >   
                         {getAvailableClasses(selectedOperationType).map((className) => (
                             <MenuItem key={className} value={className}>{className}</MenuItem>
@@ -290,6 +294,7 @@ export default function TorchNode(props) {
                         size="small"
                         sx={{ mb: 2 }}
                         disabled={!selectedClass}
+                        className="nodrag" // this is stupidest shit i've ever had to do (TN)
                     >   
                         {getAvailableSpecificTypes(selectedOperationType, selectedClass).map((specificType) => (
                             <MenuItem key={specificType} value={specificType}>{specificType}</MenuItem>
@@ -297,6 +302,7 @@ export default function TorchNode(props) {
                     </TextField>
                 )}
                 </Grid>
+              </Grid>
                 {selectedSpecificType && parameters && (
                     <ParameterInputsTorchNode
                         operationType={selectedOperationType as "Layer" | "TensorOp" | "Activator"}
@@ -307,7 +313,6 @@ export default function TorchNode(props) {
                         gridSizes={gridSizes}
                     />
                 )}
-              </Grid>
               <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
                 <Button 
                     variant="contained" 

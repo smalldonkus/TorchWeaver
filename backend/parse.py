@@ -95,9 +95,9 @@ def parse(nodesList):
         
         parent_count = len(n.get("parents", []))
         if parent_count < int(min_inputs):
-            errors.append(ParseError(f"Node of type {dflt['type']} requires at least {min_inputs} input{'s' if min_inputs > 1 else ''}, currently has {parent_count}", nodes=[n]))
+            errors.append(ParseError(f"{dflt['type']} requires at least {min_inputs} input{'s' if min_inputs > 1 else ''}, currently has {parent_count}", nodes=[n]))
         if parent_count > int(max_inputs):
-            errors.append(ParseError(f"Node of type {dflt['type']} requires less or equal to {max_inputs} input{'s' if max_inputs > 1 else ''}, currently has {parent_count}", nodes=[n]))
+            errors.append(ParseError(f"{dflt['type']} requires less or equal to {max_inputs} input{'s' if max_inputs > 1 else ''}, currently has {parent_count}", nodes=[n]))
 
     # TODO: checks for path from input to output
     inputs = [n for n in nodesList if n["data"]["operationType"] == "Input"]
