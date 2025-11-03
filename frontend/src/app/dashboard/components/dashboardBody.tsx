@@ -54,7 +54,6 @@ export default function dashboardBody() {
             window.location.href = '/canvas';
         } catch (err) {
             console.error('Failed to load network', err);
-            alert('Failed to load network');
         }
     };
 
@@ -67,7 +66,6 @@ export default function dashboardBody() {
             setVisibleNetworks(updated);
         } catch (err) {
             console.error('Failed to delete network', err);
-            alert('Failed to delete');
         }
     };
 
