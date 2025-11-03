@@ -109,6 +109,7 @@ export default function LayerForm({ nodes, setNodes, defaultLayers, updateNodePa
             newId,
             nodes.length, // posModifier
             chosenDefault.type, // label
+            "Layer", // operation type
             chosenDefault.type, // type
             parameters,
             updateNodeParameter,
@@ -116,7 +117,7 @@ export default function LayerForm({ nodes, setNodes, defaultLayers, updateNodePa
             updateNodeOperationType,
             deleteNode,
             getDefaults
-        )
+        );
         setNodes([
             ...nodes,
             newNode

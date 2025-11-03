@@ -9,14 +9,22 @@ import Button from "@mui/material/Button";
 import { generateUniqueNodeId } from "../utils/idGenerator";
 import ParameterInputs from "./ParameterInputs";
 import { useParameterHandling } from "../hooks/useParameterHandling";
+import { createNode } from "./TorchNodeCreator";
 
 interface Props {
   nodes: any[];
   setNodes: (val: any) => void;
   defaultTensorOps: any; // Changed from any[] to any to handle new structure
+
+  // for TorchNode functionality, allows it to update itself (TN)
+    updateNodeParameter: (elementID: string, parameterKey: string, parameterValue: any) => void 
+    updateNodeType: (elementID: string, operationType: string, newtype: string) => void;
+    updateNodeOperationType: (elementID: string, newOperationType: string) => void;
+    deleteNode: (elementID: string) => void;
+    getDefaults: () => any; // for editing within a node (TN)
 }
 
-export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Props) {
+export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps, updateNodeParameter, updateNodeType, updateNodeOperationType, deleteNode, getDefaults }: Props) {
   // Use parameter handling hook
   const { 
     parameters, 
@@ -88,19 +96,22 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Pro
     }
 
     const newId = generateUniqueNodeId("tensorop", nodes);
+    const newNode = createNode(
+        newId,
+        nodes.length, // posModifier
+        chosenOp.type, // label
+        "TensorOp", // operation type
+        chosenOp.type, // type
+        parameters,
+        updateNodeParameter,
+        updateNodeType,
+        updateNodeOperationType,
+        deleteNode,
+        getDefaults
+    );
     setNodes([
       ...nodes,
-      {
-        id: newId,
-        position: { x: 200, y: 100 + nodes.length * 60 },
-        data: {
-          label: chosenOp.type,
-          operationType: "TensorOp",
-          type: chosenOp.type,
-          parameters: parameters,
-          outgoing_edges_count: 0
-        },
-      },
+      newNode
     ]);
     
     // Reset to first selection after adding

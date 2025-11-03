@@ -5,7 +5,6 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import { useParameterHandling } from "../hooks/useParameterHandling";
 import ParameterInputsTorchNode from "./ParamterInputsTorchNode";
 import { Handle, Position } from "@xyflow/react";
-import { connection } from "next/server";
 
 // props contains all the nodes variables (label, id, data ... etc)
 export default function TorchNode(props) {
@@ -16,7 +15,6 @@ export default function TorchNode(props) {
   const [defaultLayers, setDefaultLayers] = useState(null);
   const [defaultTensorOps, setDefaultTensorOps] = useState(null);
   const [defaultActivators, setDefaultActivators] = useState(null);
-
 
   const isErrorPopoverOpen = Boolean(anchorEP);
   const idEP = isErrorPopoverOpen ? "error-popover" : undefined;
@@ -194,8 +192,8 @@ export default function TorchNode(props) {
 
   return (
     <div className="torch-node">
-    <Handle type="source" position={Position.Top}/>
-    <Handle type="target" position={Position.Bottom}/>
+    <Handle type="target" position={Position.Top}/>
+    <Handle type="source" position={Position.Bottom}/>
       <Box 
         sx={{
             display: "flex", 
@@ -213,10 +211,10 @@ export default function TorchNode(props) {
               gap: "10px",
             }}>
               <Typography sx={{}} variant="h5">{props.data.label}</Typography>
-              <Button onClick={toggleState} variant="outlined" color="primary" sx={buttonSx}>
+              <Button className="nodrag" onClick={toggleState} variant="outlined" color="primary" sx={buttonSx}>
                   <SettingsIcon/>
               </Button>
-              <Button onClick={openErrorPopover} variant="outlined" color={errorIconBorderColourMUI} sx={buttonSx}>
+              <Button className="nodrag" onClick={openErrorPopover} variant="outlined" color={errorIconBorderColourMUI} sx={buttonSx}>
                   <ErrorIcon 
                     color={hasError ? "error" : "primary" }
                   />
@@ -246,8 +244,8 @@ export default function TorchNode(props) {
           {(canEdit && (defaultLayers != null) && (defaultActivators != null) && (defaultTensorOps != null)) && (
             <Box sx={{flexGrow: 1}}>
               {/* <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}> */}
-              {/* TODO: work this out ^^ */}
-              <Grid container spacing={2} columns={gridSizes.column}>
+              {/* TODO: work this out ^^  */ }
+              {!(props.data.operationType === "Input" || props.data.operationType === "Output") && <Grid container spacing={2} columns={gridSizes.column}>
                 <Grid display='flex' justifyContent='center' alignItems='center' size={gridSizes.item}>
                   <TextField
                       select
@@ -302,7 +300,7 @@ export default function TorchNode(props) {
                     </TextField>
                 )}
                 </Grid>
-              </Grid>
+              </Grid>}
                 {selectedSpecificType && parameters && (
                     <ParameterInputsTorchNode
                         operationType={selectedOperationType as "Layer" | "TensorOp" | "Activator"}

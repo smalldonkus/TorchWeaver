@@ -104,7 +104,7 @@ def parse(nodesList):
     # print(inputs)
     pathCheck = [(dfs(nodesList, i), i) for i in inputs]
     for path in pathCheck:
-        if not path[0]: errors.append(ParseError(f"Input \'{path[1]["id"]}\' has no path to output", nodes=[path[1]]))
+        if not path[0]: errors.append(ParseError(f"This input has no path to an output", nodes=[path[1]]))
 
     # TODO: checks for matching number of dimensions from output to input
 

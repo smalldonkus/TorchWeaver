@@ -6,7 +6,7 @@ import Chip from "@mui/material/Chip";
 import { validateParameter, getParameterHelperText } from "../utils/parameterValidation";
 import { useNodeDefinitions, NodeType } from "../hooks/useNodeDefinitions";
 import { useVariablesInfo } from "../hooks/useVariablesInfo";
-import { Grid } from "@mui/material";
+import { Grid, Popover, Typography } from "@mui/material";
 
 interface ParameterInputsProps {
   operationType: "Layer" | "TensorOp" | "Activator";
@@ -52,6 +52,17 @@ export default function ParameterInputs({
   // State for parameter validation errors
   const [parameterErrors, setParameterErrors] = useState<{ [key: string]: string }>({});
 
+  const [anchorCP, setAnchorCP] = useState<HTMLButtonElement | null>(null);
+  const isChipPopoverOpen = Boolean(anchorCP);
+  const idCP = isChipPopoverOpen ? "error-popover" : undefined;
+
+  const openChipPopover = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorCP(event.currentTarget);
+  };
+  const closeChipPopover = () => {
+    setAnchorCP(null);
+  };
+
   // Notify parent component when validation state changes
   useEffect(() => {
     const hasErrors = Object.keys(parameterErrors).length > 0;
@@ -93,6 +104,8 @@ export default function ParameterInputs({
     return null;
   }
 
+
+
   return (
     <Grid container spacing={2} columns={gridSizes.column}>
       {Object.keys(parameters).map((parameterKey, i) => {
@@ -110,19 +123,38 @@ export default function ParameterInputs({
                     error={!!hasError}
                     fullWidth
                     size="small"
+                    className="nodrag"
                     />
                     
                     {/* Show expected types as chips */}
                     {expectedTypes.length > 0 && (
                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 0.5 }}>
                         {expectedTypes.map((type) => (
-                        <Chip
-                            key={type}
-                            label={type}
-                            size="small"
-                            variant="outlined"
-                            sx={{ fontSize: "0.7rem", height: "20px" }}
-                        />
+                        <div key={type}>
+                            <Chip
+                                key={type + 'chip'}
+                                label={type}
+                                size="small"
+                                variant="outlined"
+                                onClick={openChipPopover}
+                                sx={{ fontSize: "0.7rem", height: "20px" }}
+                                className="nodrag"
+                            />
+                            <Popover
+                                key={type + 'popover'}
+                                id={idCP}
+                                open={isChipPopoverOpen}
+                                onClose={closeChipPopover}
+                                anchorEl={anchorCP}
+                                anchorOrigin={{
+                                    vertical: "center",
+                                    horizontal: "right"
+                                }}
+                                sx={{padding: "5px", boxShadow: 0, maxWidth: "1500px"}}
+                                >
+                                    <Typography key = {i} sx={{ p: 1 }} variant="subtitle2">{helperText}</Typography>
+                            </Popover>
+                        </div>
                         ))}
                     </Box>
                     )}

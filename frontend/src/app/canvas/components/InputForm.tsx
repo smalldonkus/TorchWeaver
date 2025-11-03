@@ -7,13 +7,19 @@ import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 import { generateUniqueNodeId } from "../utils/idGenerator";
+import { createNode } from "./TorchNodeCreator";
 
 interface Props {
   nodes: any[];
   setNodes: (val: any) => void;
+  updateNodeParameter: (elementID: string, parameterKey: string, parameterValue: any) => void 
+  updateNodeType: (elementID: string, operationType: string, newtype: string) => void;
+  updateNodeOperationType: (elementID: string, newOperationType: string) => void;
+  deleteNode: (elementID: string) => void;
+  getDefaults: () => any; // for editing within a node (TN)
 }
 
-export default function InputForm({ nodes, setNodes }: Props) {
+export default function InputForm({ nodes, setNodes, updateNodeParameter, updateNodeType, updateNodeOperationType, deleteNode, getDefaults}: Props) {
   const [shapeType, setShapeType] = useState("1D");
   const [dims, setDims] = useState<string[]>([""]);
 
@@ -30,23 +36,25 @@ export default function InputForm({ nodes, setNodes }: Props) {
     setDims(dims.map((d, i) => (i === idx ? value : d)));
   };
 
+  
   const addInput = () => {
     const newId = generateUniqueNodeId("input", nodes);
+    const newNode = createNode(
+      newId,
+      nodes.length, // posModifier
+      "Input", // label
+      "Input", // operation type
+      "Input", // type
+      {shapeType, dims: dims.map(Number),}, // parameters
+      updateNodeParameter,
+      updateNodeType,
+      updateNodeOperationType,
+      deleteNode,
+      getDefaults
+    )
     setNodes([
       ...nodes,
-      {
-        id: newId,
-        position: { x: 50, y: 100 + nodes.length * 60 },
-        data: {
-          label: "Input",
-          operationType: "Input",
-          parameters: {
-            shapeType,
-            dims: dims.map(Number),
-          },
-          outgoing_edges_count: 0 // Initialize with 0 outgoing edges
-        },
-      },
+      newNode
     ]);
     setShapeType("1D");
     setDims([""]);

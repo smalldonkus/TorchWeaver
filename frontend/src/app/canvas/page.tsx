@@ -361,6 +361,11 @@ export default function CanvasPage() {
     }
   }
 
+  useEffect( () => {
+    console.log(edges.length)
+    edges.forEach((e) => console.log(e));
+  }, [edges])
+
 
   // Show loading state while fetching operations
   if (operationsLoading) {

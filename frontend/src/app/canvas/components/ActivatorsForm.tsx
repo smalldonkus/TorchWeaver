@@ -9,14 +9,22 @@ import Button from "@mui/material/Button";
 import { generateUniqueNodeId } from "../utils/idGenerator";
 import ParameterInputs from "./ParameterInputs";
 import { useParameterHandling } from "../hooks/useParameterHandling";
+import { createNode } from "./TorchNodeCreator";
 
 interface Props {
   nodes: any[];
   setNodes: (val: any) => void;
   defaultActivators: any; // Changed from any[] to any to handle new structure
+
+  // for TorchNode functionality, allows it to update itself (TN)
+  updateNodeParameter: (elementID: string, parameterKey: string, parameterValue: any) => void 
+  updateNodeType: (elementID: string, operationType: string, newtype: string) => void;
+  updateNodeOperationType: (elementID: string, newOperationType: string) => void;
+  deleteNode: (elementID: string) => void;
+  getDefaults: () => any; // for editing within a node (TN)
 }
 
-export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: Props) {
+export default function ActivatorsForm({ nodes, setNodes, defaultActivators, updateNodeParameter, updateNodeType, updateNodeOperationType, deleteNode, getDefaults }: Props) {
   // Use parameter handling hook
   const { 
     parameters, 
@@ -88,19 +96,22 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: P
     }
 
     const newId = generateUniqueNodeId("activator", nodes);
+    const newNode = createNode(
+        newId,
+        nodes.length, // posModifier
+        chosenActivator.type, // label
+        "Activator", // operation type
+        chosenActivator.type, // type
+        parameters,
+        updateNodeParameter,
+        updateNodeType,
+        updateNodeOperationType,
+        deleteNode,
+        getDefaults
+    );
     setNodes([
       ...nodes,
-      {
-        id: newId,
-        position: { x: 300, y: 100 + nodes.length * 60 },
-        data: {
-          label: chosenActivator.type,
-          operationType: "Activator",
-          type: chosenActivator.type,
-          parameters: parameters,
-          outgoing_edges_count: 0
-        },
-      },
+      newNode
     ]);
     
     // Reset to first selection after adding

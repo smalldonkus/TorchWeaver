@@ -146,16 +146,16 @@ export default function Sidebar({
                 )}
                 {/* Show TensorOpsForm only if "Tensor Operations" menu is selected */}
                 {selectedMenu === "Tensor Operations" && (
-                    <TensorOpsForm nodes={nodes} setNodes={setNodes} defaultTensorOps={defaultTensorOps} />
+                    <TensorOpsForm nodes={nodes} setNodes={setNodes} defaultTensorOps={defaultTensorOps} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter} deleteNode={deleteNode} getDefaults={getDefaults} />
                 )}
                 {selectedMenu === "Inputs" && (
-                    <InputForm nodes={nodes} setNodes={setNodes} />
+                    <InputForm nodes={nodes} setNodes={setNodes} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter} deleteNode={deleteNode} getDefaults={getDefaults}/>
                 )}
                 {selectedMenu === "Outputs" && (
-                    <OutputForm nodes={nodes} setNodes={setNodes} />
+                    <OutputForm nodes={nodes} setNodes={setNodes} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter} deleteNode={deleteNode} getDefaults={getDefaults}/>
                 )}
                 {selectedMenu === "Activation Functions" && (
-                    <ActivatorsForm nodes={nodes} setNodes={setNodes} defaultActivators={defaultActivators} />
+                    <ActivatorsForm nodes={nodes} setNodes={setNodes} defaultActivators={defaultActivators} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter} deleteNode={deleteNode} getDefaults={getDefaults}/>
                 )}
             </div>
             {/* Bottom section of the sidebar */}

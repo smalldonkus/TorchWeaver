@@ -4,6 +4,7 @@ export const createNode = (
     id, 
     posModifier, 
     label, 
+    operationType,
     type, 
     parameters, 
     updateNodeParameter, 
@@ -29,7 +30,7 @@ export const createNode = (
                 getDefaults: getDefaults // doesn't fit the category "setters", but this is the best place for it.
             },
             label: label,
-            operationType: "Layer",
+            operationType: operationType,
             type: type,
             parameters: parameters,
             outgoing_edges_count: 0
