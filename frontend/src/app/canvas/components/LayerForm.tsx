@@ -21,15 +21,12 @@ interface Props {
     defaultLayers: any; // Layer data with global classes structure
 
     // for TorchNode functionality, allows it to update itself (TN)
-    updateNodeParameter: (elementID: string, parameterKey: string, parameterValue: any) => void 
-    updateNodeType: (elementID: string, operationType: string, newtype: string) => void;
-    updateNodeOperationType: (elementID: string, newOperationType: string) => void;
-    deleteNode: (elementID: string) => void;
+    getSetters: () => any;
     getDefaults: () => any; // for editing within a node (TN)
 }
 
 // Main component for the Layer Form
-export default function LayerForm({ nodes, setNodes, defaultLayers, updateNodeParameter, updateNodeType, updateNodeOperationType, deleteNode, getDefaults}: Props) {
+export default function LayerForm({ nodes, setNodes, defaultLayers, getSetters, getDefaults}: Props) {
     // All hooks must be called before any conditional returns!
     
     // Use parameter handling hook
@@ -112,10 +109,7 @@ export default function LayerForm({ nodes, setNodes, defaultLayers, updateNodePa
             "Layer", // operation type
             chosenDefault.type, // type
             parameters,
-            updateNodeParameter,
-            updateNodeType,
-            updateNodeOperationType,
-            deleteNode,
+            getSetters,
             getDefaults
         );
         setNodes([

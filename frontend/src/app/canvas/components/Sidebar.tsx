@@ -53,10 +53,11 @@ interface Props {
     setNodes: (val: any) => void; // Function to update nodes
     handleExport: () => void; // Function to handle export action
     selectedNodes: any[]; // shows current selected Nodes
-    updateNodeType: (targetID: any, valA: any, valB: any) => void; // allows the update of layerType
-    updateNodeOperationType: (targetID: any, val: any) => void;
+    updateNodeType: (targetID: any, valA: any, valB: any, valC: any) => void; // allows the update of layerType
+    updateNodeOperationType: (targetID: any, valA: any, valB: any, valC: any) => void;
     updateNodeParameter: (targetID: any, valA: any, valB: any) => void;
     deleteNode: (targetID: any) => void;
+    getSetters: () => any;
     getDefaults: () => any;
     defaultLayers: any; // Changed from any[] to any for new structure
     defaultTensorOps: any; // Changed from any[] to any for new structure
@@ -77,6 +78,7 @@ export default function Sidebar({
     updateNodeOperationType,
     updateNodeParameter,
     deleteNode,
+    getSetters,
     getDefaults,
     defaultLayers,
     defaultTensorOps,
@@ -139,23 +141,23 @@ export default function Sidebar({
                 </List>
                 {/* Show LayerForm only if "Layers" menu is selected */}
                 {selectedMenu === "Layers" && (
-                    <LayerForm nodes={nodes} setNodes={setNodes} defaultLayers={defaultLayers} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter} deleteNode={deleteNode} getDefaults={getDefaults}/>
+                    <LayerForm nodes={nodes} setNodes={setNodes} defaultLayers={defaultLayers} getSetters={getSetters} getDefaults={getDefaults}/>
                 )}
                 {selectedMenu === "Edit Nodes" && (
                     <EditLayerForm selectedNodes={selectedNodes} defaultActivators={defaultActivators} defaultTensorOps={defaultTensorOps} defaultLayers={defaultLayers} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter} deleteNode={deleteNode}/>
                 )}
                 {/* Show TensorOpsForm only if "Tensor Operations" menu is selected */}
                 {selectedMenu === "Tensor Operations" && (
-                    <TensorOpsForm nodes={nodes} setNodes={setNodes} defaultTensorOps={defaultTensorOps} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter} deleteNode={deleteNode} getDefaults={getDefaults} />
+                    <TensorOpsForm nodes={nodes} setNodes={setNodes} defaultTensorOps={defaultTensorOps} getSetters={getSetters} getDefaults={getDefaults} />
                 )}
                 {selectedMenu === "Inputs" && (
-                    <InputForm nodes={nodes} setNodes={setNodes} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter} deleteNode={deleteNode} getDefaults={getDefaults}/>
+                    <InputForm nodes={nodes} setNodes={setNodes} getSetters={getSetters} getDefaults={getDefaults}/>
                 )}
                 {selectedMenu === "Outputs" && (
-                    <OutputForm nodes={nodes} setNodes={setNodes} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter} deleteNode={deleteNode} getDefaults={getDefaults}/>
+                    <OutputForm nodes={nodes} setNodes={setNodes} getSetters={getSetters} getDefaults={getDefaults}/>
                 )}
                 {selectedMenu === "Activation Functions" && (
-                    <ActivatorsForm nodes={nodes} setNodes={setNodes} defaultActivators={defaultActivators} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter} deleteNode={deleteNode} getDefaults={getDefaults}/>
+                    <ActivatorsForm nodes={nodes} setNodes={setNodes} defaultActivators={defaultActivators} getSetters={getSetters} getDefaults={getDefaults}/>
                 )}
             </div>
             {/* Bottom section of the sidebar */}

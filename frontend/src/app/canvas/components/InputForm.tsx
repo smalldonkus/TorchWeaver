@@ -12,14 +12,11 @@ import { createNode } from "./TorchNodeCreator";
 interface Props {
   nodes: any[];
   setNodes: (val: any) => void;
-  updateNodeParameter: (elementID: string, parameterKey: string, parameterValue: any) => void 
-  updateNodeType: (elementID: string, operationType: string, newtype: string) => void;
-  updateNodeOperationType: (elementID: string, newOperationType: string) => void;
-  deleteNode: (elementID: string) => void;
+  getSetters: () => any;
   getDefaults: () => any; // for editing within a node (TN)
 }
 
-export default function InputForm({ nodes, setNodes, updateNodeParameter, updateNodeType, updateNodeOperationType, deleteNode, getDefaults}: Props) {
+export default function InputForm({ nodes, setNodes, getSetters, getDefaults}: Props) {
   const [shapeType, setShapeType] = useState("1D");
   const [dims, setDims] = useState<string[]>([""]);
 
@@ -46,10 +43,7 @@ export default function InputForm({ nodes, setNodes, updateNodeParameter, update
       "Input", // operation type
       "Input", // type
       {shapeType, dims: dims.map(Number),}, // parameters
-      updateNodeParameter,
-      updateNodeType,
-      updateNodeOperationType,
-      deleteNode,
+      getSetters,
       getDefaults
     )
     setNodes([

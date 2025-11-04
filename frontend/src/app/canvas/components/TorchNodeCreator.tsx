@@ -7,10 +7,7 @@ export const createNode = (
     operationType,
     type, 
     parameters, 
-    updateNodeParameter, 
-    updateNodeType, 
-    updateNodeOperationType, 
-    deleteNode,
+    getSetters,
     getDefaults
 ): Node => {
     return {
@@ -19,16 +16,8 @@ export const createNode = (
         type: "torchNode",
         data: {
             errors: [], // So the node can display its errors (TN)
-            setters: { 
-            // the node needs a reference to these, 
-            // since nothing can be given to the node once its created
-            // for functionality like editing, deleting itself (TN)
-                updateNodeParameter: updateNodeParameter,
-                updateNodeType: updateNodeType,
-                updateNodeOperationType: updateNodeOperationType,
-                deleteNode: deleteNode,
-                getDefaults: getDefaults // doesn't fit the category "setters", but this is the best place for it.
-            },
+            getSetters: getSetters,
+            getDefaults: getDefaults,
             label: label,
             operationType: operationType,
             type: type,

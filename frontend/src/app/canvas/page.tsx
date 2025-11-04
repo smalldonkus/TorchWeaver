@@ -49,6 +49,7 @@ export default function CanvasPage() {
       setEdges(edgesWithArrows);
     }
   }, []); // Only run once on mount
+
   // State for which menu is selected in the sidebar
   const [selectedMenu, setSelectedMenu] = useState("Layers");
   // state for the currently selected Nodes, only the first used currently
@@ -156,6 +157,7 @@ export default function CanvasPage() {
   );
 
   const updateNodeParameter = (elementID: string, parameterKey: string, parameterValue: any) => {
+
     setNodes((oldNodes: any[]) =>
       oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, parameters : {...(e.data.parameters || {}), [parameterKey] : parameterValue}}} : e)
     );
@@ -182,11 +184,13 @@ export default function CanvasPage() {
     return null;
   };
 
-  const updateNodeType = (elementID: string, operationType: string, newtype: string) => {
+  const updateNodeType = (elementID: string, operationType: string, newType: string, newParameters: any) => {
+
+
     const newDefault = 
-      operationType === "Layer" ? findTypeInData(defaultLayers, newtype) :
-      operationType === "TensorOp" ? findTypeInData(defaultTensorOps, newtype) :
-      operationType === "Activator" ? findTypeInData(defaultActivators, newtype) : null;
+      operationType === "Layer" ? findTypeInData(defaultLayers, newType) :
+      operationType === "TensorOp" ? findTypeInData(defaultTensorOps, newType) :
+      operationType === "Activator" ? findTypeInData(defaultActivators, newType) : null;
     
     if (!newDefault) return;
     
@@ -202,14 +206,14 @@ export default function CanvasPage() {
     setNodes((oldNodes: any[]) =>
       oldNodes.map(e => e.id === elementID ? {...e, 
         id: newNodeId,
-        data: {...e.data, type: newtype, label: newtype, parameters : newDefault.parameters || {}}} : e)
+        data: {...e.data, type: newType, label: newType, parameters : newParameters || {}}} : e)
     );
     
     // Update selected nodes
     setSelectedNodes((oldNodes: any[]) =>
       oldNodes.map(e => e.id === elementID ? {...e, 
         id: newNodeId,
-        data: {...e.data, type: newtype, label: newtype, parameters : newDefault.parameters || {}}} : e)
+        data: {...e.data, type: newType, label: newType, parameters : newParameters || {}}} : e)
     );
     
     // Update all edges that reference the old node ID
@@ -238,11 +242,13 @@ export default function CanvasPage() {
     return null;
   };
 
-  const updateNodeOperationType = (elementID: string, newOperationType: string) => {
+  const updateNodeOperationType = (elementID: string, newOperationType: string, newSpecificType: string, newParameters: any) => {
+
+
     const newDefault = 
-      newOperationType === "Layer" ? getFirstItemFromData(defaultLayers) :
-      newOperationType === "TensorOp" ? getFirstItemFromData(defaultTensorOps) :
-      newOperationType === "Activator" ? getFirstItemFromData(defaultActivators) : null;
+      newOperationType === "Layer" ? findTypeInData(defaultLayers, newSpecificType) :
+      newOperationType === "TensorOp" ? findTypeInData(defaultTensorOps, newSpecificType) :
+      newOperationType === "Activator" ? findTypeInData(defaultActivators, newSpecificType) : null;
     
     if (!newDefault) return;
     
@@ -259,7 +265,7 @@ export default function CanvasPage() {
       oldNodes.map(e => e.id === elementID ? {...e, 
         id: newNodeId,
         data: {...e.data, type: newDefault.type, label: newDefault.type,
-        operationType: newOperationType, parameters: newDefault.parameters || {}}} : e)
+        operationType: newOperationType, parameters: newParameters || {}}} : e)
     );
     
     // Update selected nodes
@@ -267,7 +273,7 @@ export default function CanvasPage() {
       oldNodes.map(e => e.id === elementID ? {...e, 
         id: newNodeId,
         data: {...e.data, type: newDefault.type, label: newDefault.type,
-        operationType: newOperationType, parameters: newDefault.parameters || {}}} : e)
+        operationType: newOperationType, parameters: newParameters || {}}} : e)
     );
     
     // Update all edges that reference the old node ID
@@ -278,9 +284,12 @@ export default function CanvasPage() {
         target: edge.target === elementID ? newNodeId : edge.target
       }))
     );
+
   }
 
   const deleteNode = (elementID: string) => {
+
+
     // Remove the node from nodes state
     setNodes(oldNodes =>
       oldNodes.filter((e) => e.id !== elementID)
@@ -291,8 +300,8 @@ export default function CanvasPage() {
       oldNodes.filter((e) => e.id !== elementID)
     );
     
-    // Remove all edges connected to this node (both incoming and outgoing)
-    const newEdges = edges.filter((edge) => edge.source !== elementID && edge.target !== elementID);
+    // // Remove all edges connected to this node (both incoming and outgoing)
+    const newEdges = edges.filter((e) => !(e.source === elementID || e.target === elementID))
     setEdges(newEdges);
     
     // Update outgoing edge counts for remaining nodes
@@ -301,7 +310,6 @@ export default function CanvasPage() {
 
   // Custom hook to handle exporting the current canvas state
   const handleExport = useExport(nodes, edges, defaultLayers, defaultTensorOps, defaultActivators);
-
 
   const unpackErrorIds = (errors: any[]) => {
     const rtn: any[] = [];
@@ -353,6 +361,15 @@ export default function CanvasPage() {
       );
   }, [errors]);
 
+  const getSetters = () => {
+    return {
+      updateNodeParameter     : updateNodeParameter,
+      updateNodeType          : updateNodeType,
+      updateNodeOperationType : updateNodeOperationType,
+      deleteNode              : deleteNode
+    }
+  }
+
   const getDefaults = () => {
     return {
       defaultActivators: defaultActivators, 
@@ -360,12 +377,6 @@ export default function CanvasPage() {
       defaultLayers: defaultLayers
     }
   }
-
-  useEffect( () => {
-    console.log(edges.length)
-    edges.forEach((e) => console.log(e));
-  }, [edges])
-
 
   // Show loading state while fetching operations
   if (operationsLoading) {
@@ -407,6 +418,7 @@ export default function CanvasPage() {
         updateNodeOperationType={updateNodeOperationType}
         updateNodeParameter={updateNodeParameter}
         deleteNode={deleteNode}
+        getSetters={getSetters}
         getDefaults={getDefaults}
         defaultLayers={defaultLayers}
         defaultTensorOps={defaultTensorOps}

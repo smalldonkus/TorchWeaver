@@ -17,14 +17,11 @@ interface Props {
   defaultTensorOps: any; // Changed from any[] to any to handle new structure
 
   // for TorchNode functionality, allows it to update itself (TN)
-    updateNodeParameter: (elementID: string, parameterKey: string, parameterValue: any) => void 
-    updateNodeType: (elementID: string, operationType: string, newtype: string) => void;
-    updateNodeOperationType: (elementID: string, newOperationType: string) => void;
-    deleteNode: (elementID: string) => void;
-    getDefaults: () => any; // for editing within a node (TN)
+  getSetters: () => any[];
+  getDefaults: () => any[];
 }
 
-export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps, updateNodeParameter, updateNodeType, updateNodeOperationType, deleteNode, getDefaults }: Props) {
+export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps, getSetters, getDefaults}: Props) {
   // Use parameter handling hook
   const { 
     parameters, 
@@ -103,10 +100,7 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps, updat
         "TensorOp", // operation type
         chosenOp.type, // type
         parameters,
-        updateNodeParameter,
-        updateNodeType,
-        updateNodeOperationType,
-        deleteNode,
+        getSetters,
         getDefaults
     );
     setNodes([

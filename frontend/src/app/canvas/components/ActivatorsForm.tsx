@@ -15,16 +15,12 @@ interface Props {
   nodes: any[];
   setNodes: (val: any) => void;
   defaultActivators: any; // Changed from any[] to any to handle new structure
-
   // for TorchNode functionality, allows it to update itself (TN)
-  updateNodeParameter: (elementID: string, parameterKey: string, parameterValue: any) => void 
-  updateNodeType: (elementID: string, operationType: string, newtype: string) => void;
-  updateNodeOperationType: (elementID: string, newOperationType: string) => void;
-  deleteNode: (elementID: string) => void;
+  getSetters: () => any;
   getDefaults: () => any; // for editing within a node (TN)
 }
 
-export default function ActivatorsForm({ nodes, setNodes, defaultActivators, updateNodeParameter, updateNodeType, updateNodeOperationType, deleteNode, getDefaults }: Props) {
+export default function ActivatorsForm({ nodes, setNodes, defaultActivators, getSetters, getDefaults}: Props) {
   // Use parameter handling hook
   const { 
     parameters, 
@@ -103,10 +99,7 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators, upd
         "Activator", // operation type
         chosenActivator.type, // type
         parameters,
-        updateNodeParameter,
-        updateNodeType,
-        updateNodeOperationType,
-        deleteNode,
+        getSetters,
         getDefaults
     );
     setNodes([

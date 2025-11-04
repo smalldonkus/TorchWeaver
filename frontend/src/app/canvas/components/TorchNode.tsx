@@ -1,5 +1,5 @@
-import { Box, Button, Divider, Grid, MenuItem, Popover, Select, TextField, Typography} from "@mui/material";
-import { useState, useCallback, useEffect} from "react"
+import { Box, Button, Grid, MenuItem, Popover, Stack, TextField, Typography} from "@mui/material";
+import { useState, useEffect} from "react"
 import ErrorIcon from '@mui/icons-material/Error';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useParameterHandling } from "../hooks/useParameterHandling";
@@ -9,12 +9,23 @@ import { Handle, Position } from "@xyflow/react";
 // props contains all the nodes variables (label, id, data ... etc)
 export default function TorchNode(props) {
 
+  // SYSTEM CONSTANTS
+  const DEBUG = true;
+  // SYSTEM CONSTANTS
+
   const [anchorEP, setAnchorEP] = useState<HTMLButtonElement | null>(null);
 
   const [canEdit, setCanEdit] = useState<Boolean>(false) // two states, "view" | "edit"
-  const [defaultLayers, setDefaultLayers] = useState(null);
-  const [defaultTensorOps, setDefaultTensorOps] = useState(null);
-  const [defaultActivators, setDefaultActivators] = useState(null);
+
+  const [updateNodeParameter, setUpdateNodeParameter]         = useState<Function>(() => {});
+  const [updateNodeType, setUpdateNodeType]                   = useState<Function>(() => {});
+  const [updateNodeOperationType, setUpdateNodeOperationType] = useState<Function>(() => {});
+  const [deleteNode, setDeleteNode]                           = useState<Function>(() => {});
+
+  const [defaultLayers, setDefaultLayers]         = useState<any>(null);
+  const [defaultTensorOps, setDefaultTensorOps]   = useState<any>(null);
+  const [defaultActivators, setDefaultActivators] = useState<any>(null); // this seems quite bad (TN)
+  const [defaults, setDefaults]                   = useState<any>(null);
 
   const isErrorPopoverOpen = Boolean(anchorEP);
   const idEP = isErrorPopoverOpen ? "error-popover" : undefined;
@@ -32,14 +43,25 @@ export default function TorchNode(props) {
     setCanEdit(!canEdit);
   }
 
+  // initialise setters for the node
   useEffect(() => {
-    const defaults = props.data.setters.getDefaults();
-    setDefaultLayers(defaults.defaultLayers);
-    setDefaultTensorOps(defaults.defaultTensorOps);
-    setDefaultActivators(defaults.defaultActivators);
+    const setters = props.data.getSetters();
+    setUpdateNodeParameter(     () => setters.updateNodeParameter); 
+    setUpdateNodeType(          () => setters.updateNodeType);
+    setUpdateNodeOperationType( () => setters.updateNodeOperationType);
+    setDeleteNode(              () => setters.deleteNode);
+
+    const localDefaults = props.data.getDefaults();
+    setDefaultLayers(localDefaults.defaultLayers);
+    setDefaultTensorOps(localDefaults.defaultTensorOps);
+    setDefaultActivators(localDefaults.defaultActivators);
+    setDefaults({
+      Layer : defaultLayers,
+      Activator: defaultActivators,
+      TensorOp : defaultTensorOps
+    })
   }, [canEdit]); // update only when canEdit is changed (reduces calls)
   
-
   /*
   Rohin's (and some what Toby's) EditLayerForm Code (3-11-2025) (TN)
   */
@@ -49,7 +71,7 @@ export default function TorchNode(props) {
       handleParameterChange, 
       handleValidationChange, 
       updateParameters 
-  } = useParameterHandling();
+  } = useParameterHandling(); 
   
   // State for hierarchical selection
   const [selectedOperationType, setSelectedOperationType] = useState<string>("");
@@ -97,15 +119,15 @@ export default function TorchNode(props) {
       return data?.data?.[className] ? Object.keys(data.data[className]) : [];
   };
 
-  // Initialize state when selectedNode changes
+
   useEffect(() => {
-      if (props) {
-          setSelectedOperationType(props.data.operationType || "");
-          setSelectedSpecificType(props.data.type || "");
-          updateParameters(props.data.parameters || {});
-          setHasPendingChanges(false);
-      }
-  }, [updateParameters]);
+    if (props != null) {
+        setSelectedOperationType(props.data.operationType || "");
+        setSelectedSpecificType(props.data.type || "");
+        updateParameters(props.data.parameters || {});
+        setHasPendingChanges(false);
+    }
+  }, [props.id, canEdit]); // may need to be expanded
 
   // Initialize selected class based on current type
   useEffect(() => {
@@ -128,7 +150,10 @@ export default function TorchNode(props) {
   }
 
   const deleteNodeLocal = () => {
-      props.data.setters.deleteNode(props.id);
+      if (deleteNode == undefined || deleteNode == null){
+        return;
+      }
+      deleteNode(props.id);
   };
 
   // Handle operation type change
@@ -148,7 +173,13 @@ export default function TorchNode(props) {
 
   // Handle specific type change
   const handleSpecificTypeChange = (newSpecificType: string) => {
+
+      if (!(selectedOperationType && selectedClass)) {
+        return;
+      };
       setSelectedSpecificType(newSpecificType);
+      // set parameters to the default of that class,
+      updateParameters(defaults[selectedOperationType].data[selectedClass][newSpecificType].parameters);
       setHasPendingChanges(true);
   };
 
@@ -161,28 +192,40 @@ export default function TorchNode(props) {
   // Apply all pending changes
   const handleApplyEdit = () => {
       if (!props) return;
+      if (
+        updateNodeOperationType == undefined ||
+        updateNodeType == undefined ||
+        updateNodeParameter == undefined
+      ) {
+        console.log("Setters undefined");
+        return;
+      }
+
+      // console.log(selectedOperationType + ", " + selectedClass + ", " + selectedSpecificType);
+      // console.log(props.data.parameters);
       
+
       // Apply operation type change if different
-      if (selectedOperationType && selectedOperationType !== props.data.operationType) {
-          props.data.setters.updateNodeOperationType(props.id, selectedOperationType);
-      }
-      
+      if ((selectedOperationType && selectedOperationType !== props.data.operationType)
+          &&
+          (selectedSpecificType  && selectedSpecificType  !== props.data.type)){
+        updateNodeOperationType(props.id, selectedOperationType, selectedSpecificType, parameters);
+      }      
       // Apply specific type change if different
-      if (selectedSpecificType && selectedSpecificType !== props.data.type) {
-          props.data.setters.updateNodeType(props.id, selectedOperationType, selectedSpecificType);
+      else if (selectedSpecificType && selectedSpecificType !== props.data.type) {
+        updateNodeType(props.id, selectedOperationType, selectedSpecificType, parameters);
       }
-      
-      // Apply parameter changes
-      Object.entries(parameters).forEach(([key, value]) => {
-          props.data.setters.updateNodeParameter(props.id, key, value);
-      });
-      
+      else {
+        // Apply parameter changes
+        Object.entries(parameters).forEach(([key, value]) => {
+            updateNodeParameter(props.id, key, value);
+        });
+      }
       // Reset pending changes
       setHasPendingChanges(false);
   };
 
   // styling
-  const errorIconBorderColourHEX = hasError ?  "1px solid #d32f2fff" : "1px solid #2196f3";
   const errorIconBorderColourMUI = hasError ?  "error" : "primary";
   const buttonSx = {minWidth:0, padding:"5px"};
   const gridSizes = {
@@ -210,7 +253,11 @@ export default function TorchNode(props) {
               alignItems: "center",
               gap: "10px",
             }}>
-              <Typography sx={{}} variant="h5">{props.data.label}</Typography>
+              <Stack>
+                <Typography sx={{}} variant="h5">{props.data.label}</Typography>
+                {canEdit && DEBUG && <Typography sx={{}} variant="caption" color="#757575"> {props.id}</Typography>}
+              </Stack>
+              
               <Button className="nodrag" onClick={toggleState} variant="outlined" color="primary" sx={buttonSx}>
                   <SettingsIcon/>
               </Button>
@@ -316,7 +363,8 @@ export default function TorchNode(props) {
                     variant="contained" 
                     fullWidth 
                     onClick={handleApplyEdit}
-                    disabled={!hasPendingChanges || hasValidationErrors}
+                    // requires that a operationType and specificType have been chosen
+                    disabled={(!hasPendingChanges || hasValidationErrors) || selectedOperationType==="" || selectedSpecificType===""}
                     sx={{ backgroundColor: 'primary.main' }}
                 >
                     Apply Edit

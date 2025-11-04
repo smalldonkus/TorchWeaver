@@ -18,9 +18,9 @@ interface Props {
     defaultActivators: any; // Changed from any[] to any for new structure
     defaultTensorOps: any; // Changed from any[] to any for new structure
     // allows the update of layerType
-    updateNodeType: (targetID: any, valA: any, valB: any) => void;
+    updateNodeType: (targetID: any, valA: any, valB: any, valC: any) => void;
     // allows for the update of operationType
-    updateNodeOperationType: (targetID: any, val: any) => void;
+    updateNodeOperationType: (targetID: any, valA: any, valB: any,  valC: any) => void;
     // allows for the update of node paramters
     updateNodeParameter: (targetID: any, valA: any, valB: any) => void;
     // allows for the deletion of the selectedNode
@@ -152,22 +152,20 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
     // Apply all pending changes
     const handleApplyEdit = () => {
         if (!selectedNode) return;
-        
-        // Apply operation type change if different
-        if (selectedOperationType && selectedOperationType !== selectedNode.data.operationType) {
-            updateNodeOperationType(selectedNode.id, selectedOperationType);
-        }
-        
+       
+        if ((selectedOperationType && selectedOperationType !== selectedNode.data.operationType)
+            &&
+            (selectedSpecificType  && selectedSpecificType  !== selectedNode.data.type)){
+            updateNodeOperationType(selectedNode.id, selectedOperationType, selectedSpecificType, parameters);
+        }      
         // Apply specific type change if different
         if (selectedSpecificType && selectedSpecificType !== selectedNode.data.type) {
-            updateNodeType(selectedNode.id, selectedOperationType, selectedSpecificType);
+            updateNodeType(selectedNode.id, selectedOperationType, selectedSpecificType, parameters);
         }
-        
         // Apply parameter changes
         Object.entries(parameters).forEach(([key, value]) => {
             updateNodeParameter(selectedNode.id, key, value);
         });
-        
         // Reset pending changes
         setHasPendingChanges(false);
     };
