@@ -1,6 +1,6 @@
 
 from NNdatabase import NNDataBase
-from collections import deque
+
 
 CRUDE_REPORT = True
 DEBUG = True
@@ -17,6 +17,78 @@ class ParseError:
 def find(nodesList, nodeId):
     query = [n for n in nodesList if n["id"] == nodeId]
     return None if len(query) == 0 else query[0]
+
+class Graph:
+
+    def __init__(self, nodesList):
+
+        self.V = []
+        self.E = []
+        self.indices = {}
+        self.lowlink = {}
+        self.onStack = {}
+
+        self.index = 0
+        self.S = []
+
+        self.SSCs = []
+        self.hasRunTarjan = False
+
+        # populate graph
+        for n in nodesList:
+            self.V.append(n["id"])
+            for c in n["children"]:
+                self.E.append([n["id"], c])
+            self.indices[n["id"]] = None
+            self.lowlink[n["id"]] = None
+            self.onStack[n["id"]] = False
+
+    def tarjan(self):
+        
+        assert len(self.S) == 0 and self.index == 0 # needs to be rePop'd everytime
+
+        for v in self.V:
+            if self.indices[v] is None:
+                self.strongConnect(v)
+
+        self.hasRunTarjan = True
+
+
+    def getInError(self):
+        assert self.hasRunTarjan
+
+        inErr = []
+        for ssc in self.SSCs:
+            if len(ssc) > 1:
+                for n in ssc:
+                    inErr.append(n)
+        return None if len(inErr) == 0 else inErr
+
+    def strongConnect(self, v):
+        
+        self.indices[v] = self.index
+        self.lowlink[v] = self.index
+        self.index += 1
+        self.S.append(v)
+        self.onStack[v] = True
+
+        for w in [e[1] for e in self.E if e[0] == v]:
+            
+            if self.indices[w] is None:
+                self.strongConnect(w)
+                self.lowlink[v] = min(self.lowlink[v], self.lowlink[w])
+            elif self.onStack[w]:
+                self.lowlink[v] = min(self.lowlink[v], self.indices[w])
+
+        if self.lowlink[v] == self.indices[v]:
+            cond = True
+            SCC = []
+            while cond:
+                w = self.S.pop()
+                self.onStack[w] = False
+                SCC.append(w)
+                cond = (w != v)
+            self.SSCs.append(SCC)
 
 def dfs(nodesList, origin):
 
@@ -48,24 +120,6 @@ def dfs(nodesList, origin):
             q.append(child)
 
     return False
-
-def toAdjList(nodesList):
-
-    cipherID  = {}
-    cipherIdx = {}
-    for i, node in enumerate(nodesList):
-        cipherID[node["id"]] = i
-        cipherIdx[i] = node["id"]
-
-    adj = [[] for _ in range(len(nodesList))]
-    for node in nodesList:
-        for c in node["children"]:
-            adj[cipherID[node["id"]]].append(cipherID[c])
-    
-    print(adj)
-
-    return adj, cipherID, cipherIdx
-
 
 def isCyclic(adj, idxToIdCipher):
 
@@ -148,10 +202,11 @@ def parse(nodesList):
 
     # TODO: check for cycles.
 
-    if nodesList.__len__() > 4:
-        adj, idToIdxCipher, idxToIdCipher = toAdjList(nodesList)
-        if sum(sum(r) for r in adj) != 0:
-            isCyclic(adj, idxToIdCipher)
+    nG = Graph(nodesList)
+    nG.tarjan()
+    inErr = nG.getInError()
+    if inErr is not None:
+        errors.append(ParseError(f"This is node is part of a cycle", nodeIDs=inErr))
 
     if CRUDE_REPORT:
         for i, e in enumerate(errors):
@@ -165,3 +220,39 @@ def parse(nodesList):
         }
         for i, e in enumerate(errors)
     ]
+
+if __name__ == "__main__":
+    # test taken from here: https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
+    
+    """ ************ Tarjan Tests Begin ************ """
+    
+    NL1 = [
+        {"id" : "1", "children" : ["2"]},
+        {"id" : "2", "children" : ["3"]},
+        {"id" : "3", "children" : ["1"]},
+        {"id" : "4", "children" : ["2", "3", "5"]},
+        {"id" : "5", "children" : ["4", "6"]},
+        {"id" : "6", "children" : ["3", "7"]},
+        {"id" : "7", "children" : ["6"]},
+        {"id" : "8", "children" : ["5", "7", "8"]}
+    ]
+    G1 = Graph(NL1)
+    result = G1.tarjan()
+    print(G1.SSCs)
+    assert G1.SSCs == [['3', '2', '1'], ['7', '6'], ['5', '4'], ['8']]
+
+    NL2 = [
+        {"id" : "A", "children" : ["B"]},
+        {"id" : "B", "children" : ["C", "D"]},
+        {"id" : "C", "children" : ["E"]},
+        {"id" : "D", "children" : ["F"]},
+        {"id" : "E", "children" : ["C"]},
+        {"id" : "F", "children" : ["D", "G"]},
+        {"id" : "G", "children" : []},
+    ]
+    G2 = Graph(NL2)
+    G2.tarjan()
+    print(G2.SSCs)
+    assert G2.SSCs == [['E', 'C'], ['G'], ['F', 'D'], ['B'], ['A']]
+
+    """ ************ Tarjan Tests End ************ """
