@@ -201,10 +201,6 @@ export default function TorchNode(props) {
         return;
       }
 
-      // console.log(selectedOperationType + ", " + selectedClass + ", " + selectedSpecificType);
-      // console.log(props.data.parameters);
-      
-
       // Apply operation type change if different
       if ((selectedOperationType && selectedOperationType !== props.data.operationType)
           &&

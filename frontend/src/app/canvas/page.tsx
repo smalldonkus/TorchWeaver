@@ -111,6 +111,7 @@ export default function CanvasPage() {
   );
 
   useEffect(() => {
+    updateOutgoingEdgeCounts(edges); // was creating errors in delete nodes (do not know why, hopefully this doesn't break anything)
     useParse(nodes, edges).then((e) => {setErrors(e)});
   }, [edges]) // having this sit inside other functions causes issues
 
@@ -186,7 +187,6 @@ export default function CanvasPage() {
 
   const updateNodeType = (elementID: string, operationType: string, newType: string, newParameters: any) => {
 
-
     const newDefault = 
       operationType === "Layer" ? findTypeInData(defaultLayers, newType) :
       operationType === "TensorOp" ? findTypeInData(defaultTensorOps, newType) :
@@ -244,7 +244,6 @@ export default function CanvasPage() {
 
   const updateNodeOperationType = (elementID: string, newOperationType: string, newSpecificType: string, newParameters: any) => {
 
-
     const newDefault = 
       newOperationType === "Layer" ? findTypeInData(defaultLayers, newSpecificType) :
       newOperationType === "TensorOp" ? findTypeInData(defaultTensorOps, newSpecificType) :
@@ -287,26 +286,21 @@ export default function CanvasPage() {
 
   }
 
+
   const deleteNode = (elementID: string) => {
-
-
     // Remove the node from nodes state
     setNodes(oldNodes =>
       oldNodes.filter((e) => e.id !== elementID)
     );
-    
     // Remove the node from selected nodes
     setSelectedNodes(oldNodes =>
       oldNodes.filter((e) => e.id !== elementID)
     );
-    
-    // // Remove all edges connected to this node (both incoming and outgoing)
-    const newEdges = edges.filter((e) => !(e.source === elementID || e.target === elementID))
-    setEdges(newEdges);
-    
-    // Update outgoing edge counts for remaining nodes
-    updateOutgoingEdgeCounts(newEdges);
-  }
+    // remove edges from node
+    setEdges (oldEdges =>
+      oldEdges.filter((e) => !(e.source === elementID || e.target === elementID))
+    );
+  };
 
   // Custom hook to handle exporting the current canvas state
   const handleExport = useExport(nodes, edges, defaultLayers, defaultTensorOps, defaultActivators);
