@@ -19,7 +19,7 @@ export const getNeuralNetworks = async (): Promise<NeuralNetworkInfo[]> => {
     // backend returns { networks: [ {id, name, description, created_at} ] }
     return (data.networks || []).map((n: any) => ({
       id: n.id,
-      title: n.name || `Network ${n.id}`,
+      title: `${n.name || `Network`} (ID: ${n.id})`,
       lastAccessed: n.created_at ? new Date(n.created_at).toLocaleString() : '',
       image: '/testnetwork.png',
       Owner: 'User',

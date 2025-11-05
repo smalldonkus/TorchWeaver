@@ -2,6 +2,9 @@ export default function useSave(nodes: any[], edges: any[]) {
   return async () => {
 
     const exportData = {nodes, edges};
+  // Accept both 'id' and 'network_id' for compatibility
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("id") || params.get("network_id");
 
     // DEBUG: Show the generated JSON structure
     console.log("=== GENERATED JSON STRUCTURE ===");
@@ -17,8 +20,8 @@ export default function useSave(nodes: any[], edges: any[]) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: 'Blah Blah Blah', // TODO: Get name from user input
-          id: Math.floor(Math.random() * 1000000), // TODO: Generate or get a proper ID
+          nn_id: id || null, // must match backend param name
+          name: `My Project #${id ? ' ' + id : ''}`,
           network: exportData
         })
       });
@@ -30,7 +33,14 @@ export default function useSave(nodes: any[], edges: any[]) {
       const result = await response.json();
       
       if (result.success) {
-        alert("Network saved successfully!");
+        // Only redirect if it was a new network
+        if (!id) {
+          const savedId = result.id;
+          window.location.href = `/canvas?id=${savedId}`;
+        } else {
+          // Optionally show a toast or message
+          alert(`Network #${id} updated successfully!`);
+        }
       } else {
         alert(`Error: ${result.error}`);
       }

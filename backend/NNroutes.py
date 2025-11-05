@@ -16,15 +16,22 @@ def saveNetwork():
         print("Printing payload:", data)
 
         name = data.get("name")
+        network_id = data.get("nn_id")
+        # Ensure network_id is int or None
+        if network_id is not None:
+            try:
+                network_id = int(network_id)
+            except Exception:
+                network_id = None
         json_data = data.get("network")
         description = data.get("description", None)
 
         if not name or not json_data:
             return jsonify({"error": "Missing 'name' or 'network' data"}), 400
 
-        # storage.save_network expects (name, json_data, description=None)
-        storage.save_network(name, json_data, description)
-        return jsonify({"success": True}), 200
+        # Save network and get the ID back
+        saved_id = storage.save_network(name, json_data, description, network_id)
+        return jsonify({"success": True, "id": saved_id}), 200
     except Exception as e:
         print("[NNRoutes] Exception in save_network:")
         traceback.print_exc()

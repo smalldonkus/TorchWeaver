@@ -50,8 +50,10 @@ export default function dashboardBody() {
     const handleNetworkClick = async (id: number) => {
         try {
             const net = await loadNetwork(id);
+            // Keep the loaded network in localStorage for backward compatibility with older flow
             localStorage.setItem('loadedNetwork', JSON.stringify(net));
-            window.location.href = '/canvas';
+            // Redirect to canvas with the saved network id so the canvas page can fetch it
+            window.location.href = `/canvas?id=${id}`;
         } catch (err) {
             console.error('Failed to load network', err);
         }

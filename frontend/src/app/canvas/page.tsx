@@ -32,42 +32,63 @@ export default function CanvasPage() {
   const [edges, setEdges] = useState<any[]>(initialEdges);
   
   // Load saved network if available
-useEffect(() => {
-  async function fetchNetwork() {
-    const id = new URLSearchParams(window.location.search).get("id");
-    if (!id) return;
-
-    try {
-      const response = await fetch(`http://localhost:5000/load_network?id=${id}`);
-      const data = await response.json();
-
-      console.log("Loaded network data:", data);  // Debug log
-
-      if (data.network) {
-        // Verify the structure of the network data
-        console.log("Network nodes:", data.network.nodes);
-        console.log("Network edges:", data.network.edges);
-        
-        // Ensure we're getting arrays and they have content
-        if (Array.isArray(data.network.nodes) && Array.isArray(data.network.edges)) {
-          setNodes(data.network.nodes);
-          setEdges(data.network.edges);
-          console.log("Network state updated with nodes:", data.network.nodes.length, "edges:", data.network.edges.length);
-        } else {
-          console.error("Invalid network data structure:", data.network);
-        }
-      } else {
-        console.error("No network found for ID:", id);
+  useEffect(() => {
+    async function fetchNetwork() {
+    const params = new URLSearchParams(window.location.search);
+    // support either 'id' or 'network_id' query param (some code used network_id)
+    const id = params.get("id") || params.get("network_id");
+      if (!id) {
+        console.log("No network ID in URL");
+        return;
       }
-    } catch (err) {
-      console.error("Error fetching network:", err);
-    }
-  }
-  fetchNetwork();
-}, []);
 
-  
-  // Add arrows to all existing edges on component mount
+      try {
+        console.log("=== LOADING NETWORK ===");
+        console.log("Fetching network ID:", id);
+        
+        const response = await fetch(`http://localhost:5000/load_network?id=${id}`);
+        const data = await response.json();
+
+        console.log("Raw response data:", data);
+
+        if (data.network) {
+          // Detailed structure validation
+          console.log("Network data structure validation:");
+          console.log("- Has nodes array:", Array.isArray(data.network.nodes));
+          console.log("- Has edges array:", Array.isArray(data.network.edges));
+          
+          if (data.network.nodes && data.network.nodes.length > 0) {
+            console.log("Sample node structure:", data.network.nodes[0]);
+          }
+          
+          if (Array.isArray(data.network.nodes) && Array.isArray(data.network.edges)) {
+            console.log("Setting network state with:");
+            console.log("- Nodes:", data.network.nodes.length);
+            console.log("- Edges:", data.network.edges.length);
+
+            // Ensure edges include markerEnd for arrows and nodes have expected fields
+            const normalizedEdges = data.network.edges.map((edge: any) => ({
+              ...edge,
+              markerEnd: edge.markerEnd || { type: MarkerType.Arrow }
+            }));
+
+            setNodes(data.network.nodes);
+            setEdges(normalizedEdges);
+          } else {
+            console.error("Invalid network structure:", data.network);
+          }
+        } else {
+          console.error("No network data in response for ID:", id);
+        }
+        console.log("=== END LOADING ===");
+      } catch (err) {
+        console.error("Error loading network:", err);
+      }
+    }
+    fetchNetwork();
+  }, []);  // Add arrows to all existing edges on component mount
+
+
   useEffect(() => {
     if (edges.length > 0) {
       const edgesWithArrows = edges.map(edge => ({

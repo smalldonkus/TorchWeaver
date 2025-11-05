@@ -24,17 +24,43 @@ class NNStorage:
         conn.commit()
         conn.close()
 
-    def save_network(self, name, json_data, description=None):
-        """Save a neural network structure with metadata."""
+    def save_network(self, name, json_data, description=None, network_id=None):
+        """
+        Save or update a neural network structure with metadata.
+
+        If `network_id` is provided and exists in the database,
+        the record is updated instead of inserted.
+        """
         conn = sqlite3.connect(self.db_path)
         cur = conn.cursor()
+
+        # Check if we’re updating an existing record
+        if network_id is not None:
+            cur.execute("SELECT id FROM networks WHERE id = ?", (network_id,))
+            existing = cur.fetchone()
+            if existing:
+                # Update existing record
+                cur.execute("""
+                    UPDATE networks
+                    SET name = ?, description = ?, created_at = ?, json_data = ?
+                    WHERE id = ?
+                """, (name, description, datetime.now().isoformat(), json.dumps(json_data), network_id))
+                conn.commit()
+                conn.close()
+                print(f"[DB] Updated network ID={network_id}")
+                return network_id
+
+        # Otherwise, insert a new record
         cur.execute("""
             INSERT INTO networks (name, description, created_at, json_data, user_id)
             VALUES (?, ?, ?, ?, ?)
         """, (name, description, datetime.now().isoformat(), json.dumps(json_data), None))
         conn.commit()
+
+        new_id = cur.lastrowid
         conn.close()
-        return True
+        print(f"[DB] Saved new network ID={new_id}")
+        return new_id
 
     def list_networks(self):
         """Return metadata for all saved networks."""
