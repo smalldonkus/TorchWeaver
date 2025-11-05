@@ -13,6 +13,7 @@ import Sidebar from "./components/Sidebar";
 import Canvas from "./components/Canvas";
 import useExport from "./hooks/useExport";
 import useOperationDefinitions from "./hooks/useOperationDefinitions";
+import { generateUniqueNodeId } from "./utils/idGenerator";
 
 import useParse from "./hooks/useParse";
 import ErrorBox from "./components/ErrorBox";
@@ -215,37 +216,119 @@ export default function CanvasPage() {
     );
   }
 
+  // Helper function to find a type in the new hierarchical structure
+  const findTypeInData = (data: any, targetType: string) => {
+    if (!data || !data.data) return null;
+    
+    for (const [className, classItems] of Object.entries(data.data)) {
+      for (const [itemType, itemData] of Object.entries(classItems as any)) {
+        if (itemType === targetType) {
+          return {
+            type: itemType,
+            class: className,
+            ...(itemData as any)
+          };
+        }
+      }
+    }
+    return null;
+  };
+
   const updateNodeType = (elementID: string, operationType: string, newtype: string) => {
     const newDefault = 
-      operationType === "Layer" ? defaultLayers.find(e => newtype === e.type) :
-      operationType === "TensorOp" ? defaultTensorOps.find(e => newtype === e.type) :
-      operationType === "Activator" ? defaultActivators.find(e => newtype === e.type) : null;
+      operationType === "Layer" ? findTypeInData(defaultLayers, newtype) :
+      operationType === "TensorOp" ? findTypeInData(defaultTensorOps, newtype) :
+      operationType === "Activator" ? findTypeInData(defaultActivators, newtype) : null;
     
     if (!newDefault) return;
+    
+    // Generate new ID based on operation type
+    const operationPrefix = 
+      operationType === "Layer" ? "layer" :
+      operationType === "TensorOp" ? "tensorop" :
+      operationType === "Activator" ? "activator" : "node";
+    
+    const newNodeId = generateUniqueNodeId(operationPrefix, nodes);
       
+    // Update nodes with new ID and properties
     setNodes((oldNodes: any[]) =>
-      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, type: newtype, label: newtype, parameters : newDefault.parameters || {}}} : e)
-    )
+      oldNodes.map(e => e.id === elementID ? {...e, 
+        id: newNodeId,
+        data: {...e.data, type: newtype, label: newtype, parameters : newDefault.parameters || {}}} : e)
+    );
+    
+    // Update selected nodes
     setSelectedNodes((oldNodes: any[]) =>
-      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, type: newtype, label: newtype, parameters : newDefault.parameters || {}}} : e)
-    )
+      oldNodes.map(e => e.id === elementID ? {...e, 
+        id: newNodeId,
+        data: {...e.data, type: newtype, label: newtype, parameters : newDefault.parameters || {}}} : e)
+    );
+    
+    // Update all edges that reference the old node ID
+    setEdges((oldEdges: any[]) =>
+      oldEdges.map(edge => ({
+        ...edge,
+        source: edge.source === elementID ? newNodeId : edge.source,
+        target: edge.target === elementID ? newNodeId : edge.target
+      }))
+    );
   }
+
+  // Helper function to get the first item from hierarchical data
+  const getFirstItemFromData = (data: any) => {
+    if (!data || !data.data) return null;
+    
+    for (const [className, classItems] of Object.entries(data.data)) {
+      for (const [itemType, itemData] of Object.entries(classItems as any)) {
+        return {
+          type: itemType,
+          class: className,
+          ...(itemData as any)
+        };
+      }
+    }
+    return null;
+  };
 
   const updateNodeOperationType = (elementID: string, newOperationType: string) => {
     const newDefault = 
-      newOperationType === "Layer" ? defaultLayers[0] :
-      newOperationType === "TensorOp" ? defaultTensorOps[0] :
-      newOperationType === "Activator" ? defaultActivators[0] : null;
+      newOperationType === "Layer" ? getFirstItemFromData(defaultLayers) :
+      newOperationType === "TensorOp" ? getFirstItemFromData(defaultTensorOps) :
+      newOperationType === "Activator" ? getFirstItemFromData(defaultActivators) : null;
     
     if (!newDefault) return;
+    
+    // Generate new ID based on operation type
+    const operationPrefix = 
+      newOperationType === "Layer" ? "layer" :
+      newOperationType === "TensorOp" ? "tensorop" :
+      newOperationType === "Activator" ? "activator" : "node";
+    
+    const newNodeId = generateUniqueNodeId(operationPrefix, nodes);
       
+    // Update nodes with new ID and properties
     setNodes((oldNodes: any[]) =>
-      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, type: newDefault.type, 
+      oldNodes.map(e => e.id === elementID ? {...e, 
+        id: newNodeId,
+        data: {...e.data, type: newDefault.type, label: newDefault.type,
         operationType: newOperationType, parameters: newDefault.parameters || {}}} : e)
     );
+    
+    // Update selected nodes
     setSelectedNodes((oldNodes: any[]) =>
-      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, type: newDefault.type, 
+      oldNodes.map(e => e.id === elementID ? {...e, 
+        id: newNodeId,
+        data: {...e.data, type: newDefault.type, label: newDefault.type,
         operationType: newOperationType, parameters: newDefault.parameters || {}}} : e)
+    );
+    
+    // Update all edges that reference the old node ID
+    setEdges((oldEdges: any[]) =>
+      oldEdges.map(edge => ({
+        ...edge,
+        source: edge.source === elementID ? newNodeId : edge.source,
+        target: edge.target === elementID ? newNodeId : edge.target
+      }))
     );
   }
 
@@ -275,10 +358,10 @@ export default function CanvasPage() {
 
   
   const unpackErrorIds = (errors: any[]) => {
-    const rtn = [];
+    const rtn: any[] = [];
     errors.forEach((value) => {
       if (value.flaggedNodes != null && value.flaggedNodes.length != 0) {
-        value.flaggedNodes.forEach((v) => rtn.push(v));
+        value.flaggedNodes.forEach((v: any) => rtn.push(v));
       }
     })
     return rtn;

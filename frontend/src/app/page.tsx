@@ -9,9 +9,9 @@ export default function Home() {
   return (
     <>
       <div className="landingPage">
-      <Header />
-      <LandingBody />
-      <Features />
+        <Header />
+        <LandingBody />
+        <Features />
       </div>
     </>
   );

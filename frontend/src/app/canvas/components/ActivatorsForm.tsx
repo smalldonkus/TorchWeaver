@@ -13,7 +13,7 @@ import { useParameterHandling } from "../hooks/useParameterHandling";
 interface Props {
   nodes: any[];
   setNodes: (val: any) => void;
-  defaultActivators: any[];
+  defaultActivators: any; // Changed from any[] to any to handle new structure
 }
 
 export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: Props) {
@@ -26,22 +26,57 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: P
     updateParameters 
   } = useParameterHandling();
 
-  const [chosenActivator, setChosenActivator] = useState(defaultActivators?.[0] || null);
+  const [selectedClass, setSelectedClass] = useState<string>("");
+  const [selectedActivatorType, setSelectedActivatorType] = useState<string>("");
+  const [chosenActivator, setChosenActivator] = useState<any>(null);
 
-  // Update parameters when chosen activator changes
+  // Extract global classes from the new structure
+  const globalClasses = defaultActivators?.data ? Object.keys(defaultActivators.data) : [];
+
+  // Initialize selections when data loads
   useEffect(() => {
-    if (defaultActivators && defaultActivators.length > 0) {
-      setChosenActivator(defaultActivators[0]);
-      updateParameters(defaultActivators[0]?.parameters || {});
+    if (globalClasses.length > 0) {
+      const firstClass = globalClasses[0];
+      const firstClassActivators = defaultActivators.data[firstClass];
+      const firstActivatorType = Object.keys(firstClassActivators)[0];
+      
+      setSelectedClass(firstClass);
+      setSelectedActivatorType(firstActivatorType);
+      setChosenActivator({
+        class: firstClass,
+        type: firstActivatorType,
+        ...firstClassActivators[firstActivatorType]
+      });
+      updateParameters(firstClassActivators[firstActivatorType]?.parameters || {});
     }
   }, [defaultActivators, updateParameters]);
 
-  if (!defaultActivators || defaultActivators.length === 0) {
+  if (!defaultActivators || !defaultActivators.data || Object.keys(defaultActivators.data).length === 0) {
     return <div>Loading activators...</div>;
   }
 
-  function setActivator(type: string) {
-    const newActivator = defaultActivators.find((a) => a.type === type);
+  function handleClassChange(className: string) {
+    setSelectedClass(className);
+    const classActivators = defaultActivators.data[className];
+    const firstActivatorType = Object.keys(classActivators)[0];
+    setSelectedActivatorType(firstActivatorType);
+    const newActivator = {
+      class: className,
+      type: firstActivatorType,
+      ...classActivators[firstActivatorType]
+    };
+    setChosenActivator(newActivator);
+    updateParameters(newActivator?.parameters || {});
+  }
+
+  function handleActivatorTypeChange(activatorType: string) {
+    setSelectedActivatorType(activatorType);
+    const activatorData = defaultActivators.data[selectedClass][activatorType];
+    const newActivator = {
+      class: selectedClass,
+      type: activatorType,
+      ...activatorData
+    };
     setChosenActivator(newActivator);
     updateParameters(newActivator?.parameters || {});
   }
@@ -67,8 +102,22 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: P
         },
       },
     ]);
-    setChosenActivator(defaultActivators[0]);
-    updateParameters(defaultActivators[0]?.parameters || {});
+    
+    // Reset to first selection after adding
+    if (globalClasses.length > 0) {
+      const firstClass = globalClasses[0];
+      const firstClassActivators = defaultActivators.data[firstClass];
+      const firstActivatorType = Object.keys(firstClassActivators)[0];
+      
+      setSelectedClass(firstClass);
+      setSelectedActivatorType(firstActivatorType);
+      setChosenActivator({
+        class: firstClass,
+        type: firstActivatorType,
+        ...firstClassActivators[firstActivatorType]
+      });
+      updateParameters(firstClassActivators[firstActivatorType]?.parameters || {});
+    }
   };
 
   return (
@@ -76,19 +125,38 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: P
       <Typography variant="subtitle1" sx={{ mb: 2 }}>
         Add Activation Function
       </Typography>
+      
+      {/* Dropdown to select activator class */}
       <TextField
         select
-        label="Activation Function Type"
-        value={chosenActivator?.type || ""}
-        onChange={e => setActivator(e.target.value)}
+        label="Activation Class"
+        value={selectedClass}
+        onChange={e => handleClassChange(e.target.value)}
         fullWidth
         size="small"
         sx={{ mb: 2 }}
       >
-        {defaultActivators.map((a) => (
-          <MenuItem key={a.type} value={a.type}>{a.type}</MenuItem>
+        {globalClasses.map((className) => (
+          <MenuItem key={className} value={className}>{className}</MenuItem>
         ))}
       </TextField>
+
+      {/* Dropdown to select specific activation function type within the class */}
+      {selectedClass && (
+        <TextField
+          select
+          label="Activation Function Type"
+          value={selectedActivatorType}
+          onChange={e => handleActivatorTypeChange(e.target.value)}
+          fullWidth
+          size="small"
+          sx={{ mb: 2 }}
+        >
+          {Object.keys(defaultActivators.data[selectedClass]).map((activatorType) => (
+            <MenuItem key={activatorType} value={activatorType}>{activatorType}</MenuItem>
+          ))}
+        </TextField>
+      )}
       
       {chosenActivator && (
         <ParameterInputs

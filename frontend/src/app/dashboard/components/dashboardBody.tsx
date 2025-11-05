@@ -10,7 +10,7 @@ import CardMedia from '@mui/material/CardMedia';
 import { BackToTopButton } from "./BackToTopButton";
 import { FavouriteButton } from './FavouriteButton';
 import { NewSort, SortingBar } from './Sorting';
-import { OwnershipBar } from './Ownership';
+import { NewList, OwnershipBar } from './Ownership';
 import { SearchBar, searchFilter } from './SearchBar';
 import { NeuralNetworkInfo, getNeuralNetworks, loadNetwork, deleteNetwork } from './NeuralNetworks';
 import CardActionArea from '@mui/material/CardActionArea';
@@ -70,6 +70,21 @@ export default function dashboardBody() {
             console.error('Failed to delete network', err);
         }
     };
+    //ownership sorting and searching are both destructive only one can happen at a time
+    //Oscar note : i dont think this is fixable, sad
+    const handleOwnershipSorting = (sortType: string) => {
+        const owner = "A";
+        setVisibleNetworks(NewList(owner, sortType, getNeuralNetworks()));
+    };
+
+    //function to change favourited boolean in global if toggled
+    const handleFavourite = (title: string) => {
+        const updated = visibleNetworks.map((net) =>
+            net.title === title ? { ...net, Favourited: !net.Favourited } : net
+        );
+        setVisibleNetworks(updated); // Updates visuals
+        // setNeuralNetworks(updated); // stores back into global
+    }
 
     return (
         <Container sx={{ bgcolor: "#EDF1F3", minHeight: "100vh", minWidth: "100vw"}}>
@@ -79,8 +94,7 @@ export default function dashboardBody() {
                     <SearchBar stateChanger={handleSearch}/>
                     {/* passes handlestatechange to child so it can re-render parent (this) */}
                     <SortingBar stateChanger={handleSortChange}/> 
-                    {/* TODO: same thing as sorting bar */}
-                    <OwnershipBar/>
+                    <OwnershipBar stateChanger={handleOwnershipSorting}/>
                 </Box>
 
                 {loading && (
@@ -113,7 +127,9 @@ export default function dashboardBody() {
                                             </Typography>
                                         </CardContent>
                                         <CardActions>
-                                            <FavouriteButton/>
+                                            <FavouriteButton
+                                                isFavourite={network.Favourited}
+                                                onClick={() => handleFavourite(network.title)}/>
                                             <DeleteButton onClick={() => handleDelete(network.id)}/>
                                         </CardActions>
                                 </Box>
