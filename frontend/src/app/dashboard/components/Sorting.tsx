@@ -32,7 +32,20 @@ export const SortingBar = ({stateChanger}) => {
     )
 }
 
-export function NewSort(sortType: string, NeuralNetworks: NeuralNetworkInfo[]): NeuralNetworkInfo[] { //Updates neural networks array to correct sorting
+export function NewSort(sortType: string, NeuralNetworks: NeuralNetworkInfo[]): NeuralNetworkInfo[] {
+    //Split array into favourited and not favourited to be sorted twice then put back together
+    const [favourited, notFavourited]: [NeuralNetworkInfo[], NeuralNetworkInfo[]] = NeuralNetworks.reduce(
+        ([fav, notfav], network) => {
+            if (network.Favourited) fav.push(network);
+            else notfav.push(network);
+            return [fav, notfav];
+        },
+        [[],[]] as [NeuralNetworkInfo[], NeuralNetworkInfo[]]
+    )
+    return LogicalSort(sortType, favourited).concat(LogicalSort(sortType, notFavourited));
+}
+
+export function LogicalSort(sortType: string, NeuralNetworks: NeuralNetworkInfo[]): NeuralNetworkInfo[] { //Updates neural networks array to correct sorting
     if(sortType === "Alphabetical") {
         return NeuralNetworks.toSorted((a, b) => a.title.localeCompare(b.title));
     }

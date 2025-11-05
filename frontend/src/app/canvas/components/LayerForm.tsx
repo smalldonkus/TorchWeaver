@@ -9,76 +9,82 @@ import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 import { generateUniqueNodeId } from "../utils/idGenerator";
 import ParameterInputs from "./ParameterInputs";
-import { useNodeDefinitions } from "../hooks/useNodeDefinitions";
-import { useVariablesInfo } from "../hooks/useVariablesInfo";
+import { useParameterHandling } from "../hooks/useParameterHandling";
 
 // Define the props that this component expects
 interface Props {
     nodes: any[]; // List of current nodes (layers)
     setNodes: (val: any) => void; // Function to update nodes
-    defaultLayers: any[]; // List of available layer types
+    defaultLayers: any; // Layer data with global classes structure
 }
 
 // Main component for the Layer Form
 export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
     // All hooks must be called before any conditional returns!
     
-    // Fetch layer definitions and variables info from backend
-    const { loading: layerDefsLoading, error: layerDefsError } = useNodeDefinitions("layers");
-    const { loading: variablesLoading, error: variablesError } = useVariablesInfo();
-
-    // State for the currently selected default layer type
-    const [chosenDefault, setChosenDefault] = useState(defaultLayers?.[0] || null);
+    // Use parameter handling hook
+    const { 
+        parameters, 
+        hasValidationErrors, 
+        handleParameterChange, 
+        handleValidationChange, 
+        updateParameters 
+    } = useParameterHandling();
     
-    // State for validation errors
-    const [hasValidationErrors, setHasValidationErrors] = useState(false);
+    // State for the currently selected global class and layer type
+    const [selectedClass, setSelectedClass] = useState<string>("");
+    const [selectedLayerType, setSelectedLayerType] = useState<string>("");
+    const [chosenDefault, setChosenDefault] = useState<any>(null);
 
-    // When defaultLayers changes (e.g., after loading), update chosenDefault
+    // Extract global classes from the new structure
+    const globalClasses = defaultLayers?.data ? Object.keys(defaultLayers.data) : [];
+
+    // When defaultLayers changes, set initial selections
     useEffect(() => {
-        if (defaultLayers && defaultLayers.length > 0) {
-            setChosenDefault(defaultLayers[0]);
+        if (globalClasses.length > 0) {
+            setSelectedClass(globalClasses[0]);
+            const firstClassLayers = defaultLayers.data[globalClasses[0]];
+            const firstLayerType = Object.keys(firstClassLayers)[0];
+            setSelectedLayerType(firstLayerType);
+            setChosenDefault({
+                class: globalClasses[0],
+                type: firstLayerType,
+                ...firstClassLayers[firstLayerType]
+            });
+            updateParameters(firstClassLayers[firstLayerType]?.parameters || {});
         }
-    }, [defaultLayers]);
+    }, [defaultLayers, updateParameters]);
 
-    // Now handle conditional rendering AFTER all hooks
-    
-    // Show error if API calls failed
-    if (layerDefsError || variablesError) {
-        return (
-            <div>
-                <Typography color="error">
-                    Error loading data: {layerDefsError || variablesError}
-                </Typography>
-            </div>
-        );
-    }
-    
     // If layer types haven't loaded yet, show a loading message
-    if (!defaultLayers || defaultLayers.length === 0 || layerDefsLoading || variablesLoading) {
+    if (!defaultLayers || !defaultLayers.data || Object.keys(defaultLayers.data).length === 0) {
         return <div>Loading layer types...</div>;
     }
 
-    // Change the selected layer type when user picks a new one
-    function setLayer(layerName: string) {
-        const newLayer = defaultLayers.find((layer) => layer.type === layerName);
-        setChosenDefault(newLayer);
+    // Handle class selection change
+    function handleClassChange(className: string) {
+        setSelectedClass(className);
+        const classLayers = defaultLayers.data[className];
+        const firstLayerType = Object.keys(classLayers)[0];
+        setSelectedLayerType(firstLayerType);
+        setChosenDefault({
+            class: className,
+            type: firstLayerType,
+            ...classLayers[firstLayerType]
+        });
+        updateParameters(classLayers[firstLayerType]?.parameters || {});
     }
 
-    // Handle parameter changes from ParameterInputs component
-    const handleParameterChange = (parameterKey: string, value: any) => {
-        setChosenDefault(prev => prev ? ({
-            ...prev,
-            parameters: { 
-                ...prev.parameters, 
-                [parameterKey]: value 
-            }
-        }) : null);
-    };
-
-    // Handle validation state changes from ParameterInputs component
-    const handleValidationChange = (hasErrors: boolean) => {
-        setHasValidationErrors(hasErrors);
-    };
+    // Handle layer type selection change within a class
+    function handleLayerTypeChange(layerType: string) {
+        setSelectedLayerType(layerType);
+        const layerData = defaultLayers.data[selectedClass][layerType];
+        setChosenDefault({
+            class: selectedClass,
+            type: layerType,
+            ...layerData
+        });
+        updateParameters(layerData?.parameters || {});
+    }
 
     // Add a new layer node to the list
     const addLayer = () => {
@@ -98,12 +104,25 @@ export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
                     label: chosenDefault.type,
                     operationType: "Layer",
                     type: chosenDefault.type,
-                    parameters: chosenDefault.parameters,
+                    parameters: parameters,
                     outgoing_edges_count: 0
                 },
             },
         ]);
-        setChosenDefault(defaultLayers[0]);
+        
+        // Reset to first selection after adding
+        if (globalClasses.length > 0) {
+            setSelectedClass(globalClasses[0]);
+            const firstClassLayers = defaultLayers.data[globalClasses[0]];
+            const firstLayerType = Object.keys(firstClassLayers)[0];
+            setSelectedLayerType(firstLayerType);
+            setChosenDefault({
+                class: globalClasses[0],
+                type: firstLayerType,
+                ...firstClassLayers[firstLayerType]
+            });
+            updateParameters(firstClassLayers[firstLayerType]?.parameters || {});
+        }
     };
 
     // Render the form UI
@@ -113,28 +132,45 @@ export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
             <Typography variant="subtitle1" sx={{ mb: 2 }}>
                 Add Layer
             </Typography>
-            {/* Dropdown to select layer type */}
+            
+            {/* Dropdown to select layer class */}
             <TextField
                 select
-                label="Layer Type"
-                value={chosenDefault?.type}
-                onChange={(e) => setLayer(e.target.value)}
+                label="Layer Class"
+                value={selectedClass}
+                onChange={(e) => handleClassChange(e.target.value)}
                 fullWidth
                 size="small"
                 sx={{ mb: 2 }}
             >
-                {/* Show all available layer types */}
-                {defaultLayers.map((dLayer) => (
-                    <MenuItem key={dLayer.type} value={dLayer.type}>{dLayer.type}</MenuItem>
+                {globalClasses.map((className) => (
+                    <MenuItem key={className} value={className}>{className}</MenuItem>
                 ))}
             </TextField>
+
+            {/* Dropdown to select specific layer type within the class */}
+            {selectedClass && (
+                <TextField
+                    select
+                    label="Layer Type"
+                    value={selectedLayerType}
+                    onChange={(e) => handleLayerTypeChange(e.target.value)}
+                    fullWidth
+                    size="small"
+                    sx={{ mb: 2 }}
+                >
+                    {Object.keys(defaultLayers.data[selectedClass]).map((layerType) => (
+                        <MenuItem key={layerType} value={layerType}>{layerType}</MenuItem>
+                    ))}
+                </TextField>
+            )}
             
             {/* Show parameter inputs for the selected layer type */}
             {chosenDefault && (
                 <ParameterInputs
                     operationType="Layer"
                     nodeType={chosenDefault.type}
-                    parameters={chosenDefault.parameters}
+                    parameters={parameters}
                     onParameterChange={handleParameterChange}
                     onValidationChange={handleValidationChange}
                 />

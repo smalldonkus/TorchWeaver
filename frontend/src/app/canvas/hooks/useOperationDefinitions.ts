@@ -9,18 +9,18 @@ interface OperationDefinition {
 }
 
 interface OperationsData {
-  layers: OperationDefinition[];
-  tensorOps: OperationDefinition[];
-  activators: OperationDefinition[];
+  layers: any;
+  tensorOps: any;
+  activators: any;
 }
 
 const API_BASE_URL = 'http://localhost:5000';
 
 export function useOperationDefinitions() {
   const [operations, setOperations] = useState<OperationsData>({
-    layers: [],
-    tensorOps: [],
-    activators: []
+    layers: {},
+    tensorOps: {},
+    activators: {}
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +31,7 @@ export function useOperationDefinitions() {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(`${API_BASE_URL}/api/operations/all`);
+        const response = await fetch(`${API_BASE_URL}/api/operations`);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -40,19 +40,19 @@ export function useOperationDefinitions() {
         const data = await response.json();
         
         setOperations({
-          layers: data.layers?.data || [],
-          tensorOps: data.tensorOps?.data || [],
-          activators: data.activators?.data || []
+          layers: data.layers || {},
+          tensorOps: data.tensorOps || {},
+          activators: data.activators || {}
         });
       } catch (err) {
         console.error('Failed to fetch operation definitions:', err);
         setError(err instanceof Error ? err.message : 'Unknown error occurred');
         
-        // Fallback to empty arrays if backend is not available
+        // Fallback to empty objects if backend is not available
         setOperations({
-          layers: [],
-          tensorOps: [],
-          activators: []
+          layers: {},
+          tensorOps: {},
+          activators: {}
         });
       } finally {
         setLoading(false);

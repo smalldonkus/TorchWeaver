@@ -1,0 +1,190 @@
+{
+  "data": {
+    "Linear Layers": {
+
+      "Linear": {
+        "library": "torch.nn",
+
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1,
+          "minOutputs": 1,
+
+          "CanEditChannels": true,
+          "ChannelLinks": [
+            {
+              "inputParam": "in_features",
+              "outputParam": "out_features"
+            }
+          ]
+        },
+
+        "parameters": {
+          "in_features": 1,
+          "out_features": 1,
+          "bias": true,
+          "inherit_from_parent": false
+        },
+
+        "parameters_format": {
+          "in_features": ["int"],
+          "out_features": ["int"],
+          "bias": ["boolean"],
+          "inherit_from_parent": ["boolean"]
+        }
+      }
+    },
+
+    "Dropout Layers": {
+
+      "Dropout": {
+        "library": "torch.nn",
+
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1,
+          "minOutputs": 1,
+
+          "CanEditChannels": false,
+
+          "ChannelLinks": []
+        },
+
+        "parameters": {
+          "p": 0.5
+        },
+
+        "parameters_format": {
+          "p": ["float"]
+        }
+      }
+    },
+
+
+    "Convolutional Layers": {
+
+      "Conv2d": {
+
+        "library": "torch.nn",
+
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1,
+          "minOutputs": 1,
+
+            "CanEditChannels": true,
+            "ChannelLinks": [
+              {
+              "inputParam": "in_channels",
+              "outputParam": "out_channels"
+              }
+            ]
+        },
+
+      "parameters": {
+          "in_channels": 3,
+          "out_channels": 64,
+          "kernel_size": 3,
+          "stride": 1,
+          "padding": 1,
+          "bias": true,
+          "inherit_from_parent": false
+        },
+
+        "parameters_format" : {
+          "in_channels": ["int"],
+          "out_channels": ["int"],
+          "kernel_size": ["int", "tuple"],
+          "stride": ["int", "tuple"],
+          "padding": ["int", "tuple"],
+          "bias": ["boolean"],
+          "inherit_from_parent": ["boolean"]
+        }
+      }
+    },
+
+    "Pooling Layers": {
+
+      "MaxPool2d": {
+        "library": "torch.nn",
+
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1,
+          "minOutputs": 1,
+
+          "CanEditChannels": false,
+
+          "ChannelLinks": []
+        },
+
+        "parameters": {
+          "kernel_size": 3,
+          "stride": 2
+        },
+
+        "parameters_format": {
+          "kernel_size": ["int", "tuple"],
+          "stride": ["int", "tuple"]
+        }
+      }
+    },
+
+    "Normalization Layers": {
+
+      "LocalResponseNorm": {
+        "library": "torch.nn",
+
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1,
+          "minOutputs": 1,
+
+          "CanEditChannels": false,
+
+          "ChannelLinks": []
+        },
+
+        "parameters": {
+          "size": 5,
+          "alpha": 1e-4,
+          "beta": 0.75,
+          "k": 2.0
+        },
+
+        "parameters_format": {
+          "size": ["int"],
+          "alpha": ["float"],
+          "beta": ["float"],
+          "k": ["float"]
+        }
+      }
+    }
+  },
+
+  "Utility Layers": {
+
+    "Flatten": {
+      "library": "torch.nn",
+
+      "parseCheck": {
+        "maxInputs": 1,
+        "minInputs": 1,
+        "maxOutputs": 1,
+        "minOutputs": 1,
+
+        "CanEditChannels": false,
+
+        "ChannelLinks": []
+      },
+
+      "parameters": {},
+      "parameters_format": {}
+    }
+  }
+}

@@ -13,7 +13,7 @@ import { useParameterHandling } from "../hooks/useParameterHandling";
 interface Props {
   nodes: any[];
   setNodes: (val: any) => void;
-  defaultTensorOps: any[];
+  defaultTensorOps: any; // Changed from any[] to any to handle new structure
 }
 
 export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Props) {
@@ -26,23 +26,57 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Pro
     updateParameters 
   } = useParameterHandling();
 
-  const [chosenOp, setChosenOp] = useState(defaultTensorOps?.[0] || null);
+  const [selectedClass, setSelectedClass] = useState<string>("");
+  const [selectedOpType, setSelectedOpType] = useState<string>("");
+  const [chosenOp, setChosenOp] = useState<any>(null);
 
-  // Update parameters when chosen operation changes
+  // Extract global classes from the new structure
+  const globalClasses = defaultTensorOps?.data ? Object.keys(defaultTensorOps.data) : [];
+
+  // Initialize selections when data loads
   useEffect(() => {
-    if (defaultTensorOps && defaultTensorOps.length > 0) {
-      setChosenOp(defaultTensorOps[0]);
-      updateParameters(defaultTensorOps[0]?.parameters || {});
+    if (globalClasses.length > 0) {
+      const firstClass = globalClasses[0];
+      const firstClassOps = defaultTensorOps.data[firstClass];
+      const firstOpType = Object.keys(firstClassOps)[0];
+      
+      setSelectedClass(firstClass);
+      setSelectedOpType(firstOpType);
+      setChosenOp({
+        class: firstClass,
+        type: firstOpType,
+        ...firstClassOps[firstOpType]
+      });
+      updateParameters(firstClassOps[firstOpType]?.parameters || {});
     }
   }, [defaultTensorOps, updateParameters]);
 
-  // Redundant checks for loading and error states
-  if (!defaultTensorOps || defaultTensorOps.length === 0) {
+  if (!defaultTensorOps || !defaultTensorOps.data || Object.keys(defaultTensorOps.data).length === 0) {
     return <div>Loading tensor operations...</div>;
   }
 
-  function setOp(opType: string) {
-    const newOp = defaultTensorOps.find((op) => op.type === opType);
+  function handleClassChange(className: string) {
+    setSelectedClass(className);
+    const classOps = defaultTensorOps.data[className];
+    const firstOpType = Object.keys(classOps)[0];
+    setSelectedOpType(firstOpType);
+    const newOp = {
+      class: className,
+      type: firstOpType,
+      ...classOps[firstOpType]
+    };
+    setChosenOp(newOp);
+    updateParameters(newOp?.parameters || {});
+  }
+
+  function handleOpTypeChange(opType: string) {
+    setSelectedOpType(opType);
+    const opData = defaultTensorOps.data[selectedClass][opType];
+    const newOp = {
+      class: selectedClass,
+      type: opType,
+      ...opData
+    };
     setChosenOp(newOp);
     updateParameters(newOp?.parameters || {});
   }
@@ -68,8 +102,22 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Pro
         },
       },
     ]);
-    setChosenOp(defaultTensorOps[0]);
-    updateParameters(defaultTensorOps[0]?.parameters || {});
+    
+    // Reset to first selection after adding
+    if (globalClasses.length > 0) {
+      const firstClass = globalClasses[0];
+      const firstClassOps = defaultTensorOps.data[firstClass];
+      const firstOpType = Object.keys(firstClassOps)[0];
+      
+      setSelectedClass(firstClass);
+      setSelectedOpType(firstOpType);
+      setChosenOp({
+        class: firstClass,
+        type: firstOpType,
+        ...firstClassOps[firstOpType]
+      });
+      updateParameters(firstClassOps[firstOpType]?.parameters || {});
+    }
   };
 
   return (
@@ -77,19 +125,38 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Pro
       <Typography variant="subtitle1" sx={{ mb: 2 }}>
         Add Tensor Operation
       </Typography>
+      
+      {/* Dropdown to select operation class */}
       <TextField
         select
-        label="Operation Type"
-        value={chosenOp?.type || ""}
-        onChange={e => setOp(e.target.value)}
+        label="Operation Class"
+        value={selectedClass}
+        onChange={e => handleClassChange(e.target.value)}
         fullWidth
         size="small"
         sx={{ mb: 2 }}
       >
-        {defaultTensorOps.map((op) => (
-          <MenuItem key={op.type} value={op.type}>{op.type}</MenuItem>
+        {globalClasses.map((className) => (
+          <MenuItem key={className} value={className}>{className}</MenuItem>
         ))}
       </TextField>
+
+      {/* Dropdown to select specific operation type within the class */}
+      {selectedClass && (
+        <TextField
+          select
+          label="Operation Type"
+          value={selectedOpType}
+          onChange={e => handleOpTypeChange(e.target.value)}
+          fullWidth
+          size="small"
+          sx={{ mb: 2 }}
+        >
+          {Object.keys(defaultTensorOps.data[selectedClass]).map((opType) => (
+            <MenuItem key={opType} value={opType}>{opType}</MenuItem>
+          ))}
+        </TextField>
+      )}
       
       {chosenOp && (
         <ParameterInputs

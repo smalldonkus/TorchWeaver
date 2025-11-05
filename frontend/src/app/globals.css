@@ -49,19 +49,126 @@ body {
   align-items: center;
 }
 
+.profile {
+  color: #F1F1F1;
+  justify-content: space-evenly;
+  font-size: 1.5rem;
+  align-items: center;
+  margin-right: 2rem;
+}
+
+.profileBtn {
+  display: flex;
+  text-align: center;
+  justify-content: space-evenly;
+  font-size: 1.5rem;
+  align-items: center;
+  position: relative;
+}
+
+
+
+.profilePicture {
+  width: 5rem;
+  border-radius: 50%;
+  border: 3px solid #5C9DEF;
+}
+
+.profilePicture:hover {
+  border-color: #3B7BCF;
+}
+
+.profilePicture:active {
+  border-color: #0D47A2
+}
+
+.dropdown {
+  position: relative;
+  margin-right: 10%;
+}
+
+.profileDropdown {
+  position: absolute;
+  display: block;
+  top: 100%;
+  width: 20rem;
+  background: #F1F1F1;
+  border: 1px solid #d1d1d1;
+  color: #222222;
+  box-shadow: 0 3px 9px #0000041a;
+  z-index: 1000;
+  height: auto;
+  right:0;
+}
+
 .toolbar {
   display: flex;
   gap: 1rem;
   align-items: center;
   overflow-x: hidden;
+  overflow: visible;
   width: auto;
   max-width: 100%;
   padding-right: 2rem;
 }
 
+.profileDropdown {
+  display:flex;
+  flex-direction: column;
+  align-items: left;
+  gap: 0.5rem;
+}
+
+.userDisplayedInfo {
+  display: block;
+  text-align: left;
+  margin-left: 0.5rem;
+}
+
+.profileInfo {
+  align-items: center;
+  text-align: center;
+  display: flex;
+  border-bottom: 1px solid #d7dde3;
+  padding-top: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-bottom: 1rem;
+  font-size: 1rem;
+  font: bold;
+}
+
+.dropBtn {
+  display: flex;
+  text-align: left;
+  align-items: center;
+  padding: 1rem;
+
+}
+
+.dropdownPicture {
+  width: 3rem;
+  border-radius: 50%;
+  margin-right: 1rem;
+}
+
+.userProfilePicture {
+  width: 3rem;
+  border-radius: 50%;
+}
+
+.dropdownOption {
+  font-size: 1rem;
+}
+
+.dropBtn:hover {
+  background: #f5f5f5;
+}
+
 .toolbarBtn {
   flex: 0 1 auto;
   padding: 1rem 2rem;
+  margin-right: 2rem;
   border-radius: 5px;
   background-color: #1976D3;
   color: #F1F1F1;

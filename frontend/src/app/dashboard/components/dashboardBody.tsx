@@ -10,24 +10,39 @@ import CardMedia from '@mui/material/CardMedia';
 import { BackToTopButton } from "./BackToTopButton";
 import { FavouriteButton } from './FavouriteButton';
 import { NewSort, SortingBar } from './Sorting';
-import { OwnershipBar } from './Ownership';
+import { NewList, OwnershipBar } from './Ownership';
 import { SearchBar, searchFilter } from './SearchBar';
 import { NeuralNetworkInfo } from './NeuralNetworks';
 import { getNeuralNetworks } from './NeuralNetworks';
 import CardActionArea from '@mui/material/CardActionArea';
 import DeleteButton from './DeleteButton';
+import { setNeuralNetworks } from './NeuralNetworks';
 
 export default function dashboardBody() {
-    const [NeuralNetworks, setNeuralNetworks] = React.useState<NeuralNetworkInfo[]>(getNeuralNetworks()); // do not use setNeuralNetworks as that is the master
-    const [visibleNetworks, setVisibleNetworks] = React.useState<NeuralNetworkInfo[]>(NeuralNetworks);  //copy of neuralnetworks that gets decimated
+    const [visibleNetworks, setVisibleNetworks] = React.useState<NeuralNetworkInfo[]>(getNeuralNetworks());  //copy of neuralnetworks that gets shown on screen (local and stored in this file
 
     const handleSortChange = (sortType: string) => {
-        setVisibleNetworks(NewSort(sortType, getNeuralNetworks())); //Passes full neural network array to newSort
+        setVisibleNetworks(NewSort(sortType, visibleNetworks)); //Passes only visibleNetworks to be sorted, non-destructive so can happen last.
     };
 
     const handleSearch = (input: string) => {
         setVisibleNetworks(searchFilter(input, getNeuralNetworks())); //Passes full neural network array to searchFilter
     };
+    //ownership sorting and searching are both destructive only one can happen at a time
+    //Oscar note : i dont think this is fixable, sad
+    const handleOwnershipSorting = (sortType: string) => {
+        const owner = "A";
+        setVisibleNetworks(NewList(owner, sortType, getNeuralNetworks()));
+    };
+
+    //function to change favourited boolean in global if toggled
+    const handleFavourite = (title: string) => {
+        const updated = visibleNetworks.map((net) =>
+            net.title === title ? { ...net, Favourited: !net.Favourited } : net
+        );
+        setVisibleNetworks(updated); // Updates visuals
+        setNeuralNetworks(updated); // stores back into global
+    }
 
     return (
         <Container sx={{ bgcolor: "#EDF1F3", minHeight: "100vh", minWidth: "100vw"}}>
@@ -37,8 +52,7 @@ export default function dashboardBody() {
                     <SearchBar stateChanger={handleSearch}/>
                     {/* passes handlestatechange to child so it can re-render parent (this) */}
                     <SortingBar stateChanger={handleSortChange}/> 
-                    {/* TODO: same thing as sorting bar */}
-                    <OwnershipBar/>
+                    <OwnershipBar stateChanger={handleOwnershipSorting}/>
                 </Box>
 
                 {/* Neural Network, adds them in in the order of cards array*/}
@@ -63,7 +77,9 @@ export default function dashboardBody() {
                                             </Typography>
                                         </CardContent>
                                         <CardActions>
-                                            <FavouriteButton/>
+                                            <FavouriteButton
+                                                isFavourite={NeuralNetwork.Favourited}
+                                                onClick={() => handleFavourite(NeuralNetwork.title)}/>
                                             <DeleteButton/>
                                         </CardActions>
                                 </Box>

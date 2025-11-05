@@ -13,9 +13,6 @@ def generate(json_data, tensor_ops_config=None):
     # Load operation definitions from database
     db = NNDataBase()
     
-    # Load tensor operations configuration
-    tensor_ops_config = load_tensor_ops_config()
-    
     # Extract nodes (already topologically sorted)
     nodes = json_data.get("nodes", [])
     
@@ -27,23 +24,9 @@ def generate(json_data, tensor_ops_config=None):
     
     # Generate the complete Python code
     imports = generate_imports()
-    class_code = generate_class(nodes, input_nodes, db, tensor_ops_config)
+    class_code = generate_class(nodes, input_nodes, db)
     
     return imports + "\n\n" + class_code
-
-def load_tensor_ops_config():
-    """Load tensor operations configuration from TensorOps.json"""
-    try:
-        # Get the directory of this script
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        tensor_ops_path = os.path.join(script_dir, "JsonLayers", "TensorOps.json")
-        
-        with open(tensor_ops_path, "r") as f:
-            data = json.load(f)
-            return data.get("data", [])
-    except FileNotFoundError:
-        print("Warning: TensorOps.json not found, using empty config")
-        return []
 
 def generate_imports():
     """Generate the necessary import statements"""
@@ -51,7 +34,7 @@ def generate_imports():
 import torch.nn as nn
 import torch.nn.functional as F"""
 
-def generate_class(nodes, input_nodes, db, tensor_ops_config):
+def generate_class(nodes, input_nodes, db):
     """Generate the neural network class"""
     class_lines = []
     class_lines.append("class GeneratedModel(nn.Module):")
@@ -73,7 +56,7 @@ def generate_class(nodes, input_nodes, db, tensor_ops_config):
         class_lines.append(f"    def forward(self, {input_params}):")
     
     # Generate forward pass
-    forward_lines = generate_forward_method(nodes, input_nodes, db, tensor_ops_config)
+    forward_lines = generate_forward_method(nodes, input_nodes, db)
     class_lines.extend(forward_lines)
     
     # Add return statement for final output
@@ -124,7 +107,7 @@ def generate_init_method(nodes, db):
     
     return lines
 
-def generate_forward_method(nodes, input_nodes, db, tensor_ops_config):
+def generate_forward_method(nodes, input_nodes, db):
     """Generate the forward method"""
     lines = []
     
@@ -155,7 +138,7 @@ def generate_forward_method(nodes, input_nodes, db, tensor_ops_config):
         
         elif operation_type == "TensorOp":
             # Generate tensor operations using configuration
-            tensor_code = generate_tensor_operation(node, tensor_ops_config)
+            tensor_code = generate_tensor_operation(node, db)
             if tensor_code:
                 lines.append(tensor_code)
         
@@ -165,24 +148,32 @@ def generate_forward_method(nodes, input_nodes, db, tensor_ops_config):
     
     return lines
 
-def generate_tensor_operation(node, tensor_ops_config):
-    """Generate code for tensor operations using TensorOps.json configuration"""
+def generate_tensor_operation(node, db):
+    """Generate code for tensor operations using hierarchical database lookup"""
     node_id = node.get("id")
     node_type = node.get("type")
     parent = node.get("parent")
     user_parameters = node.get("parameters", {})
     outgoing_edges_count = node.get("outgoing_edges_count", 0)
     
-    # Find the tensor operation configuration
-    op_config = None
-    for config in tensor_ops_config:
-        if config.get("type") == node_type:
-            op_config = config
-            break
-    library = op_config.get("library", "torch")
-    parent_parameter_format = op_config.get("codeGeneration", {}).get("parentParameterFormat", "separate")
-    operation_pattern = op_config.get("codeGeneration", {}).get("operationPattern", "merge")
-    default_parameters = op_config.get("parameters", {})
+    # Find the tensor operation configuration using hierarchical lookup
+    op_config = db.find_in_category(node_type, "tensorOperations")
+    if not op_config:
+        # Fallback to searching all categories
+        op_config = db.find_definition(node_type)
+    
+    if not op_config:
+        # Default behavior if not found
+        library = "torch"
+        parent_parameter_format = "separate"
+        operation_pattern = "merge"
+        default_parameters = {}
+    else:
+        library = op_config.get("library", "torch")
+        code_gen = op_config.get("codeGeneration", {})
+        parent_parameter_format = code_gen.get("parentParameterFormat", "separate")
+        operation_pattern = code_gen.get("operationPattern", "merge")
+        default_parameters = op_config.get("parameters", {})
     
     # Merge default parameters with user parameters
     all_parameters = {**default_parameters, **user_parameters}
@@ -237,19 +228,7 @@ def generate_tensor_operation(node, tensor_ops_config):
         return f"        {node_id} = {library}.{node_type}({call_params})"
 
 def find_layer_definition(layer_type, db):
-    """Find layer definition in database"""
-    # Check in layers
-    if db.defaults.get("nnLayer"):
-        for layer in db.defaults["nnLayer"].get("data", []):
-            if layer.get("type") == layer_type:
-                return layer
-    
-    # Check in activators
-    if db.defaults.get("activator"):
-        for activator in db.defaults["activator"].get("data", []):
-            if activator.get("type") == layer_type:
-                return activator
-    
-    return None
+    """Find layer definition in database using hierarchical lookup"""
+    return db.find_definition(layer_type)
 
 

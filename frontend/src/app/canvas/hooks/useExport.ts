@@ -1,4 +1,4 @@
-export default function useExport(nodes: any[], edges: any[], defaultLayers: any[] = [], defaultTensorOps: any[] = [], defaultActivators: any[] = []) {
+export default function useExport(nodes: any[], edges: any[], defaultLayers: any = {}, defaultTensorOps: any = {}, defaultActivators: any = {}) {
   return async () => {
     // Build adjacency maps for traversal
     const outgoingEdges: Record<string, string[]> = {};
@@ -22,19 +22,36 @@ export default function useExport(nodes: any[], edges: any[], defaultLayers: any
       return;
     }
 
-    // Combine all default definitions for lookup
-    const allDefaults = [
-      ...defaultLayers,
-      ...defaultTensorOps, 
-      ...defaultActivators
-    ];
+    // Helper function to find a type definition in hierarchical structure
+    const findTypeDefinition = (data: any, targetType: string): any => {
+      if (!data || !data.data) return null;
+      
+      for (const [className, classItems] of Object.entries(data.data)) {
+        const typedClassItems = classItems as Record<string, any>;
+        if (typedClassItems[targetType]) {
+          return {
+            type: targetType,
+            class: className,
+            ...typedClassItems[targetType]
+          };
+        }
+      }
+      return null;
+    };
+
+    // Helper function to find a type definition across all operation types
+    const findAnyTypeDefinition = (targetType: string): any => {
+      return findTypeDefinition(defaultLayers, targetType) ||
+             findTypeDefinition(defaultTensorOps, targetType) ||
+             findTypeDefinition(defaultActivators, targetType);
+    };
 
     // Helper function to check if a node is a split operation
     const isSplitOperation = (nodeId: string): boolean => {
       const node = nodes.find(n => n.id === nodeId);
       if (!node || node.data.operationType !== "TensorOp") return false;
       
-      const tensorOpDef = defaultTensorOps.find(op => op.type === node.data.type);
+      const tensorOpDef = findTypeDefinition(defaultTensorOps, node.data.type);
       return tensorOpDef?.codeGeneration?.operationPattern === "split";
     };
 
@@ -76,7 +93,7 @@ export default function useExport(nodes: any[], edges: any[], defaultLayers: any
       }
 
       // Process this node
-      const exportNode = buildNodeFromReactFlowNode(currentNode, incomingEdges, outgoingEdges, allDefaults, isSplitOperation, getSplitOutputName);
+      const exportNode = buildNodeFromReactFlowNode(currentNode, incomingEdges, outgoingEdges, findAnyTypeDefinition, isSplitOperation, getSplitOutputName);
       exportNodes.push(exportNode);
       processedNodes.add(currentNodeId);
 
@@ -123,9 +140,9 @@ export default function useExport(nodes: any[], edges: any[], defaultLayers: any
     console.log("=== END DEBUG ===");
     
     
-    // Send JSON to backend API for Python conversion
+    // Send JSON to backend API for Python code generation
     try {
-      const response = await fetch('http://localhost:5000/convert-json-to-python', {
+      const response = await fetch('http://localhost:5000/api/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -176,12 +193,12 @@ function buildNodeFromReactFlowNode(
   node: any, 
   incomingEdges: Record<string, string[]>, 
   outgoingEdges: Record<string, string[]>, 
-  allDefaults: any[],
+  findDefinition: (targetType: string) => any,
   isSplitOperation: (nodeId: string) => boolean,
   getSplitOutputName: (splitNodeId: string, childIndex: number) => string
 ) {
   // Find the default definition for this node type
-  const defaultDef = allDefaults.find(def => def.type === node.data.type);
+  const defaultDef = findDefinition(node.data.type);
   
   // Use operation type directly from node data
   const operation_type = node.data.operationType;
@@ -207,8 +224,12 @@ function buildNodeFromReactFlowNode(
   // Use the type from the default definition or fall back to node data
   const type = defaultDef ? defaultDef.type : node.data.type;
   
-  // Use the node's actual parameters
-  const parameters = node.data.parameters || {};
+  // Use the node's actual parameters, filtering out inherit_from_parent (frontend-only)
+  const parameters = node.data.parameters ? 
+    Object.fromEntries(
+      Object.entries(node.data.parameters).filter(([key]) => key !== 'inherit_from_parent')
+    ) : 
+    {};
 
   return {
     id: node.id,
