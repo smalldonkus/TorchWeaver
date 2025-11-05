@@ -37,6 +37,7 @@ export default function useSave(nodes: any[], edges: any[]) {
         if (!id) {
           const savedId = result.id;
           window.location.href = `/canvas?id=${savedId}`;
+          alert(`Network saved successfully!`);
         } else {
           // Optionally show a toast or message
           alert(`Network #${id} updated successfully!`);
