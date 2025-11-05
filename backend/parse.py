@@ -2,8 +2,7 @@
 from NNdatabase import NNDataBase
 
 
-CRUDE_REPORT = True
-DEBUG = True
+CRUDE_REPORT = False
 
 class ParseError:
 
@@ -53,7 +52,6 @@ class Graph:
 
         self.hasRunTarjan = True
 
-
     def getInError(self):
         assert self.hasRunTarjan
 
@@ -75,7 +73,7 @@ class Graph:
         for w in [e[1] for e in self.E if e[0] == v]:
             
             if self.indices[w] is None:
-                self.strongConnect(w)
+                self.strongConnect(w) #recurse
                 self.lowlink[v] = min(self.lowlink[v], self.lowlink[w])
             elif self.onStack[w]:
                 self.lowlink[v] = min(self.lowlink[v], self.indices[w])
@@ -121,22 +119,6 @@ def dfs(nodesList, origin):
 
     return False
 
-def isCyclic(adj, idxToIdCipher):
-
-    # find all bridges
-    # once you have all bridges, remove them
-    # any nodes that still have incoming/outgoing edges
-    # are part of a cycle
-
-    """
-    NOTES:
-        https://en.wikipedia.org/wiki/Bridge_%28graph_theory%29
-        https://cs.stackexchange.com/questions/92827/graph-find-all-vertices-that-are-part-of-a-cycle
-    """
-
-
-    pass
-
 def parse(nodesList):
     
     # errors list
@@ -151,12 +133,26 @@ def parse(nodesList):
     inputs = [n for n in nodesList if (n["data"]["operationType"]).lower() == "input"]
     # checks for input existing
     if len(inputs) == 0:
-        errors.append(ParseError("No \'Input Node\' defined", nodeIDs=None))
+        errors.append(ParseError("Please define an Input", nodeIDs=None))
 
     # checks for input's Having a parent
     for n in inputs:
         if len(n.get("parents", [])) != 0:
             errors.append(ParseError("Inputs cannot have a parent", nodeIDs=[n["id"]]))
+
+    outputs = [n for n in nodesList if (n["data"]["operationType"]).lower() == "output"]
+    if len(outputs) == 0:
+        errors.append(ParseError("Please define an Output", nodeIDs=None))
+    elif len(outputs) > 1:
+        errors.append(ParseError("Too many outputs, only one is permitted", nodeIDs=[n["id"] for n in outputs]))
+    
+    for n in outputs:
+        if len(n.get("children", [])) != 0:
+            errors.append(ParseError("Outputs cannot have children", nodeIDs=[n["id"]]))
+        if len(n.get("parents", [])) == 0:
+            errors.append(ParseError("Outputs need an a parent node", nodeIDs=[n["id"]]))
+        if len(n.get("parents", [])) > 1:
+            errors.append(ParseError(f"Output requires only one parent, currently has {len(n.get("parents", []))}", nodeIDs=[n["id"]]))
 
     # checks for maxInputs and minInputs being obeyed
     # print(" ".join([n["id"] for n in nodesList]))
@@ -185,9 +181,9 @@ def parse(nodesList):
         
         parent_count = len(n.get("parents", []))
         if parent_count < int(min_inputs):
-            errors.append(ParseError(f"{dflt['type']} requires at least {min_inputs} input{'s' if min_inputs > 1 else ''}, currently has {parent_count}", nodeIDs=[n["id"]]))
+            errors.append(ParseError(f"{dflt['type']} requires at least {min_inputs} parent{'s' if min_inputs > 1 else ''}, currently has {parent_count}", nodeIDs=[n["id"]]))
         if parent_count > int(max_inputs):
-            errors.append(ParseError(f"{dflt['type']} requires less or equal to {max_inputs} input{'s' if max_inputs > 1 else ''}, currently has {parent_count}", nodeIDs=[n["id"]]))
+            errors.append(ParseError(f"{dflt['type']} requires less or equal to {max_inputs} parent{'s' if max_inputs > 1 else ''}, currently has {parent_count}", nodeIDs=[n["id"]]))
 
     # get all inputs for graph
     inputs = [n for n in nodesList if n["data"]["operationType"] == "Input"]
@@ -196,12 +192,8 @@ def parse(nodesList):
     for path in pathCheck:
         if not path[0]: errors.append(ParseError(f"This input has no path to an output", nodeIDs=[path[1]["id"]]))
 
-    # TODO: checks for matching number of dimensions from output to input
-
-    # TODO: check output does not have too many or too little inputs.
-
-    # TODO: check for cycles.
-
+  
+    # check for cycles.
     nG = Graph(nodesList)
     nG.tarjan()
     inErr = nG.getInError()
