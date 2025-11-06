@@ -11,7 +11,7 @@ export type NeuralNetworkInfo = {
 export const getNeuralNetworks = async (userId?: string): Promise<NeuralNetworkInfo[]> => {
   try {
     const headers: Record<string, string> = {};
-    if (userId) headers['X-User-Auth0-Id'] = userId;
+    if (userId) headers['header'] = userId;
     const res = await fetch('http://localhost:5000/list_network', { headers });
     if (!res.ok) {
       console.error('Failed to fetch networks', res.status);
@@ -29,13 +29,13 @@ export const getNeuralNetworks = async (userId?: string): Promise<NeuralNetworkI
     }));
   } catch (err) {
     console.error('Error fetching neural networks', err);
-    return [];
+    return []; 
   }
 };
 
 export const loadNetwork = async (id: number, userId?: string) => {
   const headers: Record<string, string> = {};
-  if (userId) headers['X-User-Auth0-Id'] = userId;
+  if (userId) headers['header'] = userId;
   const res = await fetch(`http://localhost:5000/load_network?id=${id}`, { headers });
   if (!res.ok) throw new Error('Failed to load network');
   const data = await res.json();
@@ -44,7 +44,7 @@ export const loadNetwork = async (id: number, userId?: string) => {
 
 export const deleteNetwork = async (id: number, userId?: string) => {
   const headers: Record<string, string> = {};
-  if (userId) headers['X-User-Auth0-Id'] = userId;
+  if (userId) headers['header'] = userId;
   const res = await fetch(`http://localhost:5000/delete_network?id=${id}`, { method: 'DELETE', headers });
   if (!res.ok) throw new Error('Failed to delete network');
   return true;

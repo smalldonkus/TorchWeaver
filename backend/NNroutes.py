@@ -14,18 +14,22 @@ storage = NNStorage()
 # others can be use db generated id
 def get_user_id(req):
     user_id = None
-    if 'X-User-Auth0-Id' in req.headers:
-        user_id = req.headers.get('X-User-Auth0-Id')
-    else:
-        try:
-            data = req.get_json(silent=True) or {}
-            if isinstance(data, dict):
-                user = data.get('user')
-                if isinstance(user, dict): 
-                    user_id = user.get('id') or user.get('email')
-        except Exception:
-            user_id = None
+
+    try:
+        data = req.get_json(silent=True) or {}
+        if isinstance(data, dict):
+            user = data.get('user')
+            if isinstance(user, dict):
+                user_id = user.get('id')
+    except Exception:
+        user_id = None
+
+    # now swapped the logic to check db first then header
+    if not user_id and 'header' in req.headers:
+        user_id = req.headers.get('header')
+
     return user_id
+
 
 @NNRoutes .route('/save_network', methods=['POST'])
 def saveNetwork():
@@ -66,7 +70,7 @@ def saveNetwork():
 @NNRoutes .route('/list_network', methods=['GET'])
 def listNetwork():
     try:
-        # Extract user id from request (header or payload). Frontend should send X-User-Auth0-Id header or include user info in body.
+        # Extract user id from request (header or payload). Frontend should send header header or include user info in body.
         user_id = get_user_id(request)
         if not user_id:
             return jsonify({"error": "Unauthorized - missing user id"}), 401
