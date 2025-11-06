@@ -18,7 +18,7 @@ export default function useSave(nodes: any[], edges: any[]) {
     const exportData = {nodes, edges};
     // Accept both 'id' and 'network_id' for compatibility
     const params = new URLSearchParams(window.location.search);
-    const id = params.get("id") || params.get("network_id");
+    const id = params.get("id");
 
     // DEBUG: Show the generated JSON structure
     console.log("=== GENERATED JSON STRUCTURE ===");
