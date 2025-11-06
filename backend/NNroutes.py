@@ -7,13 +7,15 @@ NNRoutes  = Blueprint("nn_routes", __name__)
 CORS(NNRoutes)
 storage = NNStorage()
 
-
+# current implementation get id from header or payload
+# however there are security concerns with this approach
+# this should be addressed in future iterations
+# saving require user id to be passed in header or payload
+# others can be use db generated id
 def get_user_id(req):
     user_id = None
     if 'X-User-Auth0-Id' in req.headers:
         user_id = req.headers.get('X-User-Auth0-Id')
-    elif 'X-User-Email' in req.headers:
-        user_id = req.headers.get('X-User-Email')
     else:
         try:
             data = req.get_json(silent=True) or {}
