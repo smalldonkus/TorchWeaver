@@ -1,10 +1,24 @@
+import { useUser } from "@auth0/nextjs-auth0"
+
 export default function useSave(nodes: any[], edges: any[]) {
+  const { user, isLoading } = useUser();
+
   return async () => {
 
+    if (isLoading) {
+      alert("Loading user info...");
+      return;
+    }
+
+    if (!user) {
+      alert("You must be logged in to save your network!");
+      return;
+    }
+
     const exportData = {nodes, edges};
-  // Accept both 'id' and 'network_id' for compatibility
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get("id") || params.get("network_id");
+    // Accept both 'id' and 'network_id' for compatibility
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id") || params.get("network_id");
 
     // DEBUG: Show the generated JSON structure
     console.log("=== GENERATED JSON STRUCTURE ===");
@@ -22,7 +36,13 @@ export default function useSave(nodes: any[], edges: any[]) {
         body: JSON.stringify({
           nn_id: id || null, // must match backend param name
           name: `My Project #${id ? ' ' + id : ''}`,
-          network: exportData
+          network: exportData,
+          user: {
+            id: user.sub,
+            name: user.name,
+            email: user.email,
+            picture: user.picture,
+          },
         })
       });
 

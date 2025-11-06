@@ -3,6 +3,7 @@ import os
 import json
 from NNstorage import NNStorage
 
+# early databse test contains only the backend NNstorage.py functionalities
 class TestNNStorage(unittest.TestCase):
     def setUp(self):
         """Set up a fresh test database and load test data."""

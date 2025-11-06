@@ -7,6 +7,24 @@ NNRoutes  = Blueprint("nn_routes", __name__)
 CORS(NNRoutes)
 storage = NNStorage()
 
+
+def get_user_id(req):
+    user_id = None
+    if 'X-User-Auth0-Id' in req.headers:
+        user_id = req.headers.get('X-User-Auth0-Id')
+    elif 'X-User-Email' in req.headers:
+        user_id = req.headers.get('X-User-Email')
+    else:
+        try:
+            data = req.get_json(silent=True) or {}
+            if isinstance(data, dict):
+                user = data.get('user')
+                if isinstance(user, dict): 
+                    user_id = user.get('id') or user.get('email')
+        except Exception:
+            user_id = None
+    return user_id
+
 @NNRoutes .route('/save_network', methods=['POST'])
 def saveNetwork():
     try:
@@ -17,20 +35,26 @@ def saveNetwork():
 
         name = data.get("name")
         network_id = data.get("nn_id")
+        # Prefer authenticated user id from headers, fall back to payload
+        user_auth0_id = get_user_id(request)
+        if not user_auth0_id:
+            user_info = data.get("user")
+            user_auth0_id = user_info.get("id") if user_info else None
         # Ensure network_id is int or None
         if network_id is not None:
             try:
                 network_id = int(network_id)
             except Exception:
                 network_id = None
+
         json_data = data.get("network")
         description = data.get("description", None)
 
         if not name or not json_data:
             return jsonify({"error": "Missing 'name' or 'network' data"}), 400
 
-        # Save network and get the ID back
-        saved_id = storage.save_network(name, json_data, description, network_id)
+        # Save network and get the ID back (storage will insert or update based on network_id)
+        saved_id = storage.save_network(name, json_data, description, network_id, user_auth0_id)
         return jsonify({"success": True, "id": saved_id}), 200
     except Exception as e:
         print("[NNRoutes] Exception in save_network:")
@@ -40,7 +64,12 @@ def saveNetwork():
 @NNRoutes .route('/list_network', methods=['GET'])
 def listNetwork():
     try:
-        networks = storage.list_networks()
+        # Extract user id from request (header or payload). Frontend should send X-User-Auth0-Id header or include user info in body.
+        user_id = get_user_id(request)
+        if not user_id:
+            return jsonify({"error": "Unauthorized - missing user id"}), 401
+
+        networks = storage.list_networks(user_id)
         return jsonify({"networks": networks}), 200
     except Exception as e:
         return jsonify({ "error": str(e)}), 500
@@ -51,8 +80,8 @@ def loadNetwork():
         network_id = request.args.get("id")
         if not network_id:
             return jsonify({"error": "Missing 'id' parameter"}), 400
-
-        network = storage.load_network(network_id)
+        user_id = get_user_id(request)
+        network = storage.load_network(network_id, user_id)
         if not network:
             return jsonify({"error": "Network not found"}), 404
         
@@ -76,8 +105,10 @@ def deleteNetwork():
         network_id = request.args.get("id")
         if not network_id:
             return jsonify({"error": "Missing 'id' parameter"}), 400
-
-        storage.delete_network(network_id)
+        user_id = get_user_id(request)
+        if not user_id:
+            return jsonify({"error": "Unauthorized - missing user id"}), 401
+        storage.delete_network(network_id, user_id)
         return jsonify({"success": True}), 200
     except Exception as e:
         return jsonify({ "error": str(e)}), 500
@@ -91,8 +122,8 @@ def updateNetwork():
 
         if not network_id or not json_data:
             return jsonify({"error": "Missing 'id' or 'json_data'"}), 400
-
-        storage.update_network(network_id, json_data)
+        user_id = get_user_id(request)
+        storage.update_network(network_id, json_data, user_id)
         return jsonify({"success": True}), 200
     except Exception as e:
         return jsonify({ "error": str(e)}), 500

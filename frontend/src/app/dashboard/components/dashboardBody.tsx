@@ -13,6 +13,7 @@ import { NewSort, SortingBar } from './Sorting';
 import { NewList, OwnershipBar } from './Ownership';
 import { SearchBar, searchFilter } from './SearchBar';
 import { NeuralNetworkInfo, getNeuralNetworks, loadNetwork, deleteNetwork } from './NeuralNetworks';
+import { useUser } from '@auth0/nextjs-auth0/client';
 import CardActionArea from '@mui/material/CardActionArea';
 import DeleteButton from './DeleteButton';
 
@@ -22,13 +23,24 @@ export default function dashboardBody() {
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
 
+    const { user } = useUser();
+
     React.useEffect(() => {
         const load = async () => {
             try {
                 setLoading(true);
-                const data = await getNeuralNetworks();
+                if (!user) {
+                    setError('Please sign in to view your saved networks.');
+                    setNetworks([]);
+                    setVisibleNetworks([]);
+                    return;
+                }
+
+                const userId = user.sub;
+                const data = await getNeuralNetworks(userId);
                 setNetworks(data);
                 setVisibleNetworks(data);
+                setError(null);
             } catch (err) {
                 setError('Failed to load networks');
                 console.error(err);
@@ -37,7 +49,7 @@ export default function dashboardBody() {
             }
         };
         load();
-    }, []);
+    }, [user]);
 
     const handleSortChange = (sortType: string) => {
         setVisibleNetworks(NewSort(sortType, networks));
@@ -49,7 +61,8 @@ export default function dashboardBody() {
 
     const handleNetworkClick = async (id: number) => {
         try {
-            const net = await loadNetwork(id);
+            const userId = user?.sub;
+            const net = await loadNetwork(id, userId);
             // Keep the loaded network in localStorage for backward compatibility with older flow
             localStorage.setItem('loadedNetwork', JSON.stringify(net));
             // Redirect to canvas with the saved network id so the canvas page can fetch it
@@ -62,8 +75,9 @@ export default function dashboardBody() {
     const handleDelete = async (id: number) => {
         if (!confirm('Delete this network?')) return;
         try {
-            await deleteNetwork(id);
-            const updated = await getNeuralNetworks();
+            const userId = user?.sub;
+            await deleteNetwork(id, userId);
+            const updated = await getNeuralNetworks(userId);
             setNetworks(updated);
             setVisibleNetworks(updated);
         } catch (err) {
@@ -72,9 +86,11 @@ export default function dashboardBody() {
     };
     //ownership sorting and searching are both destructive only one can happen at a time
     //Oscar note : i dont think this is fixable, sad
-    const handleOwnershipSorting = (sortType: string) => {
+    const handleOwnershipSorting = async (sortType: string) => {
         const owner = "A";
-        setVisibleNetworks(NewList(owner, sortType, getNeuralNetworks()));
+        const userId = user?.sub;
+        const nets = await getNeuralNetworks(userId);
+        setVisibleNetworks(NewList(owner, sortType, nets));
     };
 
     //function to change favourited boolean in global if toggled

@@ -2,6 +2,8 @@ import sqlite3
 import json
 import os
 
+# test save and print all networks in the database
+
 DB_PATH = "NN_storage.db"  # adjust path if needed (e.g., "backend/NN_storage.db")
 
 def view_all_networks():
@@ -12,29 +14,42 @@ def view_all_networks():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
-    # Show all networks
-    cur.execute("SELECT id, name, description, created_at, json_data FROM networks")
+    # Check the table structure (for debugging and verification)
+    cur.execute("PRAGMA table_info(networks)")
+    print("Table columns:")
+    for col in cur.fetchall():
+        print(f" - {col[1]} ({col[2]})")
+    print()
+
+    # Show all networks including user info
+    cur.execute("""
+        SELECT id, name, description, created_at, json_data, user_auth0_id
+        FROM networks
+    """)
     rows = cur.fetchall()
 
     if not rows:
-        print(" No networks found in the database.")
+        print("No networks found in the database.")
         return
 
-    print(f" Found {len(rows)} network(s):\n")
+    print(f"Found {len(rows)} network(s):\n")
 
     for r in rows:
-        network_id, name, desc, created_at, json_str = r
+        network_id, name, desc, created_at, json_str, user_auth0_id = r
         print("=" * 60)
         print(f"ID: {network_id}")
         print(f"Name: {name}")
         print(f"Description: {desc}")
         print(f"Created At: {created_at}")
+        print(f"user_auth0_id: {user_auth0_id}")
 
+        # Try parsing the network JSON
         try:
             data = json.loads(json_str)
             print(f"Nodes: {len(data.get('nodes', []))}")
             print(f"Edges: {len(data.get('edges', []))}")
 
+            # Optional: print more details
             print("Full node data:")
             print(json.dumps(data.get("nodes", []), indent=2))
 
