@@ -62,6 +62,7 @@ interface Props {
     defaultLayers: any; // Changed from any[] to any for new structure
     defaultTensorOps: any; // Changed from any[] to any for new structure
     defaultActivators: any; // Changed from any[] to any for new structure
+    defaultInputs: any; // Input definitions data structure
 }
 
 // Sidebar component definition
@@ -82,7 +83,8 @@ export default function Sidebar({
     getDefaults,
     defaultLayers,
     defaultTensorOps,
-    defaultActivators
+    defaultActivators,
+    defaultInputs
 }: Props) {
     // Get theme object for direction (ltr/rtl)
     const theme = useTheme();
@@ -144,14 +146,14 @@ export default function Sidebar({
                     <LayerForm nodes={nodes} setNodes={setNodes} defaultLayers={defaultLayers} getSetters={getSetters} getDefaults={getDefaults}/>
                 )}
                 {selectedMenu === "Edit Nodes" && (
-                    <EditLayerForm selectedNodes={selectedNodes} defaultActivators={defaultActivators} defaultTensorOps={defaultTensorOps} defaultLayers={defaultLayers} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter} deleteNode={deleteNode}/>
+                    <EditLayerForm selectedNodes={selectedNodes} defaultActivators={defaultActivators} defaultTensorOps={defaultTensorOps} defaultLayers={defaultLayers} defaultInputs={defaultInputs} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter} deleteNode={deleteNode}/>
                 )}
                 {/* Show TensorOpsForm only if "Tensor Operations" menu is selected */}
                 {selectedMenu === "Tensor Operations" && (
                     <TensorOpsForm nodes={nodes} setNodes={setNodes} defaultTensorOps={defaultTensorOps} getSetters={getSetters} getDefaults={getDefaults} />
                 )}
                 {selectedMenu === "Inputs" && (
-                    <InputForm nodes={nodes} setNodes={setNodes} getSetters={getSetters} getDefaults={getDefaults}/>
+                    <InputForm nodes={nodes} setNodes={setNodes} defaultInputs={defaultInputs} getSetters={getSetters} getDefaults={getDefaults}/>
                 )}
                 {selectedMenu === "Outputs" && (
                     <OutputForm nodes={nodes} setNodes={setNodes} getSetters={getSetters} getDefaults={getDefaults}/>

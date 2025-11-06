@@ -100,7 +100,8 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators, get
         chosenActivator.type, // type
         parameters,
         getSetters,
-        getDefaults
+        getDefaults,
+        chosenActivator
     );
     setNodes([
       ...nodes,
@@ -169,6 +170,7 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators, get
           parameters={parameters}
           onParameterChange={handleParameterChange}
           onValidationChange={handleValidationChange}
+          nodeDefinition={chosenActivator}
         />
       )}
       

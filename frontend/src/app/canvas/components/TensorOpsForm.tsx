@@ -101,7 +101,8 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps, getSe
         chosenOp.type, // type
         parameters,
         getSetters,
-        getDefaults
+        getDefaults,
+        chosenOp
     );
     setNodes([
       ...nodes,
@@ -170,6 +171,7 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps, getSe
           parameters={parameters}
           onParameterChange={handleParameterChange}
           onValidationChange={handleValidationChange}
+          nodeDefinition={chosenOp}
         />
       )}
       

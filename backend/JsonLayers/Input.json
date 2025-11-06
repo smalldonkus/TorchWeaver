@@ -1,16 +1,127 @@
 {
   "data": {
-    "library": null,
-    "type": "MultiDimensionalInput",
-    "maxInputs": 0,
-    "minInputs": 0,
 
-    "parameters": {
-      "dimensions" : [1, 3, 224, 224]
+    "SingleDimensionalInput": {
+
+      "SingleDimensionalInput (no batch)": {
+        "library": null,
+        "parseCheck": {
+
+          "maxInputs": 0,
+          "minInputs": 0,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": true,
+          "ChannelLinks": [
+            {
+              "inputParam": "features",
+              "outputParam": "features"
+            }
+          ]
+        },
+
+        "parameters": {
+          "features": 1
+        },
+
+        "parameters_format": {
+          "features": ["int"]
+        }
+
+      },
+
+      "SingleDimensionalInput (with batch)": {
+        "library": null,
+        "parseCheck": {
+
+          "maxInputs": 0,
+          "minInputs": 0,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": true,
+          "ChannelLinks": [
+            {
+              "inputParam": "features",
+              "outputParam": "features"
+            }
+          ]
+        },
+
+        "parameters": {
+          "batch_size": 1,
+          "features": 1
+        },
+
+        "parameters_format": {
+          "batch_size": ["int"],
+          "features": ["int"]
+        }
+
+      }
+
+    },
+    "MultiDimensionalInput": {
+
+      "MultiDimensionalInput (no batch)": {
+        "library": null,
+        "parseCheck": {
+
+          "maxInputs": 0,
+          "minInputs": 0,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": true,
+          "ChannelLinks": [
+            {
+              "inputParam": "channels",
+              "outputParam": "channels"
+            }
+          ]
+        },
+
+        "parameters": {
+          "channels": 1,
+          "dimensions": [1, 1]
+        },
+
+        "parameters_format": {
+          "channels": ["int"],
+          "dimensions": ["list"]
+        }
+
     },
 
-    "parameters_format": {
-      "dimensions": ["tuple"]
+      "MultiDimensionalInput (with batch)": {
+        "library": null,
+        "parseCheck": {
+
+          "maxInputs": 0,
+          "minInputs": 0,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": true,
+          "ChannelLinks": [
+            {
+              "inputParam": "channels",
+              "outputParam": "channels"
+            }
+          ]
+        },
+
+        "parameters": {
+          "batch_size": 1,
+          "channels": 1,
+          "dimensions": [1, 1]
+        },
+
+        "parameters_format": {
+          "batch_size": ["int"],
+          "channels": ["int"],
+          "dimensions": ["list"]
+        }
+
+      }
+
     }
   }
 }

@@ -24,7 +24,8 @@ export default function TorchNode(props) {
 
   const [defaultLayers, setDefaultLayers]         = useState<any>(null);
   const [defaultTensorOps, setDefaultTensorOps]   = useState<any>(null);
-  const [defaultActivators, setDefaultActivators] = useState<any>(null); // this seems quite bad (TN)
+  const [defaultActivators, setDefaultActivators] = useState<any>(null); 
+  const [defaultInputs, setDefaultInputs]         = useState<any>(null);
   const [defaults, setDefaults]                   = useState<any>(null);
 
   const isErrorPopoverOpen = Boolean(anchorEP);
@@ -55,10 +56,12 @@ export default function TorchNode(props) {
     setDefaultLayers(localDefaults.defaultLayers);
     setDefaultTensorOps(localDefaults.defaultTensorOps);
     setDefaultActivators(localDefaults.defaultActivators);
+    setDefaultInputs(localDefaults.defaultInputs);
     setDefaults({
       Layer : defaultLayers,
       Activator: defaultActivators,
-      TensorOp : defaultTensorOps
+      TensorOp : defaultTensorOps,
+      Input : defaultInputs
     })
   }, [canEdit]); // update only when canEdit is changed (reduces calls)
   
@@ -94,6 +97,9 @@ export default function TorchNode(props) {
           case "Activator":
               data = defaultActivators;
               break;
+          case "Input":
+              data = defaultInputs;
+              break;
           default:
               return [];
       }
@@ -112,6 +118,9 @@ export default function TorchNode(props) {
               break;
           case "Activator":
               data = defaultActivators;
+              break;
+          case "Input":
+              data = defaultInputs;
               break;
           default:
               return [];
@@ -142,7 +151,7 @@ export default function TorchNode(props) {
               }
           }
       }
-  }, [selectedOperationType, selectedSpecificType, defaultLayers, defaultTensorOps, defaultActivators]);
+  }, [selectedOperationType, selectedSpecificType, defaultLayers, defaultTensorOps, defaultActivators, defaultInputs]);
 
   // Early return AFTER all hooks are declared
   if (!props) { // potential error
@@ -187,6 +196,31 @@ export default function TorchNode(props) {
   const handleParameterChangeWithPending = (parameterKey: string, value: any) => {
       handleParameterChange(parameterKey, value);
       setHasPendingChanges(true);
+  };
+
+  // Helper function to get current node definition
+  const getCurrentNodeDefinition = () => {
+      if (!selectedOperationType || !selectedClass || !selectedSpecificType) return null;
+      
+      let dataSource;
+      switch (selectedOperationType) {
+          case "Layer":
+              dataSource = defaultLayers;
+              break;
+          case "TensorOp":
+              dataSource = defaultTensorOps;
+              break;
+          case "Activator":
+              dataSource = defaultActivators;
+              break;
+          case "Input":
+              dataSource = defaultInputs;
+              break;
+          default:
+              return null;
+      }
+      
+      return dataSource?.data?.[selectedClass]?.[selectedSpecificType] || null;
   };
 
   // Apply all pending changes
@@ -288,7 +322,7 @@ export default function TorchNode(props) {
             <Box sx={{flexGrow: 1}}>
               {/* <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}> */}
               {/* TODO: work this out ^^  */ }
-              {!(props.data.operationType === "Input" || props.data.operationType === "Output") && <Grid container spacing={2} columns={gridSizes.column}>
+              {!(props.data.operationType === "Output") && <Grid container spacing={2} columns={gridSizes.column}>
                 <Grid display='flex' justifyContent='center' alignItems='center' size={gridSizes.item}>
                   <TextField
                       select
@@ -303,6 +337,7 @@ export default function TorchNode(props) {
                     <MenuItem key={"Layer"} value={"Layer"}>{"Layer"}</MenuItem>
                     <MenuItem key={"TensorOp"} value={"TensorOp"}>{"Tensor Operation"}</MenuItem>
                     <MenuItem key={"Activator"} value={"Activator"}>{"Activator"}</MenuItem>
+                    <MenuItem key={"Input"} value={"Input"}>{"Input"}</MenuItem>
                   </TextField>
                 </Grid>
                 <Grid display='flex' justifyContent='center' alignItems='center' size={gridSizes.item}>
@@ -346,12 +381,13 @@ export default function TorchNode(props) {
               </Grid>}
                 {selectedSpecificType && parameters && (
                     <ParameterInputsTorchNode
-                        operationType={selectedOperationType as "Layer" | "TensorOp" | "Activator"}
+                        operationType={selectedOperationType as "Layer" | "TensorOp" | "Activator" | "Input"}
                         nodeType={selectedSpecificType}
                         parameters={parameters}
                         onParameterChange={handleParameterChangeWithPending}
                         onValidationChange={handleValidationChange}
                         gridSizes={gridSizes}
+                        nodeDefinition={getCurrentNodeDefinition()}
                     />
                 )}
               <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>

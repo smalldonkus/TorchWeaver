@@ -17,6 +17,7 @@ interface Props {
     defaultLayers: any; // Changed from any[] to any for new structure
     defaultActivators: any; // Changed from any[] to any for new structure
     defaultTensorOps: any; // Changed from any[] to any for new structure
+    defaultInputs: any; // Input definitions data structure
     // allows the update of layerType
     updateNodeType: (targetID: any, valA: any, valB: any, valC: any) => void;
     // allows for the update of operationType
@@ -28,7 +29,7 @@ interface Props {
 }
 
 // The LayerForm component allows users to add a new layer to the canvas
-export default function EditLayerForm({selectedNodes, defaultActivators, defaultTensorOps, defaultLayers, updateNodeType, updateNodeOperationType, updateNodeParameter , deleteNode}: Props) {
+export default function EditLayerForm({selectedNodes, defaultActivators, defaultTensorOps, defaultLayers, defaultInputs, updateNodeType, updateNodeOperationType, updateNodeParameter , deleteNode}: Props) {
     
     // Use parameter handling hook
     const { 
@@ -63,6 +64,9 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
             case "Activator":
                 data = defaultActivators;
                 break;
+            case "Input":
+                data = defaultInputs;
+                break;
             default:
                 return [];
         }
@@ -81,6 +85,9 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
                 break;
             case "Activator":
                 data = defaultActivators;
+                break;
+            case "Input":
+                data = defaultInputs;
                 break;
             default:
                 return [];
@@ -111,7 +118,7 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
                 }
             }
         }
-    }, [selectedOperationType, selectedSpecificType, defaultLayers, defaultTensorOps, defaultActivators]);
+    }, [selectedOperationType, selectedSpecificType, defaultLayers, defaultTensorOps, defaultActivators, defaultInputs]);
 
     // Early return AFTER all hooks are declared
     if (!selectedNode) {
@@ -170,6 +177,31 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
         setHasPendingChanges(false);
     };
 
+    // Helper function to get current node definition
+    const getCurrentNodeDefinition = () => {
+        if (!selectedOperationType || !selectedClass || !selectedSpecificType) return null;
+        
+        let dataSource;
+        switch (selectedOperationType) {
+            case "Layer":
+                dataSource = defaultLayers;
+                break;
+            case "TensorOp":
+                dataSource = defaultTensorOps;
+                break;
+            case "Activator":
+                dataSource = defaultActivators;
+                break;
+            case "Input":
+                dataSource = defaultInputs;
+                break;
+            default:
+                return null;
+        }
+        
+        return dataSource?.data?.[selectedClass]?.[selectedSpecificType] || null;
+    };
+
     return (
         <Box sx={{ p: 2 }}>
             {/* Title for the form */}
@@ -188,6 +220,7 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
                         <MenuItem key={"Layer"} value={"Layer"}>{"Layer"}</MenuItem>
                         <MenuItem key={"TensorOp"} value={"TensorOp"}>{"Tensor Operation"}</MenuItem>
                         <MenuItem key={"Activator"} value={"Activator"}>{"Activator"}</MenuItem>
+                        <MenuItem key={"Input"} value={"Input"}>{"Input"}</MenuItem>
                 </TextField>
 
                 {selectedOperationType && (
@@ -226,11 +259,12 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
                 
                 {selectedSpecificType && parameters && (
                     <ParameterInputs
-                        operationType={selectedOperationType as "Layer" | "TensorOp" | "Activator"}
+                        operationType={selectedOperationType as "Layer" | "TensorOp" | "Activator" | "Input"}
                         nodeType={selectedSpecificType}
                         parameters={parameters}
                         onParameterChange={handleParameterChangeWithPending}
                         onValidationChange={handleValidationChange}
+                        nodeDefinition={getCurrentNodeDefinition()}
                     />
                 )}
                 

@@ -9,12 +9,13 @@ import { useVariablesInfo } from "../hooks/useVariablesInfo";
 import { Grid, Popover, Typography } from "@mui/material";
 
 interface ParameterInputsProps {
-  operationType: "Layer" | "TensorOp" | "Activator";
+  operationType: "Layer" | "TensorOp" | "Activator" | "Input";
   nodeType: string;
   parameters: Record<string, any>;
   onParameterChange: (parameterKey: string, value: any) => void;
   onValidationChange?: (hasErrors: boolean) => void;
   gridSizes: any;
+  nodeDefinition?: any; // Add node definition to access ChannelLinks
 }
 
 /*
@@ -29,7 +30,8 @@ export default function ParameterInputs({
   parameters,
   onParameterChange,
   onValidationChange,
-  gridSizes
+  gridSizes,
+  nodeDefinition
 }: ParameterInputsProps) {
   // Get the correct backend endpoint name for the operation type
   const getBackendNodeType = (operationType: string): NodeType => {
@@ -40,6 +42,8 @@ export default function ParameterInputs({
         return "tensorops";
       case "Activator":
         return "activators";
+      case "Input":
+        return "inputs";
       default:
         return "layers";
     }
@@ -52,11 +56,11 @@ export default function ParameterInputs({
   // State for parameter validation errors
   const [parameterErrors, setParameterErrors] = useState<{ [key: string]: string }>({});
 
-  const [anchorCP, setAnchorCP] = useState<HTMLButtonElement | null>(null);
+  const [anchorCP, setAnchorCP] = useState<HTMLElement | null>(null);
   const isChipPopoverOpen = Boolean(anchorCP);
   const idCP = isChipPopoverOpen ? "error-popover" : undefined;
 
-  const openChipPopover = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const openChipPopover = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorCP(event.currentTarget);
   };
   const closeChipPopover = () => {
@@ -100,6 +104,23 @@ export default function ParameterInputs({
     onParameterChange(parameterKey, validation.isValid ? validation.convertedValue : parameterValue);
   };
 
+  // Helper function to determine if a parameter should be disabled
+  const isParameterDisabled = (parameterKey: string): boolean => {
+    // Only disable if inherit_from_parent is true
+    if (!parameters.inherit_from_parent) {
+      return false;
+    }
+
+    // Check if this parameter is linked to inputParam in ChannelLinks
+    if (nodeDefinition?.parseCheck?.ChannelLinks) {
+      return nodeDefinition.parseCheck.ChannelLinks.some((link: any) => 
+        link.inputParam === parameterKey
+      );
+    }
+
+    return false;
+  };
+
   if (!parameters) {
     return null;
   }
@@ -112,6 +133,7 @@ export default function ParameterInputs({
         const expectedTypes = getParameterFormat(nodeType, parameterKey);
         const hasError = parameterErrors[parameterKey];
         const helperText = hasError || getParameterHelperText(expectedTypes, variablesInfo);
+        const isDisabled = isParameterDisabled(parameterKey);
         
         return (
             <Grid key={i} size={gridSizes.item}>
@@ -121,13 +143,15 @@ export default function ParameterInputs({
                     value={parameters[parameterKey]}
                     onChange={(e) => updateParam(parameterKey, e.target.value)}
                     error={!!hasError}
+                    disabled={isDisabled}
                     fullWidth
                     size="small"
                     className="nodrag"
+                    helperText={isDisabled ? "Parameter inherited from parent node" : undefined}
                     />
                     
                     {/* Show expected types as chips */}
-                    {expectedTypes.length > 0 && (
+                    {expectedTypes.length > 0 && !isDisabled && (
                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 0.5 }}>
                         {expectedTypes.map((type) => (
                         <div key={type}>

@@ -110,7 +110,8 @@ export default function LayerForm({ nodes, setNodes, defaultLayers, getSetters, 
             chosenDefault.type, // type
             parameters,
             getSetters,
-            getDefaults
+            getDefaults,
+            chosenDefault
         );
         setNodes([
             ...nodes,
@@ -180,6 +181,7 @@ export default function LayerForm({ nodes, setNodes, defaultLayers, getSetters, 
                     parameters={parameters}
                     onParameterChange={handleParameterChange}
                     onValidationChange={handleValidationChange}
+                    nodeDefinition={chosenDefault}
                 />
             )}
             

@@ -14,6 +14,8 @@ import Canvas from "./components/Canvas";
 import useExport from "./hooks/useExport";
 import useOperationDefinitions from "./hooks/useOperationDefinitions";
 import { generateUniqueNodeId } from "./utils/idGenerator";
+import { determineCanInheritFromParent, linkParametersToChannels } from "./components/TorchNodeCreator";
+import { propagateChannelInheritance, findNodeDefinition, handleInheritFromParentChange } from "./utils/channelPropagation";
 
 import useParse from "./hooks/useParse";
 import ErrorBox from "./components/ErrorBox";
@@ -24,7 +26,7 @@ import TorchNode from "./components/TorchNode";
 export default function CanvasPage() {
 
   // Fetch operation definitions from backend
-  const { layers: defaultLayers, tensorOps: defaultTensorOps, activators: defaultActivators, loading: operationsLoading, error: operationsError } = useOperationDefinitions();
+  const { layers: defaultLayers, tensorOps: defaultTensorOps, activators: defaultActivators, inputs: defaultInputs, loading: operationsLoading, error: operationsError } = useOperationDefinitions();
 
   // State to control if the sidebar is open
   const [open, setOpen] = useState(true);
@@ -158,13 +160,92 @@ export default function CanvasPage() {
   );
 
   const updateNodeParameter = (elementID: string, parameterKey: string, parameterValue: any) => {
+    
+    setNodes((oldNodes: any[]) => {
+      const updatedNodes = oldNodes.map(e => {
+        if (e.id === elementID) {
+          // Update the parameter
+          const updatedParameters = {...(e.data.parameters || {}), [parameterKey]: parameterValue};
+          
+          // Get node definition to check for channel editing capabilities
+          const nodeDefinition = findNodeDefinition(
+            e.data.operationType, 
+            e.data.type,
+            defaultLayers,
+            defaultTensorOps,
+            defaultActivators,
+            defaultInputs
+          );
+          
+          let updatedData = {
+            ...e.data, 
+            parameters: updatedParameters
+          };
+          
+          // Check if this node can edit channels and if the changed parameter affects channels
+          if (nodeDefinition?.parseCheck?.CanEditChannels && e.data.operationType !== "Output") {
+            const channelLinks = nodeDefinition.parseCheck.ChannelLinks || [];
+            
+            // Check if the changed parameter is linked to input or output channels
+            channelLinks.forEach((link: any) => {
+              if (link.inputParam === parameterKey) {
+                // Update inputChannels
+                updatedData.inputChannels = parameterValue;
+              }
+              if (link.outputParam === parameterKey) {
+                // Update outputChannels  
+                updatedData.outputChannels = parameterValue;
 
-    setNodes((oldNodes: any[]) =>
-      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, parameters : {...(e.data.parameters || {}), [parameterKey] : parameterValue}}} : e)
-    );
-    setSelectedNodes((oldNodes: any[]) =>
-      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, parameters : {...(e.data.parameters || {}), [parameterKey] : parameterValue}}} : e)
-    );
+                // Trigger propagation after this update completes
+                setTimeout(() => {
+                  setEdges((currentEdges) => {
+                    setNodes((currentNodes) => {
+                      // Propagate channel inheritance to children
+                      const propagatedNodes = propagateChannelInheritance(
+                        elementID,
+                        parameterValue,
+                        currentNodes,
+                        currentEdges,
+                        defaultLayers,
+                        defaultTensorOps,
+                        defaultActivators,
+                        defaultInputs
+                      );
+                      return propagatedNodes;
+                    });
+                    return currentEdges; // Don't modify edges
+                  });
+                }, 0);
+
+              }
+            });
+            
+            // Also update can_inherit_from_parent if inherit_from_parent parameter changed
+            if (parameterKey === 'inherit_from_parent') {
+              updatedData.can_inherit_from_parent = parameterValue;
+
+              // When inherit_from_parent is set to true, inherit from parent node
+              if (parameterValue === true) {
+                handleInheritFromParentChange(
+                  elementID,
+                  setEdges,
+                  setNodes,
+                  defaultLayers,
+                  defaultTensorOps,
+                  defaultActivators,
+                  defaultInputs
+                );
+              }
+            }
+          }
+          
+          return {...e, data: updatedData};
+        }
+        return e;
+      });
+      
+      return updatedNodes;
+    });
   }
 
   // Helper function to find a type in the new hierarchical structure
@@ -355,6 +436,24 @@ export default function CanvasPage() {
       );
   }, [errors]);
 
+  // Separate useEffect for debugging - only triggers when nodes change
+  // useEffect(() => {
+  //   // Debug: Log all nodes and their hidden parameters
+  //   console.log("=== NODES DEBUG ===");
+  //   nodes.forEach(node => {
+  //     if (node.data.operationType !== "Output") {
+  //       console.log(`Node: ${node.id} (${node.data.type})`);
+  //       console.log(`  inputChannels: ${node.data.inputChannels}`);
+  //       console.log(`  outputChannels: ${node.data.outputChannels}`);
+  //       console.log(`  can_inherit_from_parent: ${node.data.can_inherit_from_parent}`);
+  //       console.log(`  inherit_from_parent param: ${node.data.parameters?.inherit_from_parent}`);
+  //       console.log(`  parameters:`, node.data.parameters);
+  //       console.log("---");
+  //     }
+  //   });
+  //   console.log("=== END DEBUG ===");
+  // }, [nodes]);
+
   const getSetters = () => {
     return {
       updateNodeParameter     : updateNodeParameter,
@@ -368,7 +467,8 @@ export default function CanvasPage() {
     return {
       defaultActivators: defaultActivators, 
       defaultTensorOps: defaultTensorOps, 
-      defaultLayers: defaultLayers
+      defaultLayers: defaultLayers,
+      defaultInputs: defaultInputs
     }
   }
 
@@ -417,6 +517,7 @@ export default function CanvasPage() {
         defaultLayers={defaultLayers}
         defaultTensorOps={defaultTensorOps}
         defaultActivators={defaultActivators}
+        defaultInputs={defaultInputs}
       />
       {/* Main content area for the canvas */}
       <Main open={open}>
