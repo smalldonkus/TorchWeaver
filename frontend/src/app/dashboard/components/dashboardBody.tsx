@@ -12,42 +12,95 @@ import { FavouriteButton } from './FavouriteButton';
 import { NewSort, SortingBar } from './Sorting';
 import { NewList, OwnershipBar } from './Ownership';
 import { SearchBar, searchFilter } from './SearchBar';
-import { NeuralNetworkInfo } from './NeuralNetworks';
-import { getNeuralNetworks } from './NeuralNetworks';
+import { NeuralNetworkInfo, getNeuralNetworks, loadNetwork, deleteNetwork } from './NeuralNetworks';
+import { useUser } from '@auth0/nextjs-auth0/client';
 import CardActionArea from '@mui/material/CardActionArea';
 import DeleteButton from './DeleteButton';
 
 export default function dashboardBody() {
-    const [NeuralNetworks, setNeuralNetworks] = React.useState<NeuralNetworkInfo[]>(getNeuralNetworks()); // do not use setNeuralNetworks as that is the master
-    const [visibleNetworks, setVisibleNetworks] = React.useState<NeuralNetworkInfo[]>(NeuralNetworks);  //copy of neuralnetworks that gets decimated
+    const [networks, setNetworks] = React.useState<NeuralNetworkInfo[]>([]);
+    const [visibleNetworks, setVisibleNetworks] = React.useState<NeuralNetworkInfo[]>([]);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState<string | null>(null);
 
-    // helper functions to ensure favourited networks appear first
-    const handleFavourites = (networks: NeuralNetworkInfo[]) => {
-        const favourited = getNeuralNetworks().filter(nn => nn.Favourited);
-        const nonFavourited = getNeuralNetworks().filter(nn => !nn.Favourited);
-        return [...favourited, ...nonFavourited];
-    };
+    const { user } = useUser();
 
-    const handleFavourite = (index: number, newState: boolean) => {
-        console.log("debug: favourites = ", newState);
+    React.useEffect(() => {
+        const load = async () => {
+            try {
+                setLoading(true);
+                if (!user) {
+                    setError('Please sign in to view your saved networks.');
+                    setNetworks([]);
+                    setVisibleNetworks([]);
+                    return;
+                }
 
-        const updated = [...getNeuralNetworks()];
-        updated[index].Favourited = newState;
-        setVisibleNetworks(updated);
-    };
+                const userId = user.sub;
+                const data = await getNeuralNetworks(userId);
+                setNetworks(data);
+                setVisibleNetworks(data);
+                setError(null);
+            } catch (err) {
+                setError('Failed to load networks');
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+    }, [user]);
 
     const handleSortChange = (sortType: string) => {
-        setVisibleNetworks(NewSort(sortType, handleFavourites(getNeuralNetworks()))); //Passes full neural network array to newSort
+        setVisibleNetworks(NewSort(sortType, networks));
     };
 
     const handleSearch = (input: string) => {
-        setVisibleNetworks(searchFilter(input, handleFavourites(getNeuralNetworks()))); //Passes full neural network array to searchFilter
+        setVisibleNetworks(searchFilter(input, networks));
     };
 
-    const handleOwnershipSorting = (sortType: string) => {
-        const owner = "A";
-        setVisibleNetworks(NewList(owner, sortType, handleFavourites(getNeuralNetworks())));
+    const handleNetworkClick = async (id: number) => {
+        try {
+            const userId = user?.sub;
+            const net = await loadNetwork(id, userId);
+            // Keep the loaded network in localStorage for backward compatibility with older flow
+            localStorage.setItem('loadedNetwork', JSON.stringify(net));
+            // Redirect to canvas with the saved network id so the canvas page can fetch it
+            window.location.href = `/canvas?id=${id}`;
+        } catch (err) {
+            console.error('Failed to load network', err);
+        }
     };
+
+    const handleDelete = async (id: number) => {
+        if (!confirm('Delete this network?')) return;
+        try {
+            const userId = user?.sub;
+            await deleteNetwork(id, userId);
+            const updated = await getNeuralNetworks(userId);
+            setNetworks(updated);
+            setVisibleNetworks(updated);
+        } catch (err) {
+            console.error('Failed to delete network', err);
+        }
+    };
+    //ownership sorting and searching are both destructive only one can happen at a time
+    //Oscar note : i dont think this is fixable, sad
+    const handleOwnershipSorting = async (sortType: string) => {
+        const owner = "A";
+        const userId = user?.sub;
+        const nets = await getNeuralNetworks(userId);
+        setVisibleNetworks(NewList(owner, sortType, nets));
+    };
+
+    //function to change favourited boolean in global if toggled
+    const handleFavourite = (title: string) => {
+        const updated = visibleNetworks.map((net) =>
+            net.title === title ? { ...net, Favourited: !net.Favourited } : net
+        );
+        setVisibleNetworks(updated); // Updates visuals
+        // setNeuralNetworks(updated); // stores back into global
+    }
 
     return (
         <Container sx={{ bgcolor: "#EDF1F3", minHeight: "100vh", minWidth: "100vw"}}>
@@ -60,38 +113,45 @@ export default function dashboardBody() {
                     <OwnershipBar stateChanger={handleOwnershipSorting}/>
                 </Box>
 
-                {/* Neural Network, adds them in in the order of cards array*/}
+                {loading && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><Typography>Loading networks...</Typography></Box>
+                )}
+
+                {error && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><Typography color="error">{error}</Typography></Box>
+                )}
+
+                {/* Neural Network grid */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, justifyContent: "center" }}>
-                    {visibleNetworks.map((NeuralNetwork ,index) => (
-                        <Card key={index} sx={{ maxWidth: 800 }}>
-                            <CardActionArea href='/canvas'>
+                    {visibleNetworks.map((network) => (
+                        <Card key={network.id} sx={{ maxWidth: 800 }}>
+                            <CardActionArea onClick={() => handleNetworkClick(network.id)}>
                                 <CardMedia
                                     component="img"
                                     height="194"
-                                    image={NeuralNetwork.image}
-                                    alt={NeuralNetwork.title}
+                                    image={network.image}
+                                    alt={network.title}
                                 />
                             </CardActionArea>
                                 {/* Align heart and words */}
                                 <Box sx={{display: "flex", justifyContent: "space-between"}}>
                                         <CardContent>
-                                            <Typography variant="h6" sx={{ color: 'text' , flexGrow: 1}}>{NeuralNetwork.title}</Typography>
+                                            <Typography variant="h6" sx={{ color: 'text' , flexGrow: 1}}>{network.title}</Typography>
                                             <Typography variant="body2" sx={{ color: 'text.secondary', flexGrow: 1 }}>
-                                                <span>Last Accessed: {NeuralNetwork.lastAccessed}</span>
-                                                <span style={{ marginLeft: 30 }}>Owned By: {NeuralNetwork.Owner}</span>
+                                                <span>Last Accessed: {network.lastAccessed}</span>
+                                                <span style={{ marginLeft: 30 }}>Owned By: {network.Owner}</span>
                                             </Typography>
                                         </CardContent>
                                         <CardActions>
-                                            <FavouriteButton 
-                                                isFavourtied={NeuralNetwork.Favourited}
-                                                onToggle={(newState) => handleFavourite(index, newState)}
-                                            />
-                                            <DeleteButton/>
+                                            <FavouriteButton
+                                                isFavourite={network.Favourited}
+                                                onClick={() => handleFavourite(network.title)}/>
+                                            <DeleteButton onClick={() => handleDelete(network.id)}/>
                                         </CardActions>
                                 </Box>
                         </Card>
                     ))}
-                </Box>  
+                </Box>
             </>
 
             <BackToTopButton/>

@@ -2,8 +2,13 @@ import { Box, Container } from '@mui/material';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Link from "next/link"
+import AuthenticationButton from '@/app/components/AuthenticationButton';
 
 export default function Header() {
+    const possibleRoutes = [
+        { title: "Canvas", href: "/canvas", image: "dashboard.svg"},
+        { title: "Logout", href: "/auth/logout", image: "logout.svg"},
+    ];
     return (
         <Box id="heading">
             <h1 className="title">
@@ -11,12 +16,10 @@ export default function Header() {
                 <span className="titleSubtext">dashboard</span>
             </h1>
 
-            <Box sx={{display: "flex", gap: "1rem", pr: "2rem"}}>
-                <Button href="/canvas" sx={{color:"#F1F1F1", p: "1rem 2rem", fontSize: "1.5rem"}}>Create New</Button>
-                <Link href="/">
-                    <Avatar alt="pfp" src="testpfp.jpg" sx={{ width: 70, height: 70 }}/>
-                </Link>
-            </Box>
+
+            <div className="toolbar">
+                <AuthenticationButton routes={possibleRoutes} />
+            </div>
         </Box>
     )
 }

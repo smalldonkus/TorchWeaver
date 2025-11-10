@@ -3,12 +3,15 @@ from flask_cors import CORS
 from parse import parse
 from NNgenerator import generate
 from NNdatabase import NNDataBase
+from NNroutes import NNRoutes
 import json
 import traceback
 
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
+
+app.register_blueprint(NNRoutes)
 
 # Initialize the database to load operation definitions
 try:
