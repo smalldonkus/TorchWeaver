@@ -108,8 +108,99 @@ export default function CanvasPage() {
       
       // Update outgoing edge counts for affected nodes
       updateOutgoingEdgeCounts(newEdges);
+
+      // Handle inheritance when connection is made
+      setTimeout(() => {
+        setEdges((currentEdges) => {
+          setNodes((currentNodes) => {
+            // find the target node of the new connection
+            const targetNode = currentNodes.find(node => node.id === params.target);
+            // if the target node can inherit from parent, update its parameters
+            if (targetNode && targetNode.data.can_inherit_from_parent) {
+              // Find the source node
+              const sourceNode = currentNodes.find(node => node.id === params.source);
+              
+              if (sourceNode) {
+                
+                const nodeDefinition = findNodeDefinition(
+                  targetNode.data.operationType,
+                  targetNode.data.type,
+                  defaultLayers,
+                  defaultTensorOps,
+                  defaultActivators,
+                  defaultInputs
+                );
+                
+                // Will need to include the new edge for max calculation
+                const edgesIncludingNew = [...currentEdges, { source: params.source, target: params.target }];
+              
+              const updatedNodes = currentNodes.map(node => {
+                if (node.id === params.target) {
+                  let inheritedData = { ...node.data };
+                  
+                  const canEditChannels = nodeDefinition?.parseCheck?.CanEditChannels;
+                  
+                  if (!canEditChannels) {
+                    // Pass-through node with potentially multiple parents: use max output channels
+                    const maxParentChannels = getMaxParentOutputChannels(params.target, currentNodes, edgesIncludingNew);
+                    if (maxParentChannels !== null) {
+                      inheritedData.inputChannels = maxParentChannels;
+                      inheritedData.outputChannels = maxParentChannels;
+                    }
+                  } else {
+                    // Editable node: use single parent's output
+                    inheritedData.inputChannels = sourceNode.data.outputChannels;
+                    
+                    // Update linked parameters
+                    const channelLinks = nodeDefinition?.parseCheck?.ChannelLinks || [];
+                    channelLinks.forEach((link: any) => {
+                      if (link.inputParam) {
+                        inheritedData.parameters = {
+                          ...inheritedData.parameters,
+                          [link.inputParam]: sourceNode.data.outputChannels
+                        };
+                      }
+                    });
+                  }
+                  
+                  return { ...node, data: inheritedData };
+                }
+                return node;
+              });
+              
+              const updatedTargetNode = updatedNodes.find(node => node.id === params.target);
+              
+              if (updatedTargetNode) {
+                setTimeout(() => {
+                  setEdges((currentEdges) => {
+                    setNodes((propagationNodes) => {
+                      return propagateChannelInheritance(
+                        params.target,
+                        updatedTargetNode.data.outputChannels,
+                        propagationNodes,
+                        currentEdges,
+                        defaultLayers,
+                        defaultTensorOps,
+                        defaultActivators,
+                        defaultInputs
+                      );
+                    });
+                    return currentEdges;
+                  });
+                }, 0);
+              }
+              
+              return updatedNodes;
+            }
+          }
+          
+          return currentNodes;
+          });
+          return currentEdges;
+        });
+      }, 0);
     },
-    [edges]
+    [edges, defaultLayers, defaultTensorOps, defaultActivators, defaultInputs]
   );
 
   useEffect(() => {
@@ -136,6 +227,27 @@ export default function CanvasPage() {
         }
       }))
     );
+  };
+
+  // Helper function to get max output channels from all parent nodes
+  const getMaxParentOutputChannels = (nodeId: string, currentNodes: any[], currentEdges: any[]): number | null => {
+    // Find all parent edges (edges pointing to this node)
+    const parentEdges = currentEdges.filter(edge => edge.target === nodeId);
+    
+    if (parentEdges.length === 0) return null;
+    
+    // Get all parent nodes' output channels
+    const parentOutputChannels = parentEdges
+      .map(edge => {
+        const parentNode = currentNodes.find(node => node.id === edge.source);
+        return parentNode?.data.outputChannels;
+      })
+      .filter(channels => channels !== undefined && channels !== null);
+    
+    if (parentOutputChannels.length === 0) return null;
+    
+    // Return the maximum
+    return Math.max(...parentOutputChannels);
   };
 
   const onSelectionChange: OnSelectionChangeFunc = useCallback(
@@ -190,6 +302,7 @@ export default function CanvasPage() {
             channelLinks.forEach((link: any) => {
               if (link.inputParam === parameterKey) {
                 // Update inputChannels
+                console.log("Updating inputChannels due to parameter change");
                 updatedData.inputChannels = parameterValue;
               }
               if (link.outputParam === parameterKey) {
@@ -268,43 +381,117 @@ export default function CanvasPage() {
 
   const updateNodeType = (elementID: string, operationType: string, newType: string, newParameters: any) => {
 
-    const newDefault = 
+    const newDefault =
+      operationType === "Input" ? findTypeInData(defaultInputs, newType) :
       operationType === "Layer" ? findTypeInData(defaultLayers, newType) :
       operationType === "TensorOp" ? findTypeInData(defaultTensorOps, newType) :
       operationType === "Activator" ? findTypeInData(defaultActivators, newType) : null;
     
     if (!newDefault) return;
     
-    // Generate new ID based on operation type
-    const operationPrefix = 
-      operationType === "Layer" ? "layer" :
-      operationType === "TensorOp" ? "tensorop" :
-      operationType === "Activator" ? "activator" : "node";
-    
-    const newNodeId = generateUniqueNodeId(operationPrefix, nodes);
-      
-    // Update nodes with new ID and properties
-    setNodes((oldNodes: any[]) =>
-      oldNodes.map(e => e.id === elementID ? {...e, 
-        id: newNodeId,
-        data: {...e.data, type: newType, label: newType, parameters : newParameters || {}}} : e)
-    );
-    
-    // Update selected nodes
-    setSelectedNodes((oldNodes: any[]) =>
-      oldNodes.map(e => e.id === elementID ? {...e, 
-        id: newNodeId,
-        data: {...e.data, type: newType, label: newType, parameters : newParameters || {}}} : e)
-    );
-    
-    // Update all edges that reference the old node ID
-    setEdges((oldEdges: any[]) =>
-      oldEdges.map(edge => ({
-        ...edge,
-        source: edge.source === elementID ? newNodeId : edge.source,
-        target: edge.target === elementID ? newNodeId : edge.target
-      }))
-    );
+    // Use setTimeout to access current state
+    setTimeout(() => {
+      setEdges((currentEdges) => {
+        setNodes((currentNodes) => {
+          // Generate new ID based on operation type
+          const operationPrefix = 
+            operationType === "Input" ? "input" :
+            operationType === "Layer" ? "layer" :
+            operationType === "TensorOp" ? "tensorop" :
+            operationType === "Activator" ? "activator" : "node";
+          
+          const newNodeId = generateUniqueNodeId(operationPrefix, currentNodes);
+          
+          // Calculate hidden attributes for the new type
+          let channelData = linkParametersToChannels(newDefault, newParameters || {});
+          const canInherit = determineCanInheritFromParent(newDefault, newParameters || {});
+          
+          // Check if node should inherit from parent
+          if (canInherit) {
+            const canEditChannels = newDefault?.parseCheck?.CanEditChannels;
+            
+            if (!canEditChannels) {
+              // Pass-through node with potentially multiple parents: use max output channels
+              const maxParentChannels = getMaxParentOutputChannels(elementID, currentNodes, currentEdges);
+              if (maxParentChannels !== null) {
+                channelData.inputChannels = maxParentChannels;
+                channelData.outputChannels = maxParentChannels;
+              }
+            } else {
+              // Editable node: use single parent's output
+              const parentEdge = currentEdges.find(edge => edge.target === elementID);
+              if (parentEdge) {
+                const parentNode = currentNodes.find(node => node.id === parentEdge.source);
+                if (parentNode && parentNode.data.outputChannels !== undefined) {
+                  // Update input channels to match parent's output
+                  channelData.inputChannels = parentNode.data.outputChannels;
+                  
+                  // Update linked input parameter
+                  const channelLinks = newDefault?.parseCheck?.ChannelLinks || [];
+                  const inputLink = channelLinks.find((link: any) => link.inputParam);
+                  if (inputLink && newParameters) {
+                    newParameters[inputLink.inputParam] = parentNode.data.outputChannels;
+                    // Recalculate with updated parameters
+                    channelData = linkParametersToChannels(newDefault, newParameters);
+                  }
+                }
+              }
+            }
+          }
+          
+          // Update nodes with new ID and properties
+          const updatedNodes = currentNodes.map(e => e.id === elementID ? {...e, 
+            id: newNodeId,
+            data: {
+              ...e.data, 
+              type: newType, 
+              label: newType, 
+              parameters: newParameters || {},
+              inputChannels: channelData.inputChannels,
+              outputChannels: channelData.outputChannels,
+              can_inherit_from_parent: canInherit
+            }} : e);
+          
+          // Update selected nodes
+          setSelectedNodes((oldNodes: any[]) =>
+            oldNodes.map(e => e.id === elementID ? {...e, 
+              id: newNodeId,
+              data: {...e.data, type: newType, label: newType, parameters : newParameters || {}}} : e)
+          );
+          
+          // Update edges with new node ID
+          setEdges((oldEdges: any[]) =>
+            oldEdges.map(edge => ({
+              ...edge,
+              source: edge.source === elementID ? newNodeId : edge.source,
+              target: edge.target === elementID ? newNodeId : edge.target
+            }))
+          );
+          
+          // Propagate new output channels to children
+          setTimeout(() => {
+            setEdges((edges) => {
+              setNodes((nodes) => {
+                return propagateChannelInheritance(
+                  newNodeId,
+                  channelData.outputChannels,
+                  nodes,
+                  edges,
+                  defaultLayers,
+                  defaultTensorOps,
+                  defaultActivators,
+                  defaultInputs
+                );
+              });
+              return edges;
+            });
+          }, 0);
+          
+          return updatedNodes;
+        });
+        return currentEdges;
+      });
+    }, 0);
   }
 
   // Helper function to get the first item from hierarchical data
@@ -324,47 +511,8 @@ export default function CanvasPage() {
   };
 
   const updateNodeOperationType = (elementID: string, newOperationType: string, newSpecificType: string, newParameters: any) => {
-
-    const newDefault = 
-      newOperationType === "Layer" ? findTypeInData(defaultLayers, newSpecificType) :
-      newOperationType === "TensorOp" ? findTypeInData(defaultTensorOps, newSpecificType) :
-      newOperationType === "Activator" ? findTypeInData(defaultActivators, newSpecificType) : null;
-    
-    if (!newDefault) return;
-    
-    // Generate new ID based on operation type
-    const operationPrefix = 
-      newOperationType === "Layer" ? "layer" :
-      newOperationType === "TensorOp" ? "tensorop" :
-      newOperationType === "Activator" ? "activator" : "node";
-    
-    const newNodeId = generateUniqueNodeId(operationPrefix, nodes);
-      
-    // Update nodes with new ID and properties
-    setNodes((oldNodes: any[]) =>
-      oldNodes.map(e => e.id === elementID ? {...e, 
-        id: newNodeId,
-        data: {...e.data, type: newDefault.type, label: newDefault.type,
-        operationType: newOperationType, parameters: newParameters || {}}} : e)
-    );
-    
-    // Update selected nodes
-    setSelectedNodes((oldNodes: any[]) =>
-      oldNodes.map(e => e.id === elementID ? {...e, 
-        id: newNodeId,
-        data: {...e.data, type: newDefault.type, label: newDefault.type,
-        operationType: newOperationType, parameters: newParameters || {}}} : e)
-    );
-    
-    // Update all edges that reference the old node ID
-    setEdges((oldEdges: any[]) =>
-      oldEdges.map(edge => ({
-        ...edge,
-        source: edge.source === elementID ? newNodeId : edge.source,
-        target: edge.target === elementID ? newNodeId : edge.target
-      }))
-    );
-
+    // Simply delegate to updateNodeType which handles everything including inheritance
+    updateNodeType(elementID, newOperationType, newSpecificType, newParameters);
   }
 
 

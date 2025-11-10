@@ -1,5 +1,26 @@
 // Channel propagation utilities for neural network node inheritance
 
+// Helper function to get max output channels from all parent nodes
+const getMaxParentOutputChannels = (nodeId: string, currentNodes: any[], currentEdges: any[]): number | null => {
+  // Find all parent edges (edges pointing to this node)
+  const parentEdges = currentEdges.filter(edge => edge.target === nodeId);
+  
+  if (parentEdges.length === 0) return null;
+  
+  // Get all parent nodes' output channels
+  const parentOutputChannels = parentEdges
+    .map(edge => {
+      const parentNode = currentNodes.find(node => node.id === edge.source);
+      return parentNode?.data.outputChannels;
+    })
+    .filter(channels => channels !== undefined && channels !== null);
+  
+  if (parentOutputChannels.length === 0) return null;
+  
+  // Return the maximum
+  return Math.max(...parentOutputChannels);
+};
+
 // Helper function to find node definition based on operation type and specific type
 export const findNodeDefinition = (
   operationType: string, 
@@ -55,8 +76,7 @@ export const propagateChannelInheritance = (
   const childrenIds = currentEdges
     .filter(edge => edge.source === parentNodeId)
     .map(edge => edge.target);
-  
-  
+    
   let updatedNodes = [...currentNodes];
   
   // Process each child
@@ -73,13 +93,6 @@ export const propagateChannelInheritance = (
       return;
     }
     
-    
-    // Update child's input channels to match parent's output
-    let updatedChildData = {
-      ...childNode.data,
-      inputChannels: parentOutputChannels
-    };
-    
     // Check if we should also update output channels
     const childDefinition = findNodeDefinition(
       childNode.data.operationType, 
@@ -91,15 +104,19 @@ export const propagateChannelInheritance = (
     );
     const canEditChannels = childDefinition?.parseCheck?.CanEditChannels;
     
+    let updatedChildData = { ...childNode.data };
     let childOutputChannelsChanged = false;
     let newChildOutputChannels = childNode.data.outputChannels;
     
     if (!canEditChannels) {
-      // Node can't edit channels, so output = input (pass-through behavior)
-      updatedChildData.outputChannels = parentOutputChannels;
-      
-      newChildOutputChannels = parentOutputChannels;
-      childOutputChannelsChanged = (childNode.data.outputChannels !== parentOutputChannels);
+      // Pass-through node with potentially multiple parents: use max output channels
+      const maxParentChannels = getMaxParentOutputChannels(childId, updatedNodes, currentEdges);
+      if (maxParentChannels !== null) {
+        updatedChildData.inputChannels = maxParentChannels;
+        updatedChildData.outputChannels = maxParentChannels;
+        newChildOutputChannels = maxParentChannels;
+        childOutputChannelsChanged = (childNode.data.outputChannels !== maxParentChannels);
+      }
     } else {
       // Node can edit channels, update linked parameters
       const channelLinks = childDefinition?.parseCheck?.ChannelLinks || [];
