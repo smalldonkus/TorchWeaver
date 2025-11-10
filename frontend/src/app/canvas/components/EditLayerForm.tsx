@@ -95,28 +95,11 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
         return data?.data?.[className] ? Object.keys(data.data[className]) : [];
     };
 
-    // Helper function to get the first item from hierarchical data
-    const getFirstItemFromData = (data: any) => {
-        if (!data || !data.data) return null;
-        
-        for (const [className, classItems] of Object.entries(data.data)) {
-            for (const [itemType, itemData] of Object.entries(classItems as any)) {
-                return {
-                    type: itemType,
-                    class: className,
-                    ...(itemData as any)
-                };
-            }
-        }
-        return null;
-    };
-
     // Initialize state when selectedNode changes
     useEffect(() => {
         if (selectedNode) {
             setSelectedOperationType(selectedNode.data.operationType || "");
             setSelectedSpecificType(selectedNode.data.type || "");
-            // Always load fresh parameters from the node (this will be the updated parameters after apply)
             updateParameters(selectedNode.data.parameters || {});
             setHasPendingChanges(false);
         }
@@ -151,17 +134,6 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
         setSelectedOperationType(newOperationType);
         setSelectedClass("");
         setSelectedSpecificType("");
-        
-        // Load default parameters for the new operation type's first available option
-        const newDefault = 
-            newOperationType === "Layer" ? getFirstItemFromData(defaultLayers) :
-            newOperationType === "TensorOp" ? getFirstItemFromData(defaultTensorOps) :
-            newOperationType === "Activator" ? getFirstItemFromData(defaultActivators) : null;
-        
-        if (newDefault) {
-            updateParameters(newDefault.parameters || {});
-        }
-        
         setHasPendingChanges(true);
     };
 
@@ -169,37 +141,12 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
     const handleClassChange = (newClass: string) => {
         setSelectedClass(newClass);
         setSelectedSpecificType("");
-        
-        // Load parameters for the first type in the new class
-        const data = 
-            selectedOperationType === "Layer" ? defaultLayers :
-            selectedOperationType === "TensorOp" ? defaultTensorOps :
-            selectedOperationType === "Activator" ? defaultActivators : null;
-        
-        if (data?.data?.[newClass]) {
-            const firstType = Object.keys(data.data[newClass])[0];
-            const typeData = data.data[newClass][firstType];
-            updateParameters(typeData?.parameters || {});
-        }
-        
         setHasPendingChanges(true);
     };
 
     // Handle specific type change
     const handleSpecificTypeChange = (newSpecificType: string) => {
         setSelectedSpecificType(newSpecificType);
-        
-        // Load default parameters for the new specific type
-        const data = 
-            selectedOperationType === "Layer" ? defaultLayers :
-            selectedOperationType === "TensorOp" ? defaultTensorOps :
-            selectedOperationType === "Activator" ? defaultActivators : null;
-        
-        if (data?.data?.[selectedClass]?.[newSpecificType]) {
-            const typeData = data.data[selectedClass][newSpecificType];
-            updateParameters(typeData?.parameters || {});
-        }
-        
         setHasPendingChanges(true);
     };
 
@@ -343,4 +290,3 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
             </Box>
     );
 }
-

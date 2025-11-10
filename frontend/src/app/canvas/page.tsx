@@ -81,7 +81,17 @@ export default function CanvasPage() {
               markerEnd: edge.markerEnd || { type: MarkerType.Arrow }
             }));
 
-            setNodes(data.network.nodes);
+            // Add getSetters and getDefaults functions to loaded nodes (they're not serialized)
+            const normalizedNodes = data.network.nodes.map((node: any) => ({
+              ...node,
+              data: {
+                ...node.data,
+                getSetters: getSetters,
+                getDefaults: getDefaults
+              }
+            }));
+
+            setNodes(normalizedNodes);
             setEdges(normalizedEdges);
           } else {
             console.error("Invalid network structure:", data.network);
