@@ -21,6 +21,7 @@ class Graph:
 
     def __init__(self, nodesList):
 
+        # ** TARJAN ** #
         self.V = []
         self.E = []
         self.indices = {}
@@ -32,18 +33,54 @@ class Graph:
 
         self.SSCs = []
         self.hasRunTarjan = False
+        # ** TARJAN ** #
+
+        # ** MATCHING INCOMING OUTGOING ** #
+        self.inputChannels = {}
+        self.outputChannels = {}
+        self.isOutput = {}
+        # ** MATCHING INCOMING OUTGOING ** #
 
         # populate graph
         for n in nodesList:
             self.V.append(n["id"])
             for c in n["children"]:
                 self.E.append([n["id"], c])
+
+            # ** TARJAN ** #
             self.indices[n["id"]] = None
             self.lowlink[n["id"]] = None
             self.onStack[n["id"]] = False
+            # ** TARJAN ** #
+            
+            # ** MATCHING INCOMING OUTGOING ** #
+            isOutput = n["data"]["operationType"] == "Output"
+            self.inputChannels[n["id"]]  = None if isOutput else n["data"]["inputChannels"]
+            self.outputChannels[n["id"]] = None if isOutput else n["data"]["outputChannels"]
+            # ** MATCHING INCOMING OUTGOING ** #
+
+            self.isOutput[n["id"]] = True if isOutput else False
+
+    # returing list in format [(parentInError, childInError), ...]
+    def hasMatchingInAndOut(self):
+        rtn = []
+        for v in self.V:
+
+            if self.inputChannels[v] is None: continue
+
+            for e in self.E:
+
+                if e[0] == v:
+                    w = e[1]
+                    if self.inputChannels[w] is None: continue
+
+                    if self.outputChannels[v] != self.inputChannels[w]:
+                        rtn.append((v,w))
+        print(rtn)
+        return rtn
 
     def tarjan(self):
-        
+        # puesdoCode: https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
         assert len(self.S) == 0 and self.index == 0 # needs to be rePop'd everytime
 
         for v in self.V:
@@ -87,37 +124,33 @@ class Graph:
                 SCC.append(w)
                 cond = (w != v)
             self.SSCs.append(SCC)
+    
+    def isPathFromInputToOutput(self, origin: str):
+        
+        q = [origin]
+        vst = [] # id list
 
-def dfs(nodesList, origin):
+        while len(q) != 0:
 
-    q = [origin]
-    v = [] # id list
+            n = q.pop()
 
-    while len(q) != 0:
+            if n in vst: 
+                continue
+            vst.append(n)
 
-        n = q.pop()
+            # assumes children list contains only ID's
 
-        assert isinstance(n, dict)
-
-        if n["id"] in v: 
-            continue
-        v.append(n["id"])
-
-        # assumes children list contains only ID's
-
-        for c in n["children"]:
-            
-            child = find(nodesList, c)
-            if child is None: 
-                raise RuntimeError(f"DFS: couldn't find {c} in nodes list for node {n["id"]}")
-            
-            assert isinstance(child, dict)
-            if child["data"]["operationType"] == "Output":
-                return True
+            for e in self.E:
                 
-            q.append(child)
+                if e[0] != n: continue
 
-    return False
+                c = e[1]
+                if self.isOutput[c]: 
+                    return True                
+                    
+                q.append(c)
+
+        return False
 
 def parse(nodesList):
     
@@ -185,12 +218,7 @@ def parse(nodesList):
         if parent_count > int(max_inputs):
             errors.append(ParseError(f"{dflt['type']} requires less or equal to {max_inputs} parent{'s' if max_inputs > 1 else ''}, currently has {parent_count}", nodeIDs=[n["id"]]))
 
-    # get all inputs for graph
-    inputs = [n for n in nodesList if n["data"]["operationType"] == "Input"]
-   
-    pathCheck = [(dfs(nodesList, i), i) for i in inputs]
-    for path in pathCheck:
-        if not path[0]: errors.append(ParseError(f"This input has no path to an output", nodeIDs=[path[1]["id"]]))
+    
 
   
     # check for cycles.
@@ -199,6 +227,22 @@ def parse(nodesList):
     inErr = nG.getInError()
     if inErr is not None:
         errors.append(ParseError(f"This is node is part of a cycle", nodeIDs=inErr))
+
+    # get all inputs for graph
+    inputs = [n["id"] for n in nodesList if n["data"]["operationType"] == "Input"]
+   
+    pathCheck = [(nG.isPathFromInputToOutput(i), i) for i in inputs]
+    for path in pathCheck:
+        if not path[0]: errors.append(ParseError(f"This input has no path to an output", nodeIDs=[path[1]]))
+
+    # check for matching inputChannels to outputChannels
+    inErr = nG.hasMatchingInAndOut()
+    if len(inErr) != 0:
+        for err in inErr:
+            errors.append(ParseError(f"Output dimensions of parent do not match this node's input dimensions, nodes such as activators/tensor operations, can inherit dimensions. You may need to go futher up the graph to fix this error.",
+                          nodeIDs=[err[1]]))
+            errors.append(ParseError(f"The output dimensions of this node do match the input dimensions of its children, nodes such as activators/tensor operations, can inherit dimensions. You may need to go futher up the graph to fix this error.",
+                          nodeIDs=[err[0]]))
 
     if CRUDE_REPORT:
         for i, e in enumerate(errors):
