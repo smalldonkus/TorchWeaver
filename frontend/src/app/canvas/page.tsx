@@ -584,23 +584,6 @@ export default function CanvasPage() {
       );
   }, [errors]);
 
-  // Separate useEffect for debugging - only triggers when nodes change
-  // useEffect(() => {
-  //   // Debug: Log all nodes and their hidden parameters
-  //   console.log("=== NODES DEBUG ===");
-  //   nodes.forEach(node => {
-  //     if (node.data.operationType !== "Output") {
-  //       console.log(`Node: ${node.id} (${node.data.type})`);
-  //       console.log(`  inputChannels: ${node.data.inputChannels}`);
-  //       console.log(`  outputChannels: ${node.data.outputChannels}`);
-  //       console.log(`  can_inherit_from_parent: ${node.data.can_inherit_from_parent}`);
-  //       console.log(`  inherit_from_parent param: ${node.data.parameters?.inherit_from_parent}`);
-  //       console.log(`  parameters:`, node.data.parameters);
-  //       console.log("---");
-  //     }
-  //   });
-  //   console.log("=== END DEBUG ===");
-  // }, [nodes]);
 
   const getSetters = () => {
     return {
