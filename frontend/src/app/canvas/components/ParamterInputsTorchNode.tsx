@@ -6,6 +6,7 @@ import Chip from "@mui/material/Chip";
 import { validateParameter, getParameterHelperText } from "../utils/parameterValidation";
 import { useNodeDefinitions, NodeType } from "../hooks/useNodeDefinitions";
 import { useVariablesInfo } from "../hooks/useVariablesInfo";
+import { Grid, Popover, Typography } from "@mui/material";
 
 interface ParameterInputsProps {
   operationType: "Layer" | "TensorOp" | "Activator" | "Input";
@@ -13,8 +14,15 @@ interface ParameterInputsProps {
   parameters: Record<string, any>;
   onParameterChange: (parameterKey: string, value: any) => void;
   onValidationChange?: (hasErrors: boolean) => void;
+  gridSizes: any;
   nodeDefinition?: any; // Add node definition to access ChannelLinks
 }
+
+/*
+    Different verions from ParameterInputs to:
+    A. return a grid box only
+    B. Only display helper info on hover
+*/
 
 export default function ParameterInputs({
   operationType,
@@ -22,6 +30,7 @@ export default function ParameterInputs({
   parameters,
   onParameterChange,
   onValidationChange,
+  gridSizes,
   nodeDefinition
 }: ParameterInputsProps) {
   // Get the correct backend endpoint name for the operation type
@@ -46,6 +55,17 @@ export default function ParameterInputs({
   
   // State for parameter validation errors
   const [parameterErrors, setParameterErrors] = useState<{ [key: string]: string }>({});
+
+  const [anchorCP, setAnchorCP] = useState<HTMLElement | null>(null);
+  const isChipPopoverOpen = Boolean(anchorCP);
+  const idCP = isChipPopoverOpen ? "error-popover" : undefined;
+
+  const openChipPopover = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorCP(event.currentTarget);
+  };
+  const closeChipPopover = () => {
+    setAnchorCP(null);
+  };
 
   // Notify parent component when validation state changes
   useEffect(() => {
@@ -105,8 +125,10 @@ export default function ParameterInputs({
     return null;
   }
 
+
+
   return (
-    <>
+    <Grid container spacing={2} columns={gridSizes.column}>
       {Object.keys(parameters).map((parameterKey, i) => {
         const expectedTypes = getParameterFormat(nodeType, parameterKey);
         const hasError = parameterErrors[parameterKey];
@@ -114,42 +136,62 @@ export default function ParameterInputs({
         const isDisabled = isParameterDisabled(parameterKey);
         
         return (
-          <Box key={i} sx={{ mb: 2 }}>
-            <TextField
-              label={parameterKey}
-              value={parameters[parameterKey]}
-              onChange={(e) => updateParam(parameterKey, e.target.value)}
-              error={!!hasError}
-              disabled={isDisabled}
-              fullWidth
-              size="small"
-              helperText={isDisabled ? "Parameter inherited from parent node" : undefined}
-            />
-            
-            {/* Show expected types as chips */}
-            {expectedTypes.length > 0 && !isDisabled && (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 0.5 }}>
-                {expectedTypes.map((type) => (
-                  <Chip
-                    key={type}
-                    label={type}
+            <Grid key={i} size={gridSizes.item}>
+                <Box key={i} sx={{ mb: 2 }}>
+                    <TextField
+                    label={parameterKey}
+                    value={parameters[parameterKey]}
+                    onChange={(e) => updateParam(parameterKey, e.target.value)}
+                    error={!!hasError}
+                    disabled={isDisabled}
+                    fullWidth
                     size="small"
-                    variant="outlined"
-                    sx={{ fontSize: "0.7rem", height: "20px" }}
-                  />
-                ))}
-              </Box>
-            )}
-            
-            {/* Helper text */}
-            {!isDisabled && (
-              <FormHelperText error={!!hasError}>
-                {helperText}
-              </FormHelperText>
-            )}
-          </Box>
+                    className="nodrag"
+                    helperText={isDisabled ? "Parameter inherited from parent node" : undefined}
+                    />
+                    
+                    {/* Show expected types as chips */}
+                    {expectedTypes.length > 0 && !isDisabled && (
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 0.5 }}>
+                        {expectedTypes.map((type) => (
+                        <div key={type}>
+                            <Chip
+                                key={type + 'chip'}
+                                label={type}
+                                size="small"
+                                variant="outlined"
+                                onClick={openChipPopover}
+                                sx={{ fontSize: "0.7rem", height: "20px" }}
+                                className="nodrag"
+                            />
+                            <Popover
+                                key={type + 'popover'}
+                                id={idCP}
+                                open={isChipPopoverOpen}
+                                onClose={closeChipPopover}
+                                anchorEl={anchorCP}
+                                anchorOrigin={{
+                                    vertical: "center",
+                                    horizontal: "right"
+                                }}
+                                sx={{padding: "5px", boxShadow: 0, maxWidth: "1500px"}}
+                                >
+                                    <Typography key = {i} sx={{ p: 1 }} variant="subtitle2">{helperText}</Typography>
+                            </Popover>
+                        </div>
+                        ))}
+                    </Box>
+                    )}
+                    
+                    {/* Helper text */}
+                    {/* <FormHelperText error={!!hasError}>
+                    {helperText}
+                    </FormHelperText> */}
+                    {/* Will be added back in, in a different way */}
+                </Box>
+            </Grid>
         );
       })}
-    </>
+    </Grid>
   );
 }

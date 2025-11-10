@@ -9,14 +9,19 @@ import Button from "@mui/material/Button";
 import { generateUniqueNodeId } from "../utils/idGenerator";
 import ParameterInputs from "./ParameterInputs";
 import { useParameterHandling } from "../hooks/useParameterHandling";
+import { createNode } from "./TorchNodeCreator";
 
 interface Props {
   nodes: any[];
   setNodes: (val: any) => void;
   defaultTensorOps: any; // Changed from any[] to any to handle new structure
+
+  // for TorchNode functionality, allows it to update itself (TN)
+  getSetters: () => any[];
+  getDefaults: () => any[];
 }
 
-export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Props) {
+export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps, getSetters, getDefaults}: Props) {
   // Use parameter handling hook
   const { 
     parameters, 
@@ -88,19 +93,20 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Pro
     }
 
     const newId = generateUniqueNodeId("tensorop", nodes);
+    const newNode = createNode(
+        newId,
+        nodes.length, // posModifier
+        chosenOp.type, // label
+        "TensorOp", // operation type
+        chosenOp.type, // type
+        parameters,
+        getSetters,
+        getDefaults,
+        chosenOp
+    );
     setNodes([
       ...nodes,
-      {
-        id: newId,
-        position: { x: 200, y: 100 + nodes.length * 60 },
-        data: {
-          label: chosenOp.type,
-          operationType: "TensorOp",
-          type: chosenOp.type,
-          parameters: parameters,
-          outgoing_edges_count: 0
-        },
-      },
+      newNode
     ]);
     
     // Reset to first selection after adding
@@ -165,6 +171,7 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps }: Pro
           parameters={parameters}
           onParameterChange={handleParameterChange}
           onValidationChange={handleValidationChange}
+          nodeDefinition={chosenOp}
         />
       )}
       

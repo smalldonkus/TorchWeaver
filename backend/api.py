@@ -3,12 +3,15 @@ from flask_cors import CORS
 from parse import parse
 from NNgenerator import generate
 from NNdatabase import NNDataBase
+from NNroutes import NNRoutes
 import json
 import traceback
 
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
+
+app.register_blueprint(NNRoutes)
 
 # Initialize the database to load operation definitions
 try:
@@ -81,7 +84,8 @@ def get_all_operations():
         return jsonify({
             "layers": db.defaults.get("layers", {"data": []}),
             "tensorOps": db.defaults.get("tensorOperations", {"data": []}),
-            "activators": db.defaults.get("activationFunction", {"data": []})
+            "activators": db.defaults.get("activationFunction", {"data": []}),
+            "inputs": db.defaults.get("inputs", {"data": []})
         }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -97,7 +101,8 @@ def get_operations_by_type(operation_type):
         type_mapping = {
             "layers": "layers",
             "tensorops": "tensorOperations", 
-            "activators": "activationFunction"
+            "activators": "activationFunction",
+            "inputs": "inputs"
         }
         
         if operation_type not in type_mapping:

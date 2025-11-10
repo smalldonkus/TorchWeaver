@@ -1,5 +1,3 @@
-import { error } from "console";
-
 export default async function useParse(nodes: any[], edges: any[]): Promise<any> {
     
     // Note: The parsing is now handled on the backend with the new hierarchical structure
@@ -41,7 +39,7 @@ export default async function useParse(nodes: any[], edges: any[]): Promise<any>
                     }, 100
                 );
             }
-        )
+        );
          
         } catch (error) {
             console.error('Error converting JSON to Python:', error);

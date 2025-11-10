@@ -8,13 +8,15 @@ class NNDataBase():
         layers = "layers"
         tensorOperations = "tensorOperations"
         activationFunction = "activationFunction"
+        inputs = "inputs"
 
     def __init__(self):
         
         self.defaults = {
             "layers" : None,
             "tensorOperations" : None,
-            "activationFunction" : None
+            "activationFunction" : None,
+            "inputs" : None
         }
 
         with open("JsonLayers/Layers.json") as f:
@@ -23,6 +25,8 @@ class NNDataBase():
             self.defaults["tensorOperations"] = json.load(f)
         with open("JsonLayers/ActivationFunction.json") as f:
             self.defaults["activationFunction"] = json.load(f)
+        with open("JsonLayers/Input.json") as f:
+            self.defaults["inputs"] = json.load(f)
         
     def find_definition(self, target_type):
         """Find a definition across all operation types using hierarchical lookup"""
@@ -56,6 +60,17 @@ class NNDataBase():
                         "type": target_type,
                         "class": class_name,
                         "category": "activationFunction",
+                        **class_items[target_type]
+                    }
+        
+        # Search in inputs
+        if self.defaults.get("inputs") and "data" in self.defaults["inputs"]:
+            for class_name, class_items in self.defaults["inputs"]["data"].items():
+                if target_type in class_items:
+                    return {
+                        "type": target_type,
+                        "class": class_name,
+                        "category": "inputs",
                         **class_items[target_type]
                     }
         

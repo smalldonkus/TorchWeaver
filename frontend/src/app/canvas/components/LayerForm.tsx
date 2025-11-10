@@ -11,15 +11,22 @@ import { generateUniqueNodeId } from "../utils/idGenerator";
 import ParameterInputs from "./ParameterInputs";
 import { useParameterHandling } from "../hooks/useParameterHandling";
 
+import {createNode} from "./TorchNodeCreator";
+
+
 // Define the props that this component expects
 interface Props {
     nodes: any[]; // List of current nodes (layers)
     setNodes: (val: any) => void; // Function to update nodes
     defaultLayers: any; // Layer data with global classes structure
+
+    // for TorchNode functionality, allows it to update itself (TN)
+    getSetters: () => any;
+    getDefaults: () => any; // for editing within a node (TN)
 }
 
 // Main component for the Layer Form
-export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
+export default function LayerForm({ nodes, setNodes, defaultLayers, getSetters, getDefaults}: Props) {
     // All hooks must be called before any conditional returns!
     
     // Use parameter handling hook
@@ -95,19 +102,20 @@ export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
         }
 
         const newId = generateUniqueNodeId("layer", nodes);
+        const newNode = createNode(
+            newId,
+            nodes.length, // posModifier
+            chosenDefault.type, // label
+            "Layer", // operation type
+            chosenDefault.type, // type
+            parameters,
+            getSetters,
+            getDefaults,
+            chosenDefault
+        );
         setNodes([
             ...nodes,
-            {
-                id: newId,
-                position: { x: 100, y: 100 + nodes.length * 60 },
-                data: {
-                    label: chosenDefault.type,
-                    operationType: "Layer",
-                    type: chosenDefault.type,
-                    parameters: parameters,
-                    outgoing_edges_count: 0
-                },
-            },
+            newNode
         ]);
         
         // Reset to first selection after adding
@@ -173,6 +181,7 @@ export default function LayerForm({ nodes, setNodes, defaultLayers }: Props) {
                     parameters={parameters}
                     onParameterChange={handleParameterChange}
                     onValidationChange={handleValidationChange}
+                    nodeDefinition={chosenDefault}
                 />
             )}
             

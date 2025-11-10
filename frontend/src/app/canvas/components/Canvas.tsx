@@ -8,6 +8,7 @@ import { useEdgeReconnection } from '../hooks/useEdgeReconnection';
 interface Props {
   nodes: any[];
   edges: any[];
+  nodeTypes: any;
   onNodesChange: any;
   onEdgesChange: any;
   onConnect: any;
@@ -18,6 +19,7 @@ interface Props {
 export default function Canvas({
   nodes,
   edges,
+  nodeTypes,
   onNodesChange,
   onEdgesChange,
   onConnect,
@@ -39,6 +41,7 @@ export default function Canvas({
       <ReactFlow
         nodes={nodes}
         edges={edges}
+        nodeTypes={nodeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
