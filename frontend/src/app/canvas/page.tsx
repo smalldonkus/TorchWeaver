@@ -75,6 +75,11 @@ export default function CanvasPage() {
             console.log("- Nodes:", data.network.nodes.length);
             console.log("- Edges:", data.network.edges.length);
 
+            // Wait for defaults to load before processing nodes
+            if (!defaultLayers || !defaultTensorOps || !defaultActivators || !defaultInputs) {
+              return;
+            }
+
             // Ensure edges include markerEnd for arrows and nodes have expected fields
             const normalizedEdges = data.network.edges.map((edge: any) => ({
               ...edge,
@@ -105,7 +110,7 @@ export default function CanvasPage() {
       }
     }
     fetchNetwork();
-  }, []);  // Add arrows to all existing edges on component mount
+  }, [defaultLayers, defaultTensorOps, defaultActivators, defaultInputs]);  // Re-run when defaults are loaded
 
 
   useEffect(() => {

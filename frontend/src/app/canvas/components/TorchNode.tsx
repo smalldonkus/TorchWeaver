@@ -58,10 +58,10 @@ export default function TorchNode(props) {
     setDefaultActivators(localDefaults.defaultActivators);
     setDefaultInputs(localDefaults.defaultInputs);
     setDefaults({
-      Layer : defaultLayers,
-      Activator: defaultActivators,
-      TensorOp : defaultTensorOps,
-      Input : defaultInputs
+      Layer : localDefaults.defaultLayers,
+      Activator: localDefaults.defaultActivators,
+      TensorOp : localDefaults.defaultTensorOps,
+      Input : localDefaults.defaultInputs
     })
   }, [canEdit]); // update only when canEdit is changed (reduces calls)
   
