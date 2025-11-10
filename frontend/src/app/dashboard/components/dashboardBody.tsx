@@ -16,6 +16,8 @@ import { NeuralNetworkInfo, getNeuralNetworks, loadNetwork, deleteNetwork } from
 import { useUser } from '@auth0/nextjs-auth0/client';
 import CardActionArea from '@mui/material/CardActionArea';
 import DeleteButton from './DeleteButton';
+import Fab from '@mui/material/Fab';
+import AddIcon from '@mui/icons-material/Add';
 
 export default function dashboardBody() {
     const [networks, setNetworks] = React.useState<NeuralNetworkInfo[]>([]); //Don't access networks, unsure of what it does (probably nothing as i assume its local to this file)
@@ -66,6 +68,14 @@ export default function dashboardBody() {
         }
     };
 
+    const handleNew = async () => {
+        try {
+            window.location.href = `/canvas`;
+        } catch (err) {
+            console.error('Error creating new network', err);
+        }
+    }
+
     const handleDelete = async (id: number) => {
         if (!confirm('Delete this network?')) return;
         try {
@@ -103,7 +113,7 @@ export default function dashboardBody() {
     //ownership sorting and searching are both destructive only one can happen at a time
     //Oscar note : i dont think this is fixable, sad
     const handleOwnershipSorting = async (sortType: string) => {
-        const owner = "A";
+        const owner = "User";
         const userId = user?.sub;
         const nets = await getNeuralNetworks(userId);
         setVisibleNetworks(NewList(owner, sortType, nets));
@@ -180,7 +190,14 @@ export default function dashboardBody() {
                     ))}
                 </Box>
             </>
-
+            <Fab color="primary" aria-label="add" onClick={() => handleNew()} sx={{
+                position: "fixed",     // stay fixed on the screens
+                bottom: 35,            // 35px from bottom
+                left: 35,               // 35px from right
+                zIndex: 1000           // make sure it appears above other content
+            }}>
+                <AddIcon />
+            </Fab>
             <BackToTopButton/>
         </ Container>
     )

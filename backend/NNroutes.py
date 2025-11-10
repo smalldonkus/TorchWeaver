@@ -133,3 +133,18 @@ def updateNetwork():
         return jsonify({"success": True}), 200
     except Exception as e:
         return jsonify({ "error": str(e)}), 500
+    
+@NNRoutes.route('/favourite_network', methods=['POST'])
+def favourite_network():
+    try:
+        data = request.get_json()
+        network_id = data.get("id")
+        favourited = data.get("favourited")
+
+        if not network_id:
+            return jsonify({"error": "Missing 'network_id'"}), 400
+
+        storage.set_favourite_status(network_id, favourited)
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

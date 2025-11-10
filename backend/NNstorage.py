@@ -19,7 +19,8 @@ class NNStorage:
                 created_at TEXT,
                 updated_at TEXT,
                 json_data TEXT NOT NULL,
-                user_auth0_id TEXT
+                user_auth0_id TEXT,
+                favourited BOOLEAN DEFAULT 0
             )
         """)
         conn.commit()
@@ -67,11 +68,11 @@ class NNStorage:
         """Return metadata for all saved networks for a given user."""
         conn = sqlite3.connect(self.db_path)
         cur = conn.cursor()
-        cur.execute("SELECT id, name, description, created_at FROM networks WHERE user_auth0_id = ? ORDER BY id DESC, created_at DESC", (user_auth0_id,))
+        cur.execute("SELECT id, name, description, created_at, favourited FROM networks WHERE user_auth0_id = ? ORDER BY id DESC, created_at DESC", (user_auth0_id,))
         rows = cur.fetchall()
         conn.close()
         return [
-            {"id": r[0], "name": r[1], "description": r[2], "created_at": r[3]}
+            {"id": r[0], "name": r[1], "description": r[2], "created_at": r[3], "favourited": r[4]}
             for r in rows
         ]
 
@@ -120,3 +121,16 @@ class NNStorage:
         conn.commit()
         conn.close()
         return True
+    
+    def set_favourite_status(self, network_id, favourited):
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+        cur.execute("""
+            UPDATE networks
+            SET favourited = ?
+            WHERE id = ?
+        """, (favourited, network_id))
+        conn.commit()
+        rows_updated = cur.rowcount
+        conn.close()
+        return rows_updated
