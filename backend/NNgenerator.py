@@ -245,8 +245,12 @@ def generate_tensor_operation(node, db):
         else:
             # Fallback if outgoing_edges_count is not available
             return f"        {node_id}_outputs = {library}.{node_type}({call_params})"
+    elif operation_pattern == "transpose":
+        # Transpose operations take a single input tensor and parameters
+        # Format: x = torch.mean(x, dim=1)
+        return f"        {node_id} = {library}.{node_type}({call_params})"
     else:
-        # Regular tensor operation
+        # Regular tensor operation (merge pattern)
         return f"        {node_id} = {library}.{node_type}({call_params})"
 
 def find_layer_definition(layer_type, db):

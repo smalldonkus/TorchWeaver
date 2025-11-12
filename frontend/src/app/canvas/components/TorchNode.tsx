@@ -287,7 +287,7 @@ export default function TorchNode(props) {
               boxShadow: hasError 
                 ? "0 6px 16px rgba(211, 47, 47, 0.4)" 
                 : "0 6px 16px rgba(0, 0, 0, 0.15)",
-              borderColor: hasError ? "#d32f2f" : "#1976d2"
+              borderColor: hasError ? "#d32f2f" : "#FF7700"
             }
         }}>
           <Box 
@@ -304,7 +304,7 @@ export default function TorchNode(props) {
                 <Typography 
                   sx={{ 
                     fontWeight: 600,
-                    color: "#1976d2",
+                    color: "#FF7700",
                     fontSize: "1.1rem"
                   }} 
                   variant="h6"
@@ -318,12 +318,16 @@ export default function TorchNode(props) {
                 className="nodrag" 
                 onClick={toggleState} 
                 variant={canEdit ? "contained" : "outlined"}
-                color="primary" 
                 sx={{
                   ...buttonSx,
                   borderRadius: "8px",
+                  backgroundColor: canEdit ? "#FF7700" : "transparent",
+                  borderColor: "#FF7700",
+                  color: canEdit ? "#ffffff" : "#FF7700",
                   transition: "all 0.2s ease",
                   "&:hover": {
+                    backgroundColor: canEdit ? "#e66900" : "rgba(255, 119, 0, 0.08)",
+                    borderColor: "#FF7700",
                     transform: "scale(1.05)"
                   }
                 }}
@@ -334,18 +338,21 @@ export default function TorchNode(props) {
                 className="nodrag" 
                 onClick={openErrorPopover} 
                 variant="outlined" 
-                color={errorIconBorderColourMUI} 
                 sx={{
                   ...buttonSx,
                   borderRadius: "8px",
+                  borderColor: hasError ? "#d32f2f" : "#FF7700",
+                  color: hasError ? "#d32f2f" : "#FF7700",
                   transition: "all 0.2s ease",
                   "&:hover": {
-                    transform: "scale(1.05)"
+                    transform: "scale(1.05)",
+                    borderColor: hasError ? "#d32f2f" : "#FF7700",
+                    backgroundColor: hasError ? "rgba(211, 47, 47, 0.08)" : "rgba(255, 119, 0, 0.08)"
                   }
                 }}
               >
                   <ErrorIcon 
-                    color={hasError ? "error" : "primary" }
+                    sx={{ color: hasError ? "#d32f2f" : "#FF7700" }}
                   />
               </Button>
               <Popover
@@ -450,7 +457,7 @@ export default function TorchNode(props) {
                     // requires that a operationType and specificType have been chosen
                     disabled={(!hasPendingChanges || hasValidationErrors) || selectedOperationType==="" || selectedSpecificType===""}
                     sx={{ 
-                      backgroundColor: 'primary.main',
+                      backgroundColor: '#FF7700',
                       borderRadius: '8px',
                       textTransform: 'none',
                       fontWeight: 600,

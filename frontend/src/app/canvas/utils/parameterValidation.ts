@@ -58,9 +58,17 @@ const convertToType = (value: string, targetType: string): any => {
       return intValue;
 
     case "float":
-      const floatValue = parseFloat(value);
-      if (isNaN(floatValue)) throw new Error("Not a float");
-      return floatValue;
+      // Allow intermediate typing states like "1." or "-" or "0."
+      if (value.match(/^-?\d*\.?\d*$/)) {
+        const floatValue = parseFloat(value);
+        // If it's just a decimal point or minus, keep as string for now
+        if (value === "." || value === "-" || value === "-." || value.endsWith(".")) {
+          return value; // Return as-is to allow continued typing
+        }
+        if (isNaN(floatValue)) throw new Error("Not a float");
+        return floatValue;
+      }
+      throw new Error("Not a valid float");
 
     case "boolean":
       const lower = value.toLowerCase();

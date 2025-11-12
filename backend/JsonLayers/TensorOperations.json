@@ -6,7 +6,7 @@
         "parseCheck": {
           "maxInputs": 1000,
           "minInputs": 2,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": true,
           "ChannelLinks": [
@@ -34,7 +34,7 @@
         "parseCheck": {
           "maxInputs": 1000,
           "minInputs": 2,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": true,
           "ChannelLinks": [
@@ -57,12 +57,13 @@
           "parentParameterFormat": "tuple"
         }
       },
+
       "add": {
         "library": "torch",
         "parseCheck": {
           "maxInputs": 1000,
           "minInputs": 2,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -80,12 +81,13 @@
           "parentParameterFormat": "tuple"
         }
       },
+  
       "mul": {
         "library": "torch",
         "parseCheck": {
           "maxInputs": 1000,
           "minInputs": 2,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -102,7 +104,7 @@
         "parseCheck": {
           "maxInputs": 1000,
           "minInputs": 2,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -115,6 +117,24 @@
         }
       },
       "div": {
+        "library": "torch",
+        "parseCheck": {
+          "maxInputs": 1000,
+          "minInputs": 2,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {},
+        "parameters_format": {},
+        "codeGeneration": {
+          "operationPattern": "merge",
+          "parentParameterFormat": "separate"
+        }
+      },
+
+      "maximum": {
         "library": "torch",
         "parseCheck": {
           "maxInputs": 1000,
@@ -132,6 +152,8 @@
         }
       }
     },
+
+  
     "Split Tensor Operations": {
       "split": {
         "library": "torch",
@@ -196,6 +218,39 @@
         "codeGeneration": {
           "operationPattern": "split",
           "parentParameterFormat": "tuple"
+        }
+      }
+    },
+
+    "Transpose Tensor Operations": {
+      "mean": {
+        "library": "torch",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": true,
+          "ChannelLinks": [
+            {
+              "inputParam": "dim",
+              "outputParam": "dim"
+            }
+          ]
+        },
+        "parameters": {
+          "dim": 0
+        },
+        "parameters_format": {
+          "dim": [
+            "int",
+            "tuple"
+          ]
+        },
+
+        "codeGeneration": {
+          "operationPattern": "transpose",
+          "parentParameterFormat": "separate"
         }
       }
     }

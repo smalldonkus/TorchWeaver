@@ -2099,13 +2099,8 @@
           "minInputs": 1,
           "maxOutputs": 1,
           "minOutputs": 1,
-          "CanEditChannels": true,
-          "ChannelLinks": [
-            {
-              "inputParam": "num_channels",
-              "outputParam": "num_channels"
-            }
-          ]
+          "CanEditChannels": false,
+          "ChannelLinks": []
         },
         "parameters": {
           "groups": 2
@@ -2117,6 +2112,8 @@
         }
       }
     },
+
+    
     "Utility Layers": {
       "Flatten": {
         "library": "torch.nn",
