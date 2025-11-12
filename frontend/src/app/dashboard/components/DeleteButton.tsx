@@ -10,34 +10,41 @@ import Button from '@mui/material/Button';
 export interface PopupProps {
   open: boolean;
   onClose: () => void;
+  onConfirm: () => void;
 }
 
 function Popup(props: PopupProps) {
-  const { onClose, open } = props;
+  const { onClose, onConfirm, open } = props;
 
-  const handleClose = () => { //Close popup when user clicks off window
-    onClose();
-  }; 
-
-  const handleListItemClick = () => { //Close popup when user clicks either button
+  const handleClose = () => {
     onClose();
   };
 
-  return ( //Popup dialogue
-    <Dialog onClose={handleClose} open={open}> 
+  const handleConfirm = () => {
+    onConfirm();
+    onClose();
+  };
+
+  return (
+    <Dialog onClose={handleClose} open={open}>
       <DialogTitle>Are you sure you want to delete this neural network?</DialogTitle>
       <Box sx={{display: "flex", flexWrap: "wrap", justifyContent:"space-between", p: 4}}>
-        <Button onClick={() => handleListItemClick()}>No</Button>
-        <Button onClick={() => handleListItemClick()}>Yes</Button>
+        <Button onClick={handleClose}>No</Button>
+        <Button onClick={handleConfirm}>Yes</Button>
       </Box>
     </Dialog>
   );
 }
 
-export default function DeleteButton() {
+interface DeleteButtonProps {
+  onClick?: () => void;
+}
+
+export default function DeleteButton({ onClick }: DeleteButtonProps) {
   const [open, setOpen] = React.useState(false);
 
-  const handleClickOpen = () => {
+  const handleClickOpen = (e: React.MouseEvent) => {
+    e.stopPropagation(); // prevent parent card click
     setOpen(true);
   };
 
@@ -45,15 +52,16 @@ export default function DeleteButton() {
     setOpen(false);
   };
 
+  const handleConfirm = () => {
+    if (onClick) onClick();
+  };
+
   return (
     <>
-        <IconButton onClick={handleClickOpen}>
-            <DeleteIcon />
-            </IconButton>
-            <Popup
-                open={open}
-                onClose={handleClose}
-            />
+      <IconButton onClick={handleClickOpen}>
+        <DeleteIcon />
+      </IconButton>
+      <Popup open={open} onClose={handleClose} onConfirm={handleConfirm} />
     </>
   );
 }

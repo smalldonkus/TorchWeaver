@@ -51,15 +51,19 @@ interface Props {
     setSelectedMenu: (val: string) => void; // Function to change selected menu
     nodes: any[]; // Array of nodes (data for LayerForm)
     setNodes: (val: any) => void; // Function to update nodes
+    handleSave: () => void; // Function to handle save action
     handleExport: () => void; // Function to handle export action
     selectedNodes: any[]; // shows current selected Nodes
-    updateNodeType: (targetID: any, valA: any, valB: any) => void; // allows the update of layerType
-    updateNodeOperationType: (targetID: any, val: any) => void;
+    updateNodeType: (targetID: any, valA: any, valB: any, valC: any) => void; // allows the update of layerType
+    updateNodeOperationType: (targetID: any, valA: any, valB: any, valC: any) => void;
     updateNodeParameter: (targetID: any, valA: any, valB: any) => void;
     deleteNode: (targetID: any) => void;
+    getSetters: () => any;
+    getDefaults: () => any;
     defaultLayers: any; // Changed from any[] to any for new structure
     defaultTensorOps: any; // Changed from any[] to any for new structure
     defaultActivators: any; // Changed from any[] to any for new structure
+    defaultInputs: any; // Input definitions data structure
 }
 
 // Sidebar component definition
@@ -71,14 +75,18 @@ export default function Sidebar({
     nodes,
     setNodes,
     handleExport,
+    handleSave,
     selectedNodes,
     updateNodeType,
     updateNodeOperationType,
     updateNodeParameter,
     deleteNode,
+    getSetters,
+    getDefaults,
     defaultLayers,
     defaultTensorOps,
-    defaultActivators
+    defaultActivators,
+    defaultInputs
 }: Props) {
     // Get theme object for direction (ltr/rtl)
     const theme = useTheme();
@@ -137,23 +145,23 @@ export default function Sidebar({
                 </List>
                 {/* Show LayerForm only if "Layers" menu is selected */}
                 {selectedMenu === "Layers" && (
-                    <LayerForm nodes={nodes} setNodes={setNodes} defaultLayers={defaultLayers}/>
+                    <LayerForm nodes={nodes} setNodes={setNodes} defaultLayers={defaultLayers} getSetters={getSetters} getDefaults={getDefaults}/>
                 )}
                 {selectedMenu === "Edit Nodes" && (
-                    <EditLayerForm selectedNodes={selectedNodes} defaultActivators={defaultActivators} defaultTensorOps={defaultTensorOps} defaultLayers={defaultLayers} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter} deleteNode={deleteNode}/>
+                    <EditLayerForm selectedNodes={selectedNodes} defaultActivators={defaultActivators} defaultTensorOps={defaultTensorOps} defaultLayers={defaultLayers} defaultInputs={defaultInputs} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter} deleteNode={deleteNode}/>
                 )}
                 {/* Show TensorOpsForm only if "Tensor Operations" menu is selected */}
                 {selectedMenu === "Tensor Operations" && (
-                    <TensorOpsForm nodes={nodes} setNodes={setNodes} defaultTensorOps={defaultTensorOps} />
+                    <TensorOpsForm nodes={nodes} setNodes={setNodes} defaultTensorOps={defaultTensorOps} getSetters={getSetters} getDefaults={getDefaults} />
                 )}
                 {selectedMenu === "Inputs" && (
-                    <InputForm nodes={nodes} setNodes={setNodes} />
+                    <InputForm nodes={nodes} setNodes={setNodes} defaultInputs={defaultInputs} getSetters={getSetters} getDefaults={getDefaults}/>
                 )}
                 {selectedMenu === "Outputs" && (
-                    <OutputForm nodes={nodes} setNodes={setNodes} />
+                    <OutputForm nodes={nodes} setNodes={setNodes} getSetters={getSetters} getDefaults={getDefaults}/>
                 )}
                 {selectedMenu === "Activation Functions" && (
-                    <ActivatorsForm nodes={nodes} setNodes={setNodes} defaultActivators={defaultActivators} />
+                    <ActivatorsForm nodes={nodes} setNodes={setNodes} defaultActivators={defaultActivators} getSetters={getSetters} getDefaults={getDefaults}/>
                 )}
             </div>
             {/* Bottom section of the sidebar */}
@@ -172,7 +180,7 @@ export default function Sidebar({
                     </ListItem>
                     {/* Save button (no handler attached) */}
                     <ListItem disablePadding>
-                        <ListItemButton>
+                        <ListItemButton onClick={handleSave}>
                             <ListItemIcon>
                                 <SaveIcon />
                             </ListItemIcon>

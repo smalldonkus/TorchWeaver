@@ -1,0 +1,150 @@
+{
+  "nodes": [
+    {
+      "id": "input1",
+      "operation_type": "Input",
+      "parent": null,
+      "children": [
+        "layer1"
+      ],
+      "outgoing_edges_count": 1,
+      "position": {
+        "x": 67,
+        "y": -227.15626525878906
+      },
+      "parameters": {
+        "shapeType": "1D",
+        "dims": [
+          0
+        ]
+      }
+    },
+    {
+      "id": "layer1",
+      "type": "Linear",
+      "operation_type": "Layer",
+      "parent": "input1",
+      "children": [
+        "layer2",
+        "layer3"
+      ],
+      "outgoing_edges_count": 2,
+      "position": {
+        "x": 71,
+        "y": -145.5
+      },
+      "parameters": {
+        "bias": true,
+        "in_features": 1,
+        "out_features": 1
+      }
+    },
+    {
+      "id": "layer2",
+      "type": "Conv2d",
+      "operation_type": "Layer",
+      "parent": "layer1",
+      "children": [
+        "layer4"
+      ],
+      "outgoing_edges_count": 1,
+      "position": {
+        "x": -48.5,
+        "y": -41
+      },
+      "parameters": {
+        "bias": true,
+        "in_channels": 3,
+        "kernel_size": 11,
+        "out_channels": 96,
+        "padding": 2,
+        "stride": 4
+      }
+    },
+    {
+      "id": "layer3",
+      "type": "LocalResponseNorm",
+      "operation_type": "Layer",
+      "parent": "layer1",
+      "children": [
+        "layer4"
+      ],
+      "outgoing_edges_count": 1,
+      "position": {
+        "x": 170.5,
+        "y": -44
+      },
+      "parameters": {
+        "alpha": 0.0001,
+        "beta": 0.75,
+        "k": 2,
+        "size": 5
+      }
+    },
+    {
+      "id": "layer4",
+      "type": "MaxPool2d",
+      "operation_type": "Layer",
+      "parent": [
+        "layer2",
+        "layer3"
+      ],
+      "children": [
+        "layer5"
+      ],
+      "outgoing_edges_count": 1,
+      "position": {
+        "x": 53.5,
+        "y": 78
+      },
+      "parameters": {
+        "kernel_size": 3,
+        "stride": 2
+      }
+    },
+    {
+      "id": "layer5",
+      "type": "Flatten",
+      "operation_type": "Layer",
+      "parent": "layer4",
+      "children": [
+        "layer6"
+      ],
+      "outgoing_edges_count": 1,
+      "position": {
+        "x": 61.5,
+        "y": 170
+      },
+      "parameters": {}
+    },
+    {
+      "id": "layer6",
+      "type": "Dropout",
+      "operation_type": "Layer",
+      "parent": "layer5",
+      "children": [
+        "output1"
+      ],
+      "outgoing_edges_count": 1,
+      "position": {
+        "x": 66,
+        "y": 261
+      },
+      "parameters": {
+        "p": 0.5
+      }
+    },
+    {
+      "id": "output1",
+      "operation_type": "Output",
+      "parent": "layer6",
+      "children": [],
+      "outgoing_edges_count": 0,
+      "position": {
+        "x": 69,
+        "y": 348.5
+      },
+      "parameters": {}
+    }
+  ]
+}
