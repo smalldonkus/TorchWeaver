@@ -1,21 +1,19 @@
 {
-    "data": {
-        "Activation Functions": {
-            "ReLU": {
-                "library": "torch.nn",
-                "parseCheck": {
-                    "maxInputs": 1,
-                    "minInputs": 1,
-                    "maxOutputs": 1,
-                    "minOutputs": 1,
-                    "CanEditChannels": false,
-                    "ChannelLinks": []
-                },
-                "parameters": {
-                },
-                "parameters_format": {
-                }
-            }
-        }
+  "data": {
+    "Activation Functions": {
+      "ReLU": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {},
+        "parameters_format": {}
+      }
     }
+  }
 }

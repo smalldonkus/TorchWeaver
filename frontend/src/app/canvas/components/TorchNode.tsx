@@ -271,9 +271,24 @@ export default function TorchNode(props) {
         sx={{
             display: "flex", 
             flexDirection:"column", 
-            padding: "5px",
-            gap: "10px",
-            width: canEdit ? "600px" : "auto"
+            padding: "16px",
+            gap: "12px",
+            width: canEdit ? "600px" : "auto",
+            backgroundColor: "#ffffff",
+            borderRadius: "12px",
+            boxShadow: hasError 
+              ? "0 4px 12px rgba(211, 47, 47, 0.3)" 
+              : "0 4px 12px rgba(0, 0, 0, 0.1)",
+            border: hasError 
+              ? "2px solid #d32f2f" 
+              : "2px solid #e0e0e0",
+            transition: "all 0.3s ease",
+            "&:hover": {
+              boxShadow: hasError 
+                ? "0 6px 16px rgba(211, 47, 47, 0.4)" 
+                : "0 6px 16px rgba(0, 0, 0, 0.15)",
+              borderColor: hasError ? "#d32f2f" : "#1976d2"
+            }
         }}>
           <Box 
             sx={{
@@ -282,16 +297,53 @@ export default function TorchNode(props) {
               justifyContent: "flex-start",
               alignItems: "center",
               gap: "10px",
+              paddingBottom: "8px",
+              borderBottom: "1px solid #e0e0e0"
             }}>
-              <Stack>
-                <Typography sx={{}} variant="h5">{props.data.label}</Typography>
+              <Stack sx={{ flex: 1 }}>
+                <Typography 
+                  sx={{ 
+                    fontWeight: 600,
+                    color: "#1976d2",
+                    fontSize: "1.1rem"
+                  }} 
+                  variant="h6"
+                >
+                  {props.data.label}
+                </Typography>
                 {canEdit && DEBUG && <Typography sx={{}} variant="caption" color="#757575"> {props.id}</Typography>}
               </Stack>
               
-              <Button className="nodrag" onClick={toggleState} variant="outlined" color="primary" sx={buttonSx}>
+              <Button 
+                className="nodrag" 
+                onClick={toggleState} 
+                variant={canEdit ? "contained" : "outlined"}
+                color="primary" 
+                sx={{
+                  ...buttonSx,
+                  borderRadius: "8px",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    transform: "scale(1.05)"
+                  }
+                }}
+              >
                   <SettingsIcon/>
               </Button>
-              <Button className="nodrag" onClick={openErrorPopover} variant="outlined" color={errorIconBorderColourMUI} sx={buttonSx}>
+              <Button 
+                className="nodrag" 
+                onClick={openErrorPopover} 
+                variant="outlined" 
+                color={errorIconBorderColourMUI} 
+                sx={{
+                  ...buttonSx,
+                  borderRadius: "8px",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    transform: "scale(1.05)"
+                  }
+                }}
+              >
                   <ErrorIcon 
                     color={hasError ? "error" : "primary" }
                   />
@@ -397,15 +449,34 @@ export default function TorchNode(props) {
                     onClick={handleApplyEdit}
                     // requires that a operationType and specificType have been chosen
                     disabled={(!hasPendingChanges || hasValidationErrors) || selectedOperationType==="" || selectedSpecificType===""}
-                    sx={{ backgroundColor: 'primary.main' }}
+                    sx={{ 
+                      backgroundColor: 'primary.main',
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      '&:hover': {
+                        boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+                      }
+                    }}
                 >
                     Apply Edit
                 </Button>
                 <Button 
                     variant="contained" 
                     fullWidth 
-                    style={{backgroundColor: "red"}} 
                     onClick={deleteNodeLocal}
+                    sx={{
+                      backgroundColor: "#d32f2f",
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      '&:hover': {
+                        backgroundColor: "#c62828",
+                        boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+                      }
+                    }}
                 >
                     Delete
                 </Button>

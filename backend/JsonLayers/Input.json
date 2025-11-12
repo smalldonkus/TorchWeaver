@@ -1,13 +1,9 @@
-
 {
   "data": {
-
     "SingleDimensionalInput": {
-
       "SingleDimensionalInput (no batch)": {
         "library": null,
         "parseCheck": {
-
           "maxInputs": 0,
           "minInputs": 0,
           "maxOutputs": 1000,
@@ -20,21 +16,18 @@
             }
           ]
         },
-
         "parameters": {
           "features": 1
         },
-
         "parameters_format": {
-          "features": ["int"]
+          "features": [
+            "int"
+          ]
         }
-
       },
-
       "SingleDimensionalInput (with batch)": {
         "library": null,
         "parseCheck": {
-
           "maxInputs": 0,
           "minInputs": 0,
           "maxOutputs": 1000,
@@ -47,26 +40,24 @@
             }
           ]
         },
-
         "parameters": {
           "batch_size": 1,
           "features": 1
         },
-
         "parameters_format": {
-          "batch_size": ["int"],
-          "features": ["int"]
+          "batch_size": [
+            "int"
+          ],
+          "features": [
+            "int"
+          ]
         }
-
       }
-
     },
     "MultiDimensionalInput": {
-
       "MultiDimensionalInput (no batch)": {
         "library": null,
         "parseCheck": {
-
           "maxInputs": 0,
           "minInputs": 0,
           "maxOutputs": 1000,
@@ -79,23 +70,25 @@
             }
           ]
         },
-
         "parameters": {
           "channels": 1,
-          "dimensions": [1, 1]
+          "dimensions": [
+            1,
+            1
+          ]
         },
-
         "parameters_format": {
-          "channels": ["int"],
-          "dimensions": ["list"]
+          "channels": [
+            "int"
+          ],
+          "dimensions": [
+            "list"
+          ]
         }
-
-    },
-
+      },
       "MultiDimensionalInput (with batch)": {
         "library": null,
         "parseCheck": {
-
           "maxInputs": 0,
           "minInputs": 0,
           "maxOutputs": 1000,
@@ -108,22 +101,26 @@
             }
           ]
         },
-
         "parameters": {
           "batch_size": 1,
           "channels": 1,
-          "dimensions": [1, 1]
+          "dimensions": [
+            1,
+            1
+          ]
         },
-
         "parameters_format": {
-          "batch_size": ["int"],
-          "channels": ["int"],
-          "dimensions": ["list"]
+          "batch_size": [
+            "int"
+          ],
+          "channels": [
+            "int"
+          ],
+          "dimensions": [
+            "list"
+          ]
         }
-
       }
-
     }
   }
 }
-

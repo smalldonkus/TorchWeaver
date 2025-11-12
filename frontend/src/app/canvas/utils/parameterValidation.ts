@@ -47,6 +47,11 @@ export const validateParameter = (value: string, expectedTypes: string[]): {
 
 const convertToType = (value: string, targetType: string): any => {
   switch (targetType) {
+    case "None":
+      // Accept "None" (case-insensitive) as the None type
+      if (value.toLowerCase() === "none") return "None";
+      throw new Error("Must be 'None'");
+
     case "int":
       const intValue = parseInt(value, 10);
       if (isNaN(intValue)) throw new Error("Not an integer");
