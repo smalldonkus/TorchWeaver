@@ -79,14 +79,16 @@ export default function AppBarHeader({ open, setOpen, openErrorBox, setOpenError
                 <Button 
                     onClick={handleMenuClick}
                     sx={{
-                        backgroundColor: "#1c3062",
+                        backgroundColor: "#FF7700",
                         color: "white",
                         fontSize: "1.1rem",
                         padding: "10px 20px",
                         borderRadius: "8px",
                         fontWeight: 600,
+                        fontFamily: 'inherit',
+                        textTransform: 'none',
                         '&:hover': {
-                            backgroundColor: '#16244a',
+                            backgroundColor: '#f88f34ff',
                         }
                     }}
                 >

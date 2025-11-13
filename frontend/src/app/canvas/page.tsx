@@ -6,7 +6,7 @@ import Typography from "@mui/material/Typography";
 import CssBaseline from "@mui/material/CssBaseline";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
-import { applyNodeChanges, applyEdgeChanges, addEdge, OnSelectionChangeFunc, Node, Edge, MarkerType} from "@xyflow/react";
+import { applyNodeChanges, applyEdgeChanges, addEdge, OnSelectionChangeFunc, Node, Edge, MarkerType, ReactFlowProvider } from "@xyflow/react";
 
 import { initialNodes, initialEdges } from "./utils/constants";
 import { Main, DrawerHeader } from "./utils/styled";
@@ -764,20 +764,21 @@ export default function CanvasPage() {
       <Main open={open}>
         <DrawerHeader /> {/* Spacer for the header */}
         {/* Canvas component where nodes and edges are displayed and edited */}
-        <Canvas
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onSelectionChange={onSelectionChange}
-          setEdges={setEdges}
-          handleExport={handleExport}
-          handleSave={handleSave}
-          openErrorBox={openErrorBox}
-          setOpenErrorBox={setOpenErrorBox}
-        />
+        <ReactFlowProvider>
+          <Canvas
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onSelectionChange={onSelectionChange}
+            setEdges={setEdges}
+            handleExport={handleExport}
+            handleSave={handleSave}
+            errorMessages={errorMsgs}
+          />
+        </ReactFlowProvider>
       </Main>
       <ErrorBox key={"errorBox"} isOpen={openErrorBox} setOpen={setOpenErrorBox} messages={errorMsgs}/>
       <Snackbar

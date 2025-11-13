@@ -19,8 +19,7 @@ interface Props {
   setEdges: (edges: any[] | ((prevEdges: any[]) => any[])) => void;
   handleExport?: () => void;
   handleSave?: () => void;
-  openErrorBox?: boolean;
-  setOpenErrorBox?: (val: boolean) => void;
+  errorMessages?: string[];
 }
 
 export default function Canvas({
@@ -34,8 +33,7 @@ export default function Canvas({
   setEdges,
   handleExport,
   handleSave,
-  openErrorBox,
-  setOpenErrorBox
+  errorMessages
 }: Props) {
   const { onReconnectStart, onReconnect, onReconnectEnd } = useEdgeReconnection(setEdges);
 
@@ -70,9 +68,7 @@ export default function Canvas({
         <Background color="#aaa" gap={16} />
       </ReactFlow>
       {/* Fixed action buttons */}
-      {setOpenErrorBox && (
-        <ErrorsButton openErrorBox={openErrorBox} setOpenErrorBox={setOpenErrorBox} />
-      )}
+      <ErrorsButton errorMessages={errorMessages || []} />
       {handleExport && (
         <ExportButton handleExport={handleExport} />
       )}
