@@ -25,6 +25,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Styling classes/ids for the Header component of the Landing Page (includes profile drop-down) */
 .landingPage {
   /* font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif; */
   /* font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;T */
@@ -72,7 +73,7 @@ body {
 }
 
 
-
+/* Profile-picture frame changes colour based on if the user picture is hovered/clicked */
 .profilePicture {
   width: 5rem;
   border-radius: 50%;
@@ -92,6 +93,8 @@ body {
   margin-right: 10%;
 }
 
+/* Profile drop-down has absolute positioning relative to a parent div, which allows it to be placed above the landing body
+ and other rendered objects */
 .profileDropdown {
   position: absolute;
   display: block;
@@ -205,6 +208,7 @@ body {
   margin-left: 5%;
 }
 
+/* Next section of classes/ids are for the landingBody component of the Landing Page */
 #landingBody {
   height: 30%;
   background-color: #EDF1F3;
@@ -226,6 +230,7 @@ body {
   align-items: center;
 }
 
+/* Many classes features clamp, to help with zooming features and changing resolutions for more gradual and consistent framing of items. */
 #landingSynopsis {
   height: auto;
   font-size: clamp(2rem, 3.5vw, 10rem);
@@ -282,6 +287,7 @@ body {
   background-image: url("./components/images/background-img.png");
 }
 
+/* Classes/ids for the features component of the Landing Page */
 #featuresBody {
   min-height: 100vh;
   width: 100%;
@@ -309,6 +315,7 @@ body {
   flex-direction: column;
   align-items: center;
   overflow-x: hidden;
+  overflow-y: hidden;
   background-color: #FFD4A8;
   border-radius: 80px;
 }
@@ -343,6 +350,8 @@ body {
 
 }
 
+/* Uses grid for a succient styling that can drop feature descriptions down the page depending on resolution, which allows
+the website to be accessible to mobile resolutions */
 .featureColumn {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
