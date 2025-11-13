@@ -50,7 +50,7 @@ interface Props {
     selectedMenu: string; // Currently selected menu item
     setSelectedMenu: (val: string) => void; // Function to change selected menu
     nodes: any[]; // Array of nodes (data for LayerForm)
-    setNodes: (val: any) => void; // Function to update nodes
+    addNode: (val: any) => void; // Function to update nodes
     handleSave: () => void; // Function to handle save action
     handleExport: () => void; // Function to handle export action
     selectedNodes: any[]; // shows current selected Nodes
@@ -73,7 +73,7 @@ export default function Sidebar({
     selectedMenu,
     setSelectedMenu,
     nodes,
-    setNodes,
+    addNode,
     handleExport,
     handleSave,
     selectedNodes,
@@ -145,23 +145,23 @@ export default function Sidebar({
                 </List>
                 {/* Show LayerForm only if "Layers" menu is selected */}
                 {selectedMenu === "Layers" && (
-                    <LayerForm nodes={nodes} setNodes={setNodes} defaultLayers={defaultLayers} getSetters={getSetters} getDefaults={getDefaults}/>
+                    <LayerForm nodes={nodes} addNode={addNode} defaultLayers={defaultLayers} getSetters={getSetters} getDefaults={getDefaults}/>
                 )}
                 {selectedMenu === "Edit Nodes" && (
                     <EditLayerForm selectedNodes={selectedNodes} defaultActivators={defaultActivators} defaultTensorOps={defaultTensorOps} defaultLayers={defaultLayers} defaultInputs={defaultInputs} updateNodeType={updateNodeType} updateNodeOperationType={updateNodeOperationType} updateNodeParameter={updateNodeParameter} deleteNode={deleteNode}/>
                 )}
                 {/* Show TensorOpsForm only if "Tensor Operations" menu is selected */}
                 {selectedMenu === "Tensor Operations" && (
-                    <TensorOpsForm nodes={nodes} setNodes={setNodes} defaultTensorOps={defaultTensorOps} getSetters={getSetters} getDefaults={getDefaults} />
+                    <TensorOpsForm nodes={nodes} addNode={addNode} defaultTensorOps={defaultTensorOps} getSetters={getSetters} getDefaults={getDefaults} />
                 )}
                 {selectedMenu === "Inputs" && (
-                    <InputForm nodes={nodes} setNodes={setNodes} defaultInputs={defaultInputs} getSetters={getSetters} getDefaults={getDefaults}/>
+                    <InputForm nodes={nodes} addNode={addNode} defaultInputs={defaultInputs} getSetters={getSetters} getDefaults={getDefaults}/>
                 )}
                 {selectedMenu === "Outputs" && (
-                    <OutputForm nodes={nodes} setNodes={setNodes} getSetters={getSetters} getDefaults={getDefaults}/>
+                    <OutputForm nodes={nodes} addNode={addNode} getSetters={getSetters} getDefaults={getDefaults}/>
                 )}
                 {selectedMenu === "Activation Functions" && (
-                    <ActivatorsForm nodes={nodes} setNodes={setNodes} defaultActivators={defaultActivators} getSetters={getSetters} getDefaults={getDefaults}/>
+                    <ActivatorsForm nodes={nodes} addNode={addNode} defaultActivators={defaultActivators} getSetters={getSetters} getDefaults={getDefaults}/>
                 )}
             </div>
             {/* Bottom section of the sidebar */}

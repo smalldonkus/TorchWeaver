@@ -36,7 +36,7 @@ export default async function useParse(nodes: any[], edges: any[]): Promise<any>
         return new Promise( (resolve) => {
                 setTimeout(() => {
                         resolve(result.info)
-                    }, 100
+                    }, 25
                 );
             }
         );

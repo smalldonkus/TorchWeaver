@@ -13,8 +13,11 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Fade from "@mui/material/Fade";
 import MenuIcon from "@mui/icons-material/Menu";
+import UndoIcon from '@mui/icons-material/Undo';
+import RedoIcon from '@mui/icons-material/Redo';
 // Import a styled AppBar component
 import { AppBar as StyledAppBar } from "../utils/styled";
+import { Box } from "@mui/material";
 
 // Define the props for this component
 interface Props {
@@ -22,10 +25,12 @@ interface Props {
     setOpen: (val: boolean) => void; // Function to set the open state
     openErrorBox: boolean;
     setOpenErrorBox: (val: boolean) => void;
+    doUndo: () => void;
+    doRedo: () => void;
 }
 
 // Main AppBarHeader component
-export default function AppBarHeader({ open, setOpen, openErrorBox, setOpenErrorBox}: Props) {
+export default function AppBarHeader({ open, setOpen, openErrorBox, setOpenErrorBox, doUndo, doRedo}: Props) {
     // State to control the anchor element for the dropdown menu
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     // Next.js router for navigation
@@ -64,8 +69,38 @@ export default function AppBarHeader({ open, setOpen, openErrorBox, setOpenError
                 <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>
                     TorchWeaver Canvas
                 </Typography>
+                {/* "Undo" button that undoes the last "significant" action */}
+                <Box
+                    sx={{
+                        display: "flex", 
+                        flexDirection:"row", 
+                        gap: "10px",
+                        border:"1px dashed white",
+                        borderRadius: "10px",
+                        alignItems: "center",
+                        mr:2
+                    }}>
+                    <IconButton
+                        color="inherit"
+                        aria-label="open drawer"
+                        onClick={doUndo}
+                        edge="end"
+                        sx={{ml: 0.5, mr: 0.5}}
+                    >
+                        <UndoIcon />
+                    </IconButton>
+                    <IconButton
+                        color="inherit"
+                        aria-label="open drawer"
+                        onClick={doRedo}
+                        edge="end"
+                        sx={{mr: 0.5}}
+                    >
+                        <RedoIcon />
+                    </IconButton>
+                </Box>
                 {/* "Error" button that opens the Errors drawer  */}
-                <Button variant={errorButtonVariant} color="error" onClick={handleErrorClick}>
+                <Button variant={errorButtonVariant} color="error" onClick={handleErrorClick} sx={{mr:1}}>
                     Errors
                 </Button>
                 {/* "Return" button that opens the dropdown menu */}

@@ -31,7 +31,7 @@ export default function TorchNode(props) {
   const isErrorPopoverOpen = Boolean(anchorEP);
   const idEP = isErrorPopoverOpen ? "error-popover" : undefined;
 
-  const hasError = props.data.errors.length != 0
+  const [hasError, setHasError] = useState<boolean>(false); 
 
   const openErrorPopover = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEP(event.currentTarget);
@@ -42,7 +42,11 @@ export default function TorchNode(props) {
   
   const toggleState = () => {
     setCanEdit(!canEdit);
-  }
+  };
+
+  useEffect(() => {
+    setHasError(props.data.errors.length == 0 ? false : true);
+  }, [props.data.errors]);
 
   // initialise setters for the node
   useEffect(() => {

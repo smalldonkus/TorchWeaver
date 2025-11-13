@@ -1,6 +1,6 @@
 "use client"; // Enables React Server Components with client-side interactivity
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -22,6 +22,7 @@ import ErrorBox from "./components/ErrorBox";
 import useSave from "./hooks/useSave";
 
 import TorchNode from "./components/TorchNode";
+import { stringify } from "querystring";
 
 // Main page component for the canvas feature
 export default function CanvasPage() {
@@ -140,6 +141,22 @@ export default function CanvasPage() {
   // used for opening the error drawer
   const [openErrorBox, setOpenErrorBox] = useState(false);
 
+  const [undoList, setUndoList] = useState<any[]>([]);
+  const [undoListIndex, setUndoListIndex] = useState<number>(-1);
+  
+  /* CONCURRENCY PROTECTIONS */
+  // reference to nodes and edges
+  const nodesRef    = useRef(nodes);
+  const edgesRef    = useRef(edges);
+  const undoListRef = useRef(undoList);
+  const undoListIndexRef = useRef(undoListIndex);
+
+  // updates nodes and edges references
+  useEffect(() => {nodesRef.current = nodes}, [nodes]);
+  useEffect(() => {edgesRef.current = edges}, [edges]);
+  useEffect(() => {undoListRef.current = undoList}, [undoList]);
+  useEffect(() => {undoListIndexRef.current = undoListIndex}, [undoListIndex]);
+
   // Handler for when nodes are changed (moved, edited, etc.)
   const onNodesChange = useCallback(
     // (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -147,10 +164,6 @@ export default function CanvasPage() {
     (changes) => {
       const newNodes = applyNodeChanges(changes, nodes);
       setNodes(newNodes);
-      // Update outgoing edge counts for affected nodes
-
-      // update nodes when nodes update
-      useParse(nodes, edges).then((e) => {setErrors(e)});
     },
     [nodes]
   );
@@ -160,6 +173,8 @@ export default function CanvasPage() {
       const newEdges = applyEdgeChanges(changes, edges);
       setEdges(newEdges);
       
+      console.log("called");
+
       // Update outgoing edge counts for affected nodes
       updateOutgoingEdgeCounts(newEdges);
     },
@@ -276,11 +291,6 @@ export default function CanvasPage() {
     [edges, defaultLayers, defaultTensorOps, defaultActivators, defaultInputs]
   );
 
-  useEffect(() => {
-    updateOutgoingEdgeCounts(edges); // was creating errors in delete nodes (do not know why, hopefully this doesn't break anything)
-    useParse(nodes, edges).then((e) => {setErrors(e)});
-  }, [edges]) // having this sit inside other functions causes issues
-
   // Function to update outgoing edge counts for all nodes
   const updateOutgoingEdgeCounts = (currentEdges: any[]) => {
     // Build outgoing edges map
@@ -343,6 +353,101 @@ export default function CanvasPage() {
       );
     },[]
   );
+  
+  /*
+  UNDO NOTES:
+    - things that can be undone:
+      * node type change
+      * node operation type change
+      * node parameter change
+      * deletion of node
+      * addition/creation of node
+    - things that cannot be undone:
+      * opening properties of nodes
+      * closing properties of nodes
+      * opening error box
+      * de/selecting a node
+    - things to be added in second phase
+      * edges changes (removal/connection)
+      * increased depth beyond one
+  */
+  const handleSetUndoList = (n, e) => {
+
+    const currUndoList = undoListRef.current;
+    const currIndex = undoListIndexRef.current;
+    const appendObject = {
+      n : n,
+      e : e
+    }
+
+    // console.log(currUndoList, currIndex, currIndex == currUndoList.length - 1);
+    if (currIndex == -1) {
+      setUndoListIndex(curr => curr + 1); // list is about to appended by one, so this works
+      setUndoList([appendObject]);
+    }
+
+    else if (currIndex == currUndoList.length - 1) {
+      setUndoListIndex(curr => curr + 1); // list is about to appended by one, so this works
+      setUndoList((curr) => [
+        ...curr,
+        appendObject
+      ]);
+    }
+    else if (currIndex < currUndoList.length - 1){
+      const slicedList = currUndoList.slice(0, currIndex + 1);
+      setUndoListIndex(curr => slicedList.length == 0 ? 0 : curr + 1);
+      setUndoList([
+        ...slicedList,
+        appendObject
+      ])
+    }
+    else {
+      console.error("unindented functionality in undo");
+    }
+  };
+  useEffect(() => {
+    const s: string[] = undoList.map((e) => e.n.length == 0 ? "noNode" : e.n[e.n.length - 1].data.label);
+    console.log("undolist current: " + s.join(", "), undoListIndex);
+  }, [undoList, undoListIndex]);
+
+  const doUndo = () => {
+      // if empty
+      const currUndoList = undoListRef.current;
+      const currIndex = undoListIndexRef.current;
+
+      if ((currIndex == 0)) {
+        console.log("reached end of the undoList");
+        return;
+      };
+
+      //  TODO: define a base case
+
+      setNodes(currUndoList[currIndex - 1].n);
+      setEdges(currUndoList[currIndex - 1].e);
+
+      // move the index one step towards the zeroth index
+      setUndoListIndex(currIndex == -1 ? currIndex : currIndex - 1);
+  }
+  const doRedo = () => {
+    const currUndoList = undoListRef.current;
+    const currIndex = undoListIndexRef.current;
+
+    if ((currIndex + 1 == currUndoList.length)) {
+      console.log("Upto date");
+      return;
+    };
+
+    setNodes(currUndoList[currIndex + 1].n);
+    setEdges(currUndoList[currIndex + 1].e);
+
+    // move the index one step towards the ending index
+    setUndoListIndex(currIndex + 1 == currUndoList.length ? currIndex : currIndex + 1);
+  };
+
+  const addNode = (toBeSetTo) => {
+    handleSetUndoList(toBeSetTo, edgesRef.current);
+    setNodes(toBeSetTo);
+  }
 
   const updateNodeParameter = (elementID: string, parameterKey: string, parameterValue: any) => {
     
@@ -363,7 +468,7 @@ export default function CanvasPage() {
           );
           
           let updatedData = {
-            ...e.data, 
+            ...e.data,
             parameters: updatedParameters
           };
           
@@ -429,7 +534,6 @@ export default function CanvasPage() {
         }
         return e;
       });
-      
       return updatedNodes;
     });
   }
@@ -462,10 +566,14 @@ export default function CanvasPage() {
     
     if (!newDefault) return;
     
+    // to forward to undofunction
+    let newNodes: any[] = [];
+
     // Use setTimeout to access current state
     setTimeout(() => {
       setEdges((currentEdges) => {
         setNodes((currentNodes) => {
+
           // Generate new ID based on operation type
           const operationPrefix = 
             operationType === "Input" ? "input" :
@@ -559,11 +667,13 @@ export default function CanvasPage() {
               return edges;
             });
           }, 0);
-          
+          newNodes = updatedNodes;
           return updatedNodes;
         });
+        
         return currentEdges;
       });
+      handleSetUndoList(newNodes, edgesRef.current);
     }, 0);
   }
 
@@ -591,17 +701,22 @@ export default function CanvasPage() {
 
   const deleteNode = (elementID: string) => {
     // Remove the node from nodes state
-    setNodes(oldNodes =>
-      oldNodes.filter((e) => e.id !== elementID)
-    );
+    let newNodes: any[] = [];
+    let newEdges: any[] = [];
+    setNodes((oldNodes) => {
+      newNodes = oldNodes.filter((e) => e.id !== elementID);
+      return newNodes;
+    });
     // Remove the node from selected nodes
     setSelectedNodes(oldNodes =>
       oldNodes.filter((e) => e.id !== elementID)
     );
     // remove edges from node
-    setEdges (oldEdges =>
-      oldEdges.filter((e) => !(e.source === elementID || e.target === elementID))
-    );
+    setEdges (oldEdges =>{
+      newEdges = oldEdges.filter((e) => !(e.source === elementID || e.target === elementID))
+      return newEdges;
+    });
+    handleSetUndoList(newNodes, newEdges);
   };
 
   // Custom hook to handle exporting the current canvas state
@@ -659,6 +774,16 @@ export default function CanvasPage() {
       );
   }, [errors]);
 
+  // calls use parse using nodes and edges references 
+  const handleUseParse = () => {
+    useParse(nodesRef.current, edgesRef.current).then(res => setErrors(res));
+  };
+
+  // calls use parse every 250ms
+  useEffect(() => {
+    const PARSE_INTERVAL = 250;
+    const parseIntervalID = setInterval(handleUseParse, PARSE_INTERVAL);
+  }, []);  
 
   const getSetters = () => {
     return {
@@ -677,6 +802,8 @@ export default function CanvasPage() {
       defaultInputs: defaultInputs
     }
   }
+
+  
 
   // Show loading state while fetching operations
   if (operationsLoading) {
@@ -703,7 +830,7 @@ export default function CanvasPage() {
     <Box sx={{ display: "flex" }}>
       <CssBaseline /> {/* Resets CSS for consistent styling */}
       {/* Top app bar/header */}
-      <AppBarHeader open={open} setOpen={setOpen} openErrorBox={openErrorBox} setOpenErrorBox={setOpenErrorBox}/>
+      <AppBarHeader open={open} setOpen={setOpen} openErrorBox={openErrorBox} setOpenErrorBox={setOpenErrorBox} doUndo={doUndo} doRedo={doRedo}/>
       {/* Sidebar with menu and export functionality */}
       <Sidebar
         open={open}
@@ -711,7 +838,7 @@ export default function CanvasPage() {
         selectedMenu={selectedMenu}
         setSelectedMenu={setSelectedMenu}
         nodes={nodes}
-        setNodes={setNodes}
+        addNode={addNode}
         handleExport={handleExport}
         handleSave={handleSave}
         selectedNodes={selectedNodes}

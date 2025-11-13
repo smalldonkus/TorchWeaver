@@ -13,14 +13,14 @@ import { createNode } from "./TorchNodeCreator";
 
 interface Props {
   nodes: any[];
-  setNodes: (val: any) => void;
+  addNode: (val: any) => void;
   defaultActivators: any; // Changed from any[] to any to handle new structure
   // for TorchNode functionality, allows it to update itself (TN)
   getSetters: () => any;
   getDefaults: () => any; // for editing within a node (TN)
 }
 
-export default function ActivatorsForm({ nodes, setNodes, defaultActivators, getSetters, getDefaults}: Props) {
+export default function ActivatorsForm({ nodes, addNode, defaultActivators, getSetters, getDefaults}: Props) {
   // Use parameter handling hook
   const { 
     parameters, 
@@ -103,7 +103,7 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators, get
         getDefaults,
         chosenActivator
     );
-    setNodes([
+    addNode([
       ...nodes,
       newNode
     ]);
