@@ -716,6 +716,42 @@ export default function CanvasPage() {
     );
   }
 
+  // If loadError is set (e.g., access denied or not found), show error screen
+  if (loadError) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          textAlign: "center",
+          px: 3,
+        }}
+      >
+        <Typography variant="h5" color="error" sx={{ mb: 2 }}>
+          {loadError}
+        </Typography>
+        <Typography variant="body1" sx={{ mb: 3 }}>
+          You don’t have permission to view this network or it doesn’t exist.
+        </Typography>
+        <a href="/dashboard" style={{ textDecoration: "none" }}>
+          <Typography
+            sx={{
+              color: "#3b71e4",
+              fontWeight: "bold",
+              cursor: "pointer",
+              "&:hover": { textDecoration: "underline" },
+            }}
+          >
+            Return to Dashboard
+          </Typography>
+        </a>
+      </Box>
+    );
+  }
+
   // Render the main layout
   return (
     <Box sx={{ display: "flex" }}>
