@@ -61,15 +61,35 @@ export default function AppBarHeader({ open, setOpen, openErrorBox, setOpenError
                     <MenuIcon />
                 </IconButton>
                 {/* App title */}
-                <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>
+                <Typography 
+                    variant="h5" 
+                    noWrap 
+                    sx={{ 
+                        flexGrow: 1, 
+                        color: 'white', 
+                        fontWeight: 700, 
+                        fontSize: '1.5rem', 
+                        fontFamily: 'inherit',
+                        textShadow: '0 2px 8px rgba(0,0,0,0.12)'
+                    }}
+                >
                     TorchWeaver Canvas
                 </Typography>
-                {/* "Error" button that opens the Errors drawer  */}
-                <Button variant={errorButtonVariant} color="error" onClick={handleErrorClick}>
-                    Errors
-                </Button>
                 {/* "Return" button that opens the dropdown menu */}
-                <Button color="inherit" onClick={handleMenuClick}>
+                <Button 
+                    onClick={handleMenuClick}
+                    sx={{
+                        backgroundColor: "#1c3062",
+                        color: "white",
+                        fontSize: "1.1rem",
+                        padding: "10px 20px",
+                        borderRadius: "8px",
+                        fontWeight: 600,
+                        '&:hover': {
+                            backgroundColor: '#16244a',
+                        }
+                    }}
+                >
                     Return
                 </Button>
                 {/* Dropdown menu with navigation options */}
@@ -93,7 +113,7 @@ export default function AppBarHeader({ open, setOpen, openErrorBox, setOpenError
                         onClick={() => {
                             handleMenuClose();
                             router.push("/login");
-                        }}
+                        }}  
                     >
                         Logout
                     </MenuItem>
