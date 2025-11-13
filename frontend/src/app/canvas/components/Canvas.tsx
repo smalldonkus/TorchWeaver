@@ -1,7 +1,7 @@
 "use client";
 import React, { useCallback } from 'react';
 import Box from "@mui/material/Box";
-import { ReactFlow, Background, Controls } from "@xyflow/react";
+import { ReactFlow, Background, Controls, useReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useEdgeReconnection } from '../hooks/useEdgeReconnection';
 
@@ -11,6 +11,7 @@ interface Props {
   nodeTypes: any;
   onNodesChange: any;
   onEdgesChange: any;
+  OnEdgesDelete: any;
   onConnect: any;
   onSelectionChange: any;
   setEdges: (edges: any[] | ((prevEdges: any[]) => any[])) => void;
@@ -22,6 +23,7 @@ export default function Canvas({
   nodeTypes,
   onNodesChange,
   onEdgesChange,
+  OnEdgesDelete,
   onConnect,
   onSelectionChange,
   setEdges
@@ -45,6 +47,7 @@ export default function Canvas({
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onEdgesDelete={OnEdgesDelete}
         onSelectionChange={onSelectionChange}
         onReconnect={onReconnect}
         onReconnectStart={onReconnectStart}

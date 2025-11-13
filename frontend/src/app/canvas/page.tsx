@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import CssBaseline from "@mui/material/CssBaseline";
-import { applyNodeChanges, applyEdgeChanges, addEdge, OnSelectionChangeFunc, Node, Edge, MarkerType} from "@xyflow/react";
+import { applyNodeChanges, applyEdgeChanges, addEdge, OnSelectionChangeFunc, Node, Edge, MarkerType, ReactFlowProvider} from "@xyflow/react";
 
 import { initialNodes, initialEdges } from "./utils/constants";
 import { Main, DrawerHeader } from "./utils/styled";
@@ -141,8 +141,8 @@ export default function CanvasPage() {
   // used for opening the error drawer
   const [openErrorBox, setOpenErrorBox] = useState(false);
 
-  const [undoList, setUndoList] = useState<any[]>([]);
-  const [undoListIndex, setUndoListIndex] = useState<number>(-1);
+  const [undoList, setUndoList] = useState<any[]>([{n : [], e: []}]);
+  const [undoListIndex, setUndoListIndex] = useState<number>(0);
   
   /* CONCURRENCY PROTECTIONS */
   // reference to nodes and edges
@@ -157,6 +157,109 @@ export default function CanvasPage() {
   useEffect(() => {undoListRef.current = undoList}, [undoList]);
   useEffect(() => {undoListIndexRef.current = undoListIndex}, [undoListIndex]);
 
+
+  /*
+  UNDO NOTES:
+    - things that can be undone:
+      * node type change
+      * node operation type change
+      * node parameter change
+      * deletion of node
+      * addition/creation of node
+    - things that cannot be undone:
+      * opening properties of nodes
+      * closing properties of nodes
+      * opening error box
+      * de/selecting a node
+    - things to be added in second phase
+      * edges changes (removal/connection)
+      * increased depth beyond one
+  */
+  const handleSetUndoList = (n, e) => {
+
+    const currUndoList = undoListRef.current;
+    const currIndex = undoListIndexRef.current;
+    const appendObject = {
+      n : n,
+      e : e
+    }
+
+    // console.log(currUndoList, currIndex, currIndex == currUndoList.length - 1);
+    if (currIndex == -1) {
+      setUndoListIndex(curr => curr + 1); // list is about to appended by one, so this works
+      setUndoList([appendObject]);
+    }
+
+    else if (currIndex == currUndoList.length - 1) {
+      setUndoListIndex(curr => curr + 1); // list is about to appended by one, so this works
+      setUndoList((curr) => [
+        ...curr,
+        appendObject
+      ]);
+    }
+    else if (currIndex < currUndoList.length - 1){
+      const slicedList = currUndoList.slice(0, currIndex + 1);
+      setUndoListIndex(curr => slicedList.length == 0 ? 0 : curr + 1);
+      setUndoList([
+        ...slicedList,
+        appendObject
+      ])
+    }
+    else {
+      console.error("unindented functionality in undo");
+    }
+  };
+
+
+  useEffect(() => {
+    const s: string[] = undoList.map((e) => e.n.length == 0 ? "nLen: 0, eLen: 0" : ", nLen: " + e.n.length + ", eLen: " + e.e.length);
+    console.log("undolist current: " + s.join(", "));
+    const s2: string[] = undoList.map((e) => "head: " + (e.n.length == 0 ? "noNode" : e.n[e.n.length - 1].data.label));
+    console.log("undolist current: " + s2.join(", "), ", uLI: " + undoListIndex);
+    console.log(nodesRef.current.map((e) => e.id).join(", "));
+  }, [undoList, undoListIndex]);
+
+
+  const doUndo = () => {
+    // if empty
+    const currUndoList = undoListRef.current;
+    const currIndex = undoListIndexRef.current;
+
+    if ((currIndex == 0)) {
+      console.log("reached end of the undoList");
+      return;
+    };
+
+    //  TODO: define a base case
+
+    setNodes(currUndoList[currIndex - 1].n);
+    setEdges(currUndoList[currIndex - 1].e);
+
+    // move the index one step towards the zeroth index
+    setUndoListIndex(currIndex == -1 ? currIndex : currIndex - 1);
+  }
+  const doRedo = () => {
+    const currUndoList = undoListRef.current;
+    const currIndex = undoListIndexRef.current;
+
+    if ((currIndex + 1 == currUndoList.length)) {
+      console.log("Upto date");
+      return;
+    };
+
+    setNodes(currUndoList[currIndex + 1].n);
+    setEdges(currUndoList[currIndex + 1].e);
+
+    // move the index one step towards the ending index
+    setUndoListIndex(currIndex + 1 == currUndoList.length ? currIndex : currIndex + 1);
+  };
+
+  const addNode = (toBeSetTo) => {
+    handleSetUndoList(toBeSetTo, edgesRef.current);
+    setNodes(toBeSetTo);
+  }
+
+
   // Handler for when nodes are changed (moved, edited, etc.)
   const onNodesChange = useCallback(
     // (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -164,6 +267,20 @@ export default function CanvasPage() {
     (changes) => {
       const newNodes = applyNodeChanges(changes, nodes);
       setNodes(newNodes);
+
+      if (changes != undefined && changes[0] != undefined && changes[0].type === "position"){
+        setUndoList(lst => lst.map( // for each era in lst
+          era => ({
+            n : era.n.map( // for node in era
+              (eraNode) => ({
+                ...eraNode,
+                position: changes[0].id === eraNode.id ? changes[0].position : eraNode.position
+              })
+            ),
+            e : era.e
+          })
+        ));
+      };
     },
     [nodes]
   );
@@ -172,9 +289,6 @@ export default function CanvasPage() {
     (changes) => {
       const newEdges = applyEdgeChanges(changes, edges);
       setEdges(newEdges);
-      
-      console.log("called");
-
       // Update outgoing edge counts for affected nodes
       updateOutgoingEdgeCounts(newEdges);
     },
@@ -193,9 +307,14 @@ export default function CanvasPage() {
       };
       const newEdges = addEdge(edgeWithArrow, edges);
       setEdges(newEdges);
-      
+
+      console.log("called");
+
       // Update outgoing edge counts for affected nodes
       updateOutgoingEdgeCounts(newEdges);
+
+      // strange functionality, but it cannot be avoided (at least i can't think how)
+      handleSetUndoList(nodesRef.current, newEdges);
 
       // Handle inheritance when connection is made
       setTimeout(() => {
@@ -291,6 +410,21 @@ export default function CanvasPage() {
     [edges, defaultLayers, defaultTensorOps, defaultActivators, defaultInputs]
   );
 
+  const OnEdgesDelete = useCallback(
+    (delEdges) => {
+
+      if (delEdges.length == 0) {
+        console.log("delEdges empty")
+        return;
+      }
+      const localNodesRef = nodesRef.current;
+      const localEdgesRef = edgesRef.current; // this shit changes like no-one's business.
+      const trimmedEdges = localEdgesRef.filter((e) => !delEdges.some(e2 => e2.id === e.id));
+
+      handleSetUndoList(localNodesRef, trimmedEdges);
+    }, []
+  );
+
   // Function to update outgoing edge counts for all nodes
   const updateOutgoingEdgeCounts = (currentEdges: any[]) => {
     // Build outgoing edges map
@@ -353,101 +487,6 @@ export default function CanvasPage() {
       );
     },[]
   );
-  
-  /*
-  UNDO NOTES:
-    - things that can be undone:
-      * node type change
-      * node operation type change
-      * node parameter change
-      * deletion of node
-      * addition/creation of node
-    - things that cannot be undone:
-      * opening properties of nodes
-      * closing properties of nodes
-      * opening error box
-      * de/selecting a node
-    - things to be added in second phase
-      * edges changes (removal/connection)
-      * increased depth beyond one
-  */
-  const handleSetUndoList = (n, e) => {
-
-    const currUndoList = undoListRef.current;
-    const currIndex = undoListIndexRef.current;
-    const appendObject = {
-      n : n,
-      e : e
-    }
-
-    // console.log(currUndoList, currIndex, currIndex == currUndoList.length - 1);
-    if (currIndex == -1) {
-      setUndoListIndex(curr => curr + 1); // list is about to appended by one, so this works
-      setUndoList([appendObject]);
-    }
-
-    else if (currIndex == currUndoList.length - 1) {
-      setUndoListIndex(curr => curr + 1); // list is about to appended by one, so this works
-      setUndoList((curr) => [
-        ...curr,
-        appendObject
-      ]);
-    }
-    else if (currIndex < currUndoList.length - 1){
-      const slicedList = currUndoList.slice(0, currIndex + 1);
-      setUndoListIndex(curr => slicedList.length == 0 ? 0 : curr + 1);
-      setUndoList([
-        ...slicedList,
-        appendObject
-      ])
-    }
-    else {
-      console.error("unindented functionality in undo");
-    }
-  };
-  useEffect(() => {
-    const s: string[] = undoList.map((e) => e.n.length == 0 ? "noNode" : e.n[e.n.length - 1].data.label);
-    console.log("undolist current: " + s.join(", "), undoListIndex);
-  }, [undoList, undoListIndex]);
-
-  const doUndo = () => {
-      // if empty
-      const currUndoList = undoListRef.current;
-      const currIndex = undoListIndexRef.current;
-
-      if ((currIndex == 0)) {
-        console.log("reached end of the undoList");
-        return;
-      };
-
-      //  TODO: define a base case
-
-      setNodes(currUndoList[currIndex - 1].n);
-      setEdges(currUndoList[currIndex - 1].e);
-
-      // move the index one step towards the zeroth index
-      setUndoListIndex(currIndex == -1 ? currIndex : currIndex - 1);
-  }
-  const doRedo = () => {
-    const currUndoList = undoListRef.current;
-    const currIndex = undoListIndexRef.current;
-
-    if ((currIndex + 1 == currUndoList.length)) {
-      console.log("Upto date");
-      return;
-    };
-
-    setNodes(currUndoList[currIndex + 1].n);
-    setEdges(currUndoList[currIndex + 1].e);
-
-    // move the index one step towards the ending index
-    setUndoListIndex(currIndex + 1 == currUndoList.length ? currIndex : currIndex + 1);
-  };
-
-  const addNode = (toBeSetTo) => {
-    handleSetUndoList(toBeSetTo, edgesRef.current);
-    setNodes(toBeSetTo);
-  }
 
   const updateNodeParameter = (elementID: string, parameterKey: string, parameterValue: any) => {
     
@@ -776,13 +815,15 @@ export default function CanvasPage() {
 
   // calls use parse using nodes and edges references 
   const handleUseParse = () => {
-    useParse(nodesRef.current, edgesRef.current).then(res => setErrors(res));
+    if (nodesRef.current != undefined && nodesRef.current.length != 0 && edgesRef.current != undefined && edgesRef.current.length != 0){
+      useParse(nodesRef.current, edgesRef.current).then(res => setErrors(res));
+    };
   };
 
   // calls use parse every 250ms
   useEffect(() => {
     const PARSE_INTERVAL = 250;
-    const parseIntervalID = setInterval(handleUseParse, PARSE_INTERVAL);
+    // const parseIntervalID = setInterval(handleUseParse, PARSE_INTERVAL);
   }, []);  
 
   const getSetters = () => {
@@ -857,16 +898,19 @@ export default function CanvasPage() {
       <Main open={open}>
         <DrawerHeader /> {/* Spacer for the header */}
         {/* Canvas component where nodes and edges are displayed and edited */}
-        <Canvas
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onSelectionChange={onSelectionChange}
-          setEdges={setEdges}
-        />
+        <ReactFlowProvider>
+          <Canvas
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            OnEdgesDelete={OnEdgesDelete}
+            onConnect={onConnect}
+            onSelectionChange={onSelectionChange}
+            setEdges={setEdges}
+          />
+        </ReactFlowProvider>
       </Main>
       <ErrorBox key={"errorBox"} isOpen={openErrorBox} setOpen={setOpenErrorBox} messages={errorMsgs}/>
     </Box>
