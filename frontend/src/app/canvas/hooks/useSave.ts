@@ -1,17 +1,32 @@
 import { useUser } from "@auth0/nextjs-auth0"
 
-export default function useSave(nodes: any[], edges: any[]) {
+export default function useSave(
+  nodes: any[], 
+  edges: any[],
+  onSuccess?: (message: string) => void,
+  onError?: (message: string) => void
+) {
   const { user, isLoading } = useUser();
 
   return async () => {
 
     if (isLoading) {
-      alert("Loading user info...");
+      const message = "Loading user info...";
+      if (onError) {
+        onError(message);
+      } else {
+        alert(message);
+      }
       return;
     }
 
     if (!user) {
-      alert("You must be logged in to save your network!");
+      const message = "You must be logged in to save your network!";
+      if (onError) {
+        onError(message);
+      } else {
+        alert(message);
+      }
       return;
     }
 
@@ -56,19 +71,42 @@ export default function useSave(nodes: any[], edges: any[]) {
         // Only redirect if it was a new network
         if (!id) {
           const savedId = result.id;
-          window.location.href = `/canvas?id=${savedId}`;
-          alert(`Network saved successfully!`);
+          const successMessage = `Network saved successfully!`;
+          if (onSuccess) {
+            onSuccess(successMessage);
+          } else {
+            alert(successMessage);
+          }
+          // Delay redirect slightly to show the snackbar
+          setTimeout(() => {
+            window.location.href = `/canvas?id=${savedId}`;
+          }, 1500);
         } else {
           // Optionally show a toast or message
-          alert(`Network #${id} updated successfully!`);
+          const successMessage = `Network #${id} updated successfully!`;
+          if (onSuccess) {
+            onSuccess(successMessage);
+          } else {
+            alert(successMessage);
+          }
         }
       } else {
-        alert(`Error: ${result.error}`);
+        const errorMsg = `Error: ${result.error}`;
+        if (onError) {
+          onError(errorMsg);
+        } else {
+          alert(errorMsg);
+        }
       }
     } catch (error) {
       console.error('Error saving network:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      alert(`Failed to save network: ${errorMessage}`);
+      const fullErrorMsg = `Failed to save network: ${errorMessage}`;
+      if (onError) {
+        onError(fullErrorMsg);
+      } else {
+        alert(fullErrorMsg);
+      }
     }
   };
 }

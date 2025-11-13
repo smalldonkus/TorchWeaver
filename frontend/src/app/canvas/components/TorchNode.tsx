@@ -271,9 +271,24 @@ export default function TorchNode(props) {
         sx={{
             display: "flex", 
             flexDirection:"column", 
-            padding: "5px",
-            gap: "10px",
-            width: canEdit ? "600px" : "auto"
+            padding: "16px",
+            gap: "12px",
+            width: canEdit ? "600px" : "auto",
+            backgroundColor: "#ffffff",
+            borderRadius: "12px",
+            boxShadow: hasError 
+              ? "0 4px 12px rgba(211, 47, 47, 0.3)" 
+              : "0 4px 12px rgba(0, 0, 0, 0.1)",
+            border: hasError 
+              ? "2px solid #d32f2f" 
+              : "2px solid #e0e0e0",
+            transition: "all 0.3s ease",
+            "&:hover": {
+              boxShadow: hasError 
+                ? "0 6px 16px rgba(211, 47, 47, 0.4)" 
+                : "0 6px 16px rgba(0, 0, 0, 0.15)",
+              borderColor: hasError ? "#d32f2f" : "#202A44"
+            }
         }}>
           <Box 
             sx={{
@@ -282,18 +297,62 @@ export default function TorchNode(props) {
               justifyContent: "flex-start",
               alignItems: "center",
               gap: "10px",
+              paddingBottom: "8px",
+              borderBottom: "1px solid #e0e0e0"
             }}>
-              <Stack>
-                <Typography sx={{}} variant="h5">{props.data.label}</Typography>
+              <Stack sx={{ flex: 1 }}>
+                <Typography 
+                  sx={{ 
+                    fontWeight: 600,
+                    color: "#202A44",
+                    fontSize: "1.1rem"
+                  }} 
+                  variant="h6"
+                >
+                  {props.data.label}
+                </Typography>
                 {canEdit && DEBUG && <Typography sx={{}} variant="caption" color="#757575"> {props.id}</Typography>}
               </Stack>
               
-              <Button className="nodrag" onClick={toggleState} variant="outlined" color="primary" sx={buttonSx}>
+              <Button 
+                className="nodrag" 
+                onClick={toggleState} 
+                variant={canEdit ? "contained" : "outlined"}
+                sx={{
+                  ...buttonSx,
+                  borderRadius: "8px",
+                  backgroundColor: canEdit ? "#202A44" : "transparent",
+                  borderColor: "#202A44",
+                  color: canEdit ? "#ffffff" : "#202A44",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    backgroundColor: canEdit ? "#e66900" : "rgba(255, 119, 0, 0.08)",
+                    borderColor: "#202A44",
+                    transform: "scale(1.05)"
+                  }
+                }}
+              >
                   <SettingsIcon/>
               </Button>
-              <Button className="nodrag" onClick={openErrorPopover} variant="outlined" color={errorIconBorderColourMUI} sx={buttonSx}>
+              <Button 
+                className="nodrag" 
+                onClick={openErrorPopover} 
+                variant="outlined" 
+                sx={{
+                  ...buttonSx,
+                  borderRadius: "8px",
+                  borderColor: hasError ? "#d32f2f" : "#202A44",
+                  color: hasError ? "#d32f2f" : "#202A44",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    transform: "scale(1.05)",
+                    borderColor: hasError ? "#d32f2f" : "#202A44",
+                    backgroundColor: hasError ? "rgba(211, 47, 47, 0.08)" : "rgba(255, 119, 0, 0.08)"
+                  }
+                }}
+              >
                   <ErrorIcon 
-                    color={hasError ? "error" : "primary" }
+                    sx={{ color: hasError ? "#d32f2f" : "#202A44" }}
                   />
               </Button>
               <Popover
@@ -305,20 +364,41 @@ export default function TorchNode(props) {
                   vertical: "center",
                   horizontal: "right"
                 }}
-                sx = {{
-                  padding: "5px",
-                  borderRadius: "5px",
-                  minWidth: "1000px",
-                  maxWidth: "80%"
+                transformOrigin={{
+                  vertical: "center",
+                  horizontal: "left"
                 }}
                 className="nodrag"
+                slotProps={{
+                  paper: {
+                    sx: {
+                      borderRadius: 3,
+                      maxWidth: 500,
+                      boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.15)"
+                    }
+                  }
+                }}
               >
-                {hasError && props.data.errors.map((e, i) => (
-                  <Typography key = {i} sx={{ p: 2 }} variant="h5">{e}</Typography>
-                ))}
-                {!hasError && 
-                  <Typography sx={{ p: 2 }} variant="h5">No Errors To Display</Typography>
-                }
+                <Box sx={{ p: 2 }}>
+                  {hasError ? (
+                    props.data.errors.map((e, i) => (
+                      <Typography 
+                        key={i} 
+                        variant="body2" 
+                        sx={{ 
+                          mb: i < props.data.errors.length - 1 ? 1 : 0,
+                          fontFamily: 'inherit' 
+                        }}
+                      >
+                        {e}
+                      </Typography>
+                    ))
+                  ) : (
+                    <Typography variant="body2" sx={{ fontFamily: 'inherit' }}>
+                      No errors to display
+                    </Typography>
+                  )}
+                </Box>
               </Popover>
           </Box>
           {/* this box */}
@@ -401,15 +481,34 @@ export default function TorchNode(props) {
                     onClick={handleApplyEdit}
                     // requires that a operationType and specificType have been chosen
                     disabled={(!hasPendingChanges || hasValidationErrors) || selectedOperationType==="" || selectedSpecificType===""}
-                    sx={{ backgroundColor: 'primary.main' }}
+                    sx={{ 
+                      backgroundColor: '#202A44',
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      '&:hover': {
+                        boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+                      }
+                    }}
                 >
                     Apply Edit
                 </Button>
                 <Button 
                     variant="contained" 
                     fullWidth 
-                    style={{backgroundColor: "red"}} 
                     onClick={deleteNodeLocal}
+                    sx={{
+                      backgroundColor: "#d32f2f",
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      '&:hover': {
+                        backgroundColor: "#c62828",
+                        boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+                      }
+                    }}
                 >
                     Delete
                 </Button>
