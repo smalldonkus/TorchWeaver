@@ -1,4 +1,6 @@
 import Link from "next/link"
+
+// Features component that sets up different descriptions of the features of our website and functionality within the canvas to a new user.
 export default function Features() {
     return (
         <>
@@ -26,7 +28,30 @@ export default function Features() {
                         heading={"Streamlined Access and Design"}
                         notes={"User responsive page design and streamlined access allows you to get creating straight away and with no pay-walls or significant loading times. Create now!"}
                     />
+
+                    <Component 
+                        image={"dnd.gif"}
+                        heading={"Saving and Loading Created NN Architectures"}
+                        notes={"Our dashboard page allows a user to save their created canvas designs, and load them at a later date. Designs are only accessible to the user who created them."}
+                    />
+                    <Component 
+                        image={"layers.gif"}
+                        heading={"Real-Time Error Checking"}
+                        notes={"Our software allows a user to be aware of errors associated with their design while creating it, preventing some non-functional issues when exporting and helping the user experience."}
+                    />
+                    <Component 
+                        image={"export.png"}
+                        heading={"Enforced Email Verification and User Protection"}
+                        notes={"Maximum uptime for our website is maintained by enforcing user identifaction for database access, with a pen-tested and trusted integration with Auth0."}
+                    />
+
+                    <Component 
+                        image={"background-img.jpg"}
+                        heading={"Streamlined Access and Design"}
+                        notes={"User responsive page design and streamlined access allows you to get creating straight away and with no pay-walls or significant loading times. Create now!"}
+                    />
                 </div>
+                <a href="https://www.vecteezy.com/free-vector/orange-background">Orange Background Vectors by Vecteezy</a>
             </div>
 
             
