@@ -43,6 +43,9 @@ import ActivatorsForm from "./ActivatorsForm";
 // Import EditLayerForm component for the "Edit Layer" menu
 import EditLayerForm from "./EditLayerForm"
 
+// import auth0 client for dynamic rendering if a user is signed in
+import { useUser } from "@auth0/nextjs-auth0"
+
 // Define the props expected by the Sidebar component
 interface Props {
     open: boolean; // Whether the sidebar is open
@@ -90,6 +93,9 @@ export default function Sidebar({
 }: Props) {
     // Get theme object for direction (ltr/rtl)
     const theme = useTheme();
+
+    const { user, isLoading } = useUser();
+    const userDisabling = !user;
 
     return (
         // Drawer component for the sidebar
@@ -171,7 +177,7 @@ export default function Sidebar({
                 <List>
                     {/* Export button */}
                     <ListItem disablePadding>
-                        <ListItemButton onClick={handleExport}>
+                        <ListItemButton onClick={handleExport} disabled={userDisabling}>
                             <ListItemIcon>
                                 <UploadIcon />
                             </ListItemIcon>
@@ -180,7 +186,7 @@ export default function Sidebar({
                     </ListItem>
                     {/* Save button (no handler attached) */}
                     <ListItem disablePadding>
-                        <ListItemButton onClick={handleSave}>
+                        <ListItemButton onClick={handleSave} disabled={userDisabling}>
                             <ListItemIcon>
                                 <SaveIcon />
                             </ListItemIcon>

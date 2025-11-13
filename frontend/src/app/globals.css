@@ -25,10 +25,16 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Styling classes/ids for the Header component of the Landing Page (includes profile drop-down) */
+.landingPage {
+  /* font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif; */
+  /* font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;T */
+  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
 .landingbody {
   width: 100%;
   height: 100%;
-  background-color: #EDF1F3;
   overflow-x: hidden;
 }
 
@@ -40,7 +46,7 @@ body {
 }
 
 #heading {
-  background-color: #1976D3;
+  background-color: #FF7700;
   height: 100px;
   width: 100%;
   display: flex;
@@ -67,19 +73,19 @@ body {
 }
 
 
-
+/* Profile-picture frame changes colour based on if the user picture is hovered/clicked */
 .profilePicture {
   width: 5rem;
   border-radius: 50%;
-  border: 3px solid #5C9DEF;
+  border: 3px solid #E66902;
 }
 
 .profilePicture:hover {
-  border-color: #3B7BCF;
+  border-color: #FFF0E0;
 }
 
 .profilePicture:active {
-  border-color: #0D47A2
+  border-color: #CC5C03;
 }
 
 .dropdown {
@@ -87,6 +93,8 @@ body {
   margin-right: 10%;
 }
 
+/* Profile drop-down has absolute positioning relative to a parent div, which allows it to be placed above the landing body
+ and other rendered objects */
 .profileDropdown {
   position: absolute;
   display: block;
@@ -169,8 +177,8 @@ body {
   flex: 0 1 auto;
   padding: 1rem 2rem;
   margin-right: 2rem;
-  border-radius: 5px;
-  background-color: #1976D3;
+  border-radius: 15px;
+  background-color: #FF7700;
   color: #F1F1F1;
   font-size: 1.5rem;
   cursor: pointer;
@@ -179,17 +187,19 @@ body {
 }
 
 .toolbarBtn:hover {
-  background-color: #1565C0;
+  background-color: #E66902;
 }
 
 .toolbarBtn:active {
-  background-color: #0D47A2;
+  background-color: #CC5C03;
 }
 
 .title {
   color: #EDF1F3;
   font-size: 3rem;
   margin-left: 5%;
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .titleSubtext {
@@ -198,9 +208,12 @@ body {
   margin-left: 5%;
 }
 
+/* Next section of classes/ids are for the landingBody component of the Landing Page */
 #landingBody {
   height: 30%;
   background-color: #EDF1F3;
+  background-image: url('/landingbodybackground.jpg');
+  background-size: cover;
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
@@ -213,44 +226,52 @@ body {
   padding-left: 5vh;
   padding-top: 5vh;
   height: auto;
-  color: #141F43;
+  color: #F1F1F1;
   align-items: center;
 }
 
+/* Many classes features clamp, to help with zooming features and changing resolutions for more gradual and consistent framing of items. */
 #landingSynopsis {
   height: auto;
   font-size: clamp(2rem, 3.5vw, 10rem);
   font: bolder;
-  color: #141F43;
+  color: #F1F1F1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
 
 }
 
 .landingDesc {
   font-size: clamp(1rem, 1.2vw, 7rem);
-  color: #32383D;
+  color: #F1F1F1;
   margin-top: 30px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
 }
 
 #canvasBtn {
   margin-left: 30%;
   margin-top: 10%;
-  background-color: #1976D3;
+  background-color: none;
+  border-radius: 40px;
+  border-color: #f1f1f1;
+  background-color: #FF7700;
+  border: 2 solid #f1f1f1;
   width: clamp(10rem, 10vw, 19rem);
-  height: 5rem;
-  border-radius: 5px;
+  height: 4rem;
   color: #EDF1F3;
   font-size: 1.5rem;
   font: bold;
   cursor: pointer;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
 }
 
 #canvasBtn:active {
-  background-color: #4791db;  
+  background-color: #CC5C03;  
   transform: scale(0.96);
 }
 
 #landingImgContainer {
-  margin-top: 5vh;
+  margin-top: 3vh;
+  margin-bottom: 3vh;
   margin-right: 2%;
   width: 40%;
   max-width: 1500px;
@@ -266,39 +287,44 @@ body {
   background-image: url("./components/images/background-img.png");
 }
 
+/* Classes/ids for the features component of the Landing Page */
 #featuresBody {
   min-height: 100vh;
   width: 100%;
-  background-color: #F5F7FA;
+  background-image: url("/featuresbackground.jpg");
+  background-size: cover;
 }
 
 #featuresTitle {
   font-size: 48px;
   padding-top: 50px;
-  color: #141F43; 
-  background-color: #F5F7FA;
+  color: #FF7700; 
   align-content: center;
   height: 115px;
-  margin-bottom: 100px;
+  padding-bottom: 125px;
   text-align: center;
-  
+  font-style: bold;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  text-decoration:underline;
 }
 
 .featureBody {
   height: clamp(600px, 70vh, 1500px);
   margin: 2vh 2vw;
-  background-color: #EDF1F3;
   display: flex;
   flex-direction: column;
   align-items: center;
   overflow-x: hidden;
+  overflow-y: hidden;
+  background-color: #FFD4A8;
+  border-radius: 80px;
 }
 
 .featureImgContainer {
   width: 80%;
   border: 4px solid #141F43;
   aspect-ratio: 4/3;
-  margin-top: 1rem;
+  margin-top: 3rem;
   margin-bottom: 1rem;
 }
 
@@ -317,16 +343,18 @@ body {
 }
 
 .featureNotes {
-  color: #061F37;
-  text-align: left;
+  color: black;
+  text-align: center;
   font-size: clamp(1rem, 2.5%, 2rem);
-  padding: 1rem 1rem;
+  padding: 3rem 1rem;
 
 }
 
+/* Uses grid for a succient styling that can drop feature descriptions down the page depending on resolution, which allows
+the website to be accessible to mobile resolutions */
 .featureColumn {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   box-sizing: border-box;
   gap: 2rem;
 }
