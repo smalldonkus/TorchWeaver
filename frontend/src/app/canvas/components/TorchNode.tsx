@@ -365,8 +365,12 @@ export default function TorchNode(props) {
                   horizontal: "right"
                 }}
                 sx = {{
-                  padding: "5px"
+                  padding: "5px",
+                  borderRadius: "5px",
+                  minWidth: "1000px",
+                  maxWidth: "80%"
                 }}
+                className="nodrag"
               >
                 {hasError && props.data.errors.map((e, i) => (
                   <Typography key = {i} sx={{ p: 2 }} variant="h5">{e}</Typography>
