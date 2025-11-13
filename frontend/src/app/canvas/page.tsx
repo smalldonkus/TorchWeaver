@@ -23,6 +23,7 @@ import useSave from "./hooks/useSave";
 
 import TorchNode from "./components/TorchNode";
 
+import { useUser } from "@auth0/nextjs-auth0";
 // Main page component for the canvas feature
 export default function CanvasPage() {
 
@@ -39,7 +40,8 @@ export default function CanvasPage() {
   const nodeTypes = {
     torchNode : TorchNode
   };
-  
+  const { user } = useUser();
+  const [loadError, setLoadError] = useState<string | null>(null);
   // Load saved network if available
   useEffect(() => {
     async function fetchNetwork() {
@@ -54,8 +56,24 @@ export default function CanvasPage() {
       try {
         console.log("=== LOADING NETWORK ===");
         console.log("Fetching network ID:", id);
-        
-        const response = await fetch(`http://localhost:5000/load_network?id=${id}`);
+        const response = await fetch(`http://localhost:5000/load_network?id=${id}`, {
+          headers: {
+            "Content-Type": "application/json",
+            header: user?.sub || "",
+          },
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          console.error("Access denied — user does not own this network.");
+          setLoadError("You do not have permission to view this network.");
+          return;
+        }
+
+        if (response.status === 404) {
+          console.error("Network not found.");
+          setLoadError("Network not found or deleted.");
+          return;
+        }
         const data = await response.json();
 
         console.log("Raw response data:", data);
