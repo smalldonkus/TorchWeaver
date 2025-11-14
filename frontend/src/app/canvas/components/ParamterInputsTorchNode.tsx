@@ -56,16 +56,6 @@ export default function ParameterInputs({
   // State for parameter validation errors
   const [parameterErrors, setParameterErrors] = useState<{ [key: string]: string }>({});
 
-  const [anchorCP, setAnchorCP] = useState<HTMLElement | null>(null);
-  const isChipPopoverOpen = Boolean(anchorCP);
-  const idCP = isChipPopoverOpen ? "error-popover" : undefined;
-
-  const openChipPopover = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorCP(event.currentTarget);
-  };
-  const closeChipPopover = () => {
-    setAnchorCP(null);
-  };
 
   // Notify parent component when validation state changes
   useEffect(() => {
@@ -127,6 +117,17 @@ export default function ParameterInputs({
 
 
 
+  // Helper function to get description for a single type
+  const getTypeDescription = (type: string): string => {
+    const typeInfo = variablesInfo.find(info => info.type === type);
+    return typeInfo ? typeInfo.input_description : `Enter ${type} value`;
+  };
+
+  // State to track which chip popover is open
+  const [chipPopoverAnchor, setChipPopoverAnchor] = useState<HTMLElement | null>(null);
+  const [chipPopoverType, setChipPopoverType] = useState<string | null>(null);
+  const isChipPopoverOpen = Boolean(chipPopoverAnchor);
+
   return (
     <Grid container spacing={2} columns={gridSizes.column}>
       {Object.keys(parameters).map((parameterKey, i) => {
@@ -153,33 +154,42 @@ export default function ParameterInputs({
                     {/* Show expected types as chips */}
                     {expectedTypes.length > 0 && !isDisabled && (
                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 0.5 }}>
-                        {expectedTypes.map((type) => (
-                        <div key={type}>
-                            <Chip
-                                key={type + 'chip'}
-                                label={type}
-                                size="small"
-                                variant="outlined"
-                                onClick={openChipPopover}
-                                sx={{ fontSize: "0.7rem", height: "20px" }}
-                                className="nodrag"
-                            />
-                            <Popover
-                                key={type + 'popover'}
-                                id={idCP}
-                                open={isChipPopoverOpen}
-                                onClose={closeChipPopover}
-                                anchorEl={anchorCP}
-                                anchorOrigin={{
-                                    vertical: "center",
-                                    horizontal: "right"
-                                }}
-                                sx={{padding: "5px", boxShadow: 0, maxWidth: "1500px"}}
-                                >
-                                    <Typography key = {i} sx={{ p: 1 }} variant="subtitle2">{helperText}</Typography>
-                            </Popover>
-                        </div>
+                        {expectedTypes.map((type, typeIndex) => (
+                          <div key={type}>
+                              <Chip
+                                  label={type}
+                                  size="small"
+                                  variant="outlined"
+                                  onClick={(e) => {
+                                    setChipPopoverAnchor(e.currentTarget);
+                                    setChipPopoverType(type);
+                                  }}
+                                  sx={{ fontSize: "0.7rem", height: "20px" }}
+                                  className="nodrag"
+                              />
+                          </div>
                         ))}
+                        {/* Single Popover for all chips, shows info for selected type */}
+                        <Popover
+                          open={isChipPopoverOpen}
+                          onClose={() => {
+                            setChipPopoverAnchor(null);
+                            setChipPopoverType(null);
+                          }}
+                          anchorEl={chipPopoverAnchor}
+                          anchorOrigin={{
+                              vertical: "center",
+                              horizontal: "right"
+                          }}
+                          sx={{
+                            padding: "12px",
+                            maxWidth: "1500px"
+                          }}
+                        >
+                          <Typography sx={{ p: 1 }} variant="subtitle2">
+                            {chipPopoverType ? getTypeDescription(chipPopoverType) : ""}
+                          </Typography>
+                        </Popover>
                     </Box>
                     )}
                     

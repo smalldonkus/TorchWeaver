@@ -4,7 +4,9 @@ import { useState, useCallback, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import CssBaseline from "@mui/material/CssBaseline";
-import { applyNodeChanges, applyEdgeChanges, addEdge, OnSelectionChangeFunc, Node, Edge, MarkerType} from "@xyflow/react";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
+import { applyNodeChanges, applyEdgeChanges, addEdge, OnSelectionChangeFunc, Node, Edge, MarkerType, ReactFlowProvider } from "@xyflow/react";
 
 import { initialNodes, initialEdges } from "./utils/constants";
 import { Main, DrawerHeader } from "./utils/styled";
@@ -40,7 +42,7 @@ export default function CanvasPage() {
   const nodeTypes = {
     torchNode : TorchNode
   };
-  const { user } = useUser();
+  const { user, isLoading: userLoading } = useUser();
   const [loadError, setLoadError] = useState<string | null>(null);
   // Load saved network if available
   useEffect(() => {
@@ -50,6 +52,11 @@ export default function CanvasPage() {
     const id = params.get("id") || params.get("network_id");
       if (!id) {
         console.log("No network ID in URL");
+        return;
+      }
+
+      // Don't try to load until Auth0 has finished loading the user
+      if (userLoading) {
         return;
       }
 
@@ -157,6 +164,25 @@ export default function CanvasPage() {
   const [errorMsgs, seterrorMsgs] = useState<any[]>([]);
   // used for opening the error drawer
   const [openErrorBox, setOpenErrorBox] = useState(false);
+
+  // Snackbar state for success/error messages
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error' | 'warning' | 'info';
+  }>({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
+
+  const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   // Handler for when nodes are changed (moved, edited, etc.)
   const onNodesChange = useCallback(
@@ -623,9 +649,22 @@ export default function CanvasPage() {
   };
 
   // Custom hook to handle exporting the current canvas state
-  const handleExport = useExport(nodes, edges, defaultLayers, defaultTensorOps, defaultActivators);
+  const handleExport = useExport(
+    nodes, 
+    edges, 
+    defaultLayers, 
+    defaultTensorOps, 
+    defaultActivators,
+    (msg) => showSnackbar(msg, 'success'),
+    (msg) => showSnackbar(msg, 'error')
+  );
 
-  const handleSave = useSave(nodes, edges);
+  const handleSave = useSave(
+    nodes, 
+    edges,
+    (msg) => showSnackbar(msg, 'success'),
+    (msg) => showSnackbar(msg, 'error')
+  );
 
   const unpackErrorIds = (errors: any[]) => {
     const rtn: any[] = [];
@@ -784,18 +823,38 @@ export default function CanvasPage() {
       <Main open={open}>
         <DrawerHeader /> {/* Spacer for the header */}
         {/* Canvas component where nodes and edges are displayed and edited */}
-        <Canvas
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onSelectionChange={onSelectionChange}
-          setEdges={setEdges}
-        />
+        <ReactFlowProvider>
+          <Canvas
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onSelectionChange={onSelectionChange}
+            setEdges={setEdges}
+            handleExport={handleExport}
+            handleSave={handleSave}
+            errorMessages={errorMsgs}
+          />
+        </ReactFlowProvider>
       </Main>
       <ErrorBox key={"errorBox"} isOpen={openErrorBox} setOpen={setOpenErrorBox} messages={errorMsgs}/>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={5000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

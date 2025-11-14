@@ -19,6 +19,10 @@
         {
             "type": "boolean",
             "input_description": "Enter a boolean value (true/false)."
+        },
+        {
+            "type": "None",
+            "input_description": "Enter None to indicate no value or default behavior."
         }
     ]
 }

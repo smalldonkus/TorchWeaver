@@ -15,6 +15,7 @@ export default function LandingBody() {
                 <div id="landingImg"></div>
             </div>
         </div>
+        {/* // <a href="https://www.vecteezy.com/free-vector/orange-background">Orange Background Vectors by Vecteezy</a> */}
         </>
     )
 }
