@@ -158,31 +158,15 @@ export default function CanvasPage() {
   useEffect(() => {undoListIndexRef.current = undoListIndex}, [undoListIndex]);
 
 
-  /*
-  UNDO NOTES:
-    - things that can be undone:
-      * node type change
-      * node operation type change
-      * node parameter change
-      * deletion of node
-      * addition/creation of node
-    - things that cannot be undone:
-      * opening properties of nodes
-      * closing properties of nodes
-      * opening error box
-      * de/selecting a node
-    - things to be added in second phase
-      * edges changes (removal/connection)
-      * increased depth beyond one
-  */
-  const handleSetUndoList = (n, e) => {
+  const handleSetUndoList = (n, e, reRenderers?) => {
 
     const currUndoList = undoListRef.current;
     const currIndex = undoListIndexRef.current;
     const appendObject = {
       n : n,
-      e : e
-    }
+      e : e,
+      reRenderers: reRenderers // NOTE: may be undefined, TODO: REMOVE
+    };
 
     // console.log(currUndoList, currIndex, currIndex == currUndoList.length - 1);
     if (currIndex == -1) {
@@ -210,30 +194,37 @@ export default function CanvasPage() {
     }
   };
 
-
   useEffect(() => {
-    const s: string[] = undoList.map((e) => e.n.length == 0 ? "nLen: 0, eLen: 0" : ", nLen: " + e.n.length + ", eLen: " + e.e.length);
-    console.log("undolist current: " + s.join(", "));
-    const s2: string[] = undoList.map((e) => "head: " + (e.n.length == 0 ? "noNode" : e.n[e.n.length - 1].data.label));
-    console.log("undolist current: " + s2.join(", "), ", uLI: " + undoListIndex);
-    console.log(nodesRef.current.map((e) => e.id).join(", "));
+    // const s: string[] = undoList.map((e) => e.n.length == 0 ? "nLen: 0, eLen: 0" : ", nLen: " + e.n.length + ", eLen: " + e.e.length);
+    // console.log("undolist current: " + s.join(", "));
+    // const s2: string[] = undoList.map((e) => "head: " + (e.n.length == 0 ? "noNode" : e.n[e.n.length - 1].data.label));
+    // console.log("undolist current: " + s2.join(", "), ", uLI: " + undoListIndex);
+    // console.log(nodesRef.current.map((e) => e.id).join(", "));
+    if (undoList != undefined && undoList.length != 0 && undoList[undoListIndex].n.length != 0 && undoList[undoListIndex].n[0].data.label == "Conv2d"){
+      console.log(undoList[undoListIndex].n[0].data.parameters);
+    }
   }, [undoList, undoListIndex]);
 
 
   const doUndo = () => {
     // if empty
-    const currUndoList = undoListRef.current;
     const currIndex = undoListIndexRef.current;
 
     if ((currIndex == 0)) {
       console.log("reached end of the undoList");
       return;
     };
+    const currEra = undoListRef.current[currIndex - 1];
+
 
     //  TODO: define a base case
 
-    setNodes(currUndoList[currIndex - 1].n);
-    setEdges(currUndoList[currIndex - 1].e);
+    setNodes(currEra.n);
+    setEdges(currEra.e);
+
+    if (currEra.reRenderers != undefined) {
+      currEra.reRenderers.forEach((nodeReRenderer) => nodeReRenderer());
+    } // TODO: REMOVE
 
     // move the index one step towards the zeroth index
     setUndoListIndex(currIndex == -1 ? currIndex : currIndex - 1);
@@ -246,9 +237,14 @@ export default function CanvasPage() {
       console.log("Upto date");
       return;
     };
+    const currEra = currUndoList[currIndex + 1];
 
-    setNodes(currUndoList[currIndex + 1].n);
-    setEdges(currUndoList[currIndex + 1].e);
+    setNodes(currEra.n);
+    setEdges(currEra.e);
+
+    if (currEra.reRenderers != undefined) {
+      currEra.reRenderers.forEach((nodeReRenderer) => nodeReRenderer());
+    } // TODO: REMOVE
 
     // move the index one step towards the ending index
     setUndoListIndex(currIndex + 1 == currUndoList.length ? currIndex : currIndex + 1);
@@ -489,7 +485,6 @@ export default function CanvasPage() {
   );
 
   const updateNodeParameter = (elementID: string, parameterKey: string, parameterValue: any) => {
-    
     setNodes((oldNodes: any[]) => {
       const updatedNodes = oldNodes.map(e => {
         if (e.id === elementID) {
@@ -576,6 +571,14 @@ export default function CanvasPage() {
       return updatedNodes;
     });
   }
+
+  const handleSetUndoListWhenUpdateNodeParameterIsCalled = (doReRender: () => void) => {
+    setTimeout(() => handleSetUndoList(nodesRef.current, edgesRef.current), 0);
+    doReRender();
+  }
+  // useEffect(() => {
+  //   console.log(nodes.length);
+  // }, [handleSetUndoListWhenUpdateNodeParameterIsCalled]);
 
   // Helper function to find a type in the new hierarchical structure
   const findTypeInData = (data: any, targetType: string) => {
@@ -737,7 +740,6 @@ export default function CanvasPage() {
     updateNodeType(elementID, newOperationType, newSpecificType, newParameters);
   }
 
-
   const deleteNode = (elementID: string) => {
     // Remove the node from nodes state
     let newNodes: any[] = [];
@@ -815,7 +817,7 @@ export default function CanvasPage() {
 
   // calls use parse using nodes and edges references 
   const handleUseParse = () => {
-    if (nodesRef.current != undefined && nodesRef.current.length != 0 && edgesRef.current != undefined && edgesRef.current.length != 0){
+    if (nodesRef.current != undefined && edgesRef.current != undefined){
       useParse(nodesRef.current, edgesRef.current).then(res => setErrors(res));
     };
   };
@@ -823,17 +825,18 @@ export default function CanvasPage() {
   // calls use parse every 250ms
   useEffect(() => {
     const PARSE_INTERVAL = 250;
-    // const parseIntervalID = setInterval(handleUseParse, PARSE_INTERVAL);
+    const parseIntervalID = setInterval(handleUseParse, PARSE_INTERVAL);
   }, []);  
 
-  const getSetters = () => {
+  const getSetters = useCallback(() => {
     return {
       updateNodeParameter     : updateNodeParameter,
       updateNodeType          : updateNodeType,
       updateNodeOperationType : updateNodeOperationType,
-      deleteNode              : deleteNode
+      deleteNode              : deleteNode,
+      handleSetUndoListWhenUpdateNodeParameterIsCalled : handleSetUndoListWhenUpdateNodeParameterIsCalled
     }
-  }
+  }, []);
 
   const getDefaults = () => {
     return {

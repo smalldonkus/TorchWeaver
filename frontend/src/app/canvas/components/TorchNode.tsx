@@ -1,5 +1,5 @@
 import { Box, Button, Grid, MenuItem, Popover, Stack, TextField, Typography} from "@mui/material";
-import { useState, useEffect} from "react"
+import { useState, useEffect, useCallback} from "react"
 import ErrorIcon from '@mui/icons-material/Error';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useParameterHandling } from "../hooks/useParameterHandling";
@@ -18,6 +18,8 @@ export default function TorchNode(props) {
   const [canEdit, setCanEdit] = useState<Boolean>(false) // two states, "view" | "edit"
 
   const [updateNodeParameter, setUpdateNodeParameter]         = useState<Function>(() => {});
+  const [updateUndoListWhenUpdateNodeParameterIsCalled, 
+        setUpdateUndoListWhenUpdateNodeParameterIsCalled]     = useState<Function>(() => {});
   const [updateNodeType, setUpdateNodeType]                   = useState<Function>(() => {});
   const [updateNodeOperationType, setUpdateNodeOperationType] = useState<Function>(() => {});
   const [deleteNode, setDeleteNode]                           = useState<Function>(() => {});
@@ -32,6 +34,8 @@ export default function TorchNode(props) {
   const idEP = isErrorPopoverOpen ? "error-popover" : undefined;
 
   const [hasError, setHasError] = useState<boolean>(false); 
+
+  const [rerender, setrerender] = useState(false);
 
   const openErrorPopover = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEP(event.currentTarget);
@@ -55,6 +59,8 @@ export default function TorchNode(props) {
     setUpdateNodeType(          () => setters.updateNodeType);
     setUpdateNodeOperationType( () => setters.updateNodeOperationType);
     setDeleteNode(              () => setters.deleteNode);
+    setUpdateUndoListWhenUpdateNodeParameterIsCalled(
+                                (func: (val: () => void) => void) => setters.handleSetUndoListWhenUpdateNodeParameterIsCalled);
 
     const localDefaults = props.data.getDefaults();
     setDefaultLayers(localDefaults.defaultLayers);
@@ -72,7 +78,7 @@ export default function TorchNode(props) {
   /*
   Rohin's (and some what Toby's) EditLayerForm Code (3-11-2025) (TN)
   */
- const { 
+ let { 
       parameters, 
       hasValidationErrors, 
       handleParameterChange, 
@@ -254,6 +260,8 @@ export default function TorchNode(props) {
         Object.entries(parameters).forEach(([key, value]) => {
             updateNodeParameter(props.id, key, value);
         });
+        updateUndoListWhenUpdateNodeParameterIsCalled(doReRender);
+
       }
       // Reset pending changes
       setHasPendingChanges(false);
