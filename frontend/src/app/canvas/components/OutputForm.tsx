@@ -8,12 +8,12 @@ import { createNode } from "./TorchNodeCreator";
 
 interface Props {
   nodes: any[];
-  setNodes: (val: any) => void;
+  addNode: (val: any) => void;
   getSetters: () => any;
   getDefaults: () => any; // for editing within a node (TN)
 }
 
-export default function OutputForm({ nodes, setNodes, getSetters, getDefaults }: Props) {
+export default function OutputForm({ nodes, addNode, getSetters, getDefaults }: Props) {
   const addOutput = () => {
     const newId = generateUniqueNodeId("output", nodes);
     const newNode = createNode(
@@ -26,7 +26,7 @@ export default function OutputForm({ nodes, setNodes, getSetters, getDefaults }:
       getSetters,
       getDefaults
     )
-    setNodes([
+    addNode([
       ...nodes,
       newNode
     ]);

@@ -103,7 +103,7 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
             updateParameters(selectedNode.data.parameters || {});
             setHasPendingChanges(false);
         }
-    }, [selectedNode, updateParameters]);
+    }, [selectedNode, updateParameters, selectedNode?.data.operationType, selectedNode?.data.type, selectedNode?.data.parameters]);
 
     // Initialize selected class based on current type
     useEffect(() => {
