@@ -165,7 +165,6 @@ export default function CanvasPage() {
     const appendObject = {
       n : n,
       e : e,
-      reRenderers: reRenderers // NOTE: may be undefined, TODO: REMOVE
     };
 
     // console.log(currUndoList, currIndex, currIndex == currUndoList.length - 1);
@@ -195,14 +194,14 @@ export default function CanvasPage() {
   };
 
   useEffect(() => {
-    // const s: string[] = undoList.map((e) => e.n.length == 0 ? "nLen: 0, eLen: 0" : ", nLen: " + e.n.length + ", eLen: " + e.e.length);
-    // console.log("undolist current: " + s.join(", "));
-    // const s2: string[] = undoList.map((e) => "head: " + (e.n.length == 0 ? "noNode" : e.n[e.n.length - 1].data.label));
-    // console.log("undolist current: " + s2.join(", "), ", uLI: " + undoListIndex);
-    // console.log(nodesRef.current.map((e) => e.id).join(", "));
-    if (undoList != undefined && undoList.length != 0 && undoList[undoListIndex].n.length != 0 && undoList[undoListIndex].n[0].data.label == "Conv2d"){
-      console.log(undoList[undoListIndex].n[0].data.parameters);
-    }
+    const s: string[] = undoList.map((e) => e.n.length == 0 ? "nLen: 0, eLen: 0" : ", nLen: " + e.n.length + ", eLen: " + e.e.length);
+    console.log("undolist current: " + s.join(", "));
+    const s2: string[] = undoList.map((e) => "head: " + (e.n.length == 0 ? "noNode" : e.n[e.n.length - 1].data.label));
+    console.log("undolist current: " + s2.join(", "), ", uLI: " + undoListIndex);
+    console.log(nodesRef.current.map((e) => e.id).join(", "));
+    // if (undoList != undefined && undoList.length != 0 && undoList[undoListIndex].n.length != 0 && undoList[undoListIndex].n[0].data.label == "Conv2d"){
+    //   console.log(undoList[undoListIndex].n[0].data.parameters, undoList[undoListIndex].n[0].selected);
+    // }
   }, [undoList, undoListIndex]);
 
 
@@ -216,15 +215,8 @@ export default function CanvasPage() {
     };
     const currEra = undoListRef.current[currIndex - 1];
 
-
-    //  TODO: define a base case
-
     setNodes(currEra.n);
     setEdges(currEra.e);
-
-    if (currEra.reRenderers != undefined) {
-      currEra.reRenderers.forEach((nodeReRenderer) => nodeReRenderer());
-    } // TODO: REMOVE
 
     // move the index one step towards the zeroth index
     setUndoListIndex(currIndex == -1 ? currIndex : currIndex - 1);
@@ -241,10 +233,6 @@ export default function CanvasPage() {
 
     setNodes(currEra.n);
     setEdges(currEra.e);
-
-    if (currEra.reRenderers != undefined) {
-      currEra.reRenderers.forEach((nodeReRenderer) => nodeReRenderer());
-    } // TODO: REMOVE
 
     // move the index one step towards the ending index
     setUndoListIndex(currIndex + 1 == currUndoList.length ? currIndex : currIndex + 1);
@@ -303,8 +291,6 @@ export default function CanvasPage() {
       };
       const newEdges = addEdge(edgeWithArrow, edges);
       setEdges(newEdges);
-
-      console.log("called");
 
       // Update outgoing edge counts for affected nodes
       updateOutgoingEdgeCounts(newEdges);
@@ -574,7 +560,6 @@ export default function CanvasPage() {
 
   const handleSetUndoListWhenUpdateNodeParameterIsCalled = (doReRender: () => void) => {
     setTimeout(() => handleSetUndoList(nodesRef.current, edgesRef.current), 0);
-    doReRender();
   }
   // useEffect(() => {
   //   console.log(nodes.length);
@@ -606,13 +591,10 @@ export default function CanvasPage() {
       operationType === "TensorOp" ? findTypeInData(defaultTensorOps, newType) :
       operationType === "Activator" ? findTypeInData(defaultActivators, newType) : null;
     
-    if (!newDefault) return;
-    
-    // to forward to undofunction
-    let newNodes: any[] = [];
-
     // Use setTimeout to access current state
     setTimeout(() => {
+      // to forward to undofunction
+      let newNodes: any[] = [];
       setEdges((currentEdges) => {
         setNodes((currentNodes) => {
 
@@ -712,7 +694,6 @@ export default function CanvasPage() {
           newNodes = updatedNodes;
           return updatedNodes;
         });
-        
         return currentEdges;
       });
       handleSetUndoList(newNodes, edgesRef.current);
@@ -824,7 +805,7 @@ export default function CanvasPage() {
 
   // calls use parse every 250ms
   useEffect(() => {
-    const PARSE_INTERVAL = 250;
+    const PARSE_INTERVAL = 50;
     const parseIntervalID = setInterval(handleUseParse, PARSE_INTERVAL);
   }, []);  
 

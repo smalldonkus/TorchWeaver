@@ -35,8 +35,6 @@ export default function TorchNode(props) {
 
   const [hasError, setHasError] = useState<boolean>(false); 
 
-  const [rerender, setrerender] = useState(false);
-
   const openErrorPopover = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEP(event.currentTarget);
   };
@@ -60,7 +58,7 @@ export default function TorchNode(props) {
     setUpdateNodeOperationType( () => setters.updateNodeOperationType);
     setDeleteNode(              () => setters.deleteNode);
     setUpdateUndoListWhenUpdateNodeParameterIsCalled(
-                                (func: (val: () => void) => void) => setters.handleSetUndoListWhenUpdateNodeParameterIsCalled);
+                                () => setters.handleSetUndoListWhenUpdateNodeParameterIsCalled);
 
     const localDefaults = props.data.getDefaults();
     setDefaultLayers(localDefaults.defaultLayers);
@@ -78,7 +76,7 @@ export default function TorchNode(props) {
   /*
   Rohin's (and some what Toby's) EditLayerForm Code (3-11-2025) (TN)
   */
- let { 
+ const { 
       parameters, 
       hasValidationErrors, 
       handleParameterChange, 
@@ -146,7 +144,7 @@ export default function TorchNode(props) {
         updateParameters(props.data.parameters || {});
         setHasPendingChanges(false);
     }
-  }, [props.id, canEdit]); // may need to be expanded
+  }, [props.id, canEdit, props.data.operationType, props.data.type, props.data.parameters]); // may need to be expanded
 
   // Initialize selected class based on current type
   useEffect(() => {
@@ -253,6 +251,7 @@ export default function TorchNode(props) {
       }      
       // Apply specific type change if different
       else if (selectedSpecificType && selectedSpecificType !== props.data.type) {
+        console.log("called");
         updateNodeType(props.id, selectedOperationType, selectedSpecificType, parameters);
       }
       else {
@@ -260,8 +259,7 @@ export default function TorchNode(props) {
         Object.entries(parameters).forEach(([key, value]) => {
             updateNodeParameter(props.id, key, value);
         });
-        updateUndoListWhenUpdateNodeParameterIsCalled(doReRender);
-
+        updateUndoListWhenUpdateNodeParameterIsCalled();
       }
       // Reset pending changes
       setHasPendingChanges(false);
