@@ -1,4 +1,12 @@
-export default function useExport(nodes: any[], edges: any[], defaultLayers: any = {}, defaultTensorOps: any = {}, defaultActivators: any = {}) {
+export default function useExport(
+  nodes: any[], 
+  edges: any[], 
+  defaultLayers: any = {}, 
+  defaultTensorOps: any = {}, 
+  defaultActivators: any = {},
+  onSuccess?: (message: string) => void,
+  onError?: (message: string) => void
+) {
   return async () => {
     // Build adjacency maps for traversal
     const outgoingEdges: Record<string, string[]> = {};
@@ -18,7 +26,12 @@ export default function useExport(nodes: any[], edges: any[], defaultLayers: any
     const inputNodes = nodes.filter(node => node.data.operationType === "Input");
     
     if (inputNodes.length === 0) {
-      alert("No input nodes found! Please add an input node to export.");
+      const message = "No input nodes found! Please add an input node to export.";
+      if (onError) {
+        onError(message);
+      } else {
+        alert(message);
+      }
       return;
     }
 
@@ -166,14 +179,29 @@ export default function useExport(nodes: any[], edges: any[], defaultLayers: any
         link.click();
         URL.revokeObjectURL(url);
         
-        alert("Python code generated successfully!");
+        const successMessage = "Python code generated successfully!";
+        if (onSuccess) {
+          onSuccess(successMessage);
+        } else {
+          alert(successMessage);
+        }
       } else {
-        alert(`Error: ${result.error}`);
+        const errorMsg = `Error: ${result.error}`;
+        if (onError) {
+          onError(errorMsg);
+        } else {
+          alert(errorMsg);
+        }
       }
     } catch (error) {
       console.error('Error converting JSON to Python:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      alert(`Failed to convert JSON to Python: ${errorMessage}`);
+      const fullErrorMsg = `Failed to convert JSON to Python: ${errorMessage}`;
+      if (onError) {
+        onError(fullErrorMsg);
+      } else {
+        alert(fullErrorMsg);
+      }
       
       // Fallback: download JSON if API fails
       const json = JSON.stringify(exportData, null, 2);

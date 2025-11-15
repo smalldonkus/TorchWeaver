@@ -1,21 +1,458 @@
 {
-    "data": {
-        "Activation Functions": {
-            "ReLU": {
-                "library": "torch.nn",
-                "parseCheck": {
-                    "maxInputs": 1,
-                    "minInputs": 1,
-                    "maxOutputs": 1,
-                    "minOutputs": 1,
-                    "CanEditChannels": false,
-                    "ChannelLinks": []
-                },
-                "parameters": {
-                },
-                "parameters_format": {
-                }
-            }
+  "data": {
+    "Activation Functions": {
+
+      "ELU": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {
+          "alpha": 1.0 
+        },
+        "parameters_format": {
+          "alpha": [
+            "float"
+          ]
         }
+      },
+
+      "Hardshrink": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {
+          "lambd": 0.5 
+        },
+        "parameters_format": {
+          "lambd": [
+            "float"
+          ]
+        }
+      },
+
+      "Hardsigmoid": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {},
+        "parameters_format": {}
+      },
+
+      "Hardtanh": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {
+          "min_val": -1.0,
+          "max_val": 1.0
+        },
+        "parameters_format": {
+          "min_val": [
+            "float"
+          ],
+          "max_val": [
+            "float"
+          ]
+        }
+      },
+
+      "Hardswish": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {},
+        "parameters_format": {}
+      },
+
+      "LeakyReLU": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {
+          "negative_slope": 0.01
+        },
+        "parameters_format": {
+          "negative_slope": [
+            "float"
+          ]
+        }
+      },
+
+      "LogSigmoid": {
+        "library": "ptorch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {},
+        "parameters_format": {}
+      },
+
+      "PReLU": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {
+          "num_parameters": 1,
+          "init": 0.25
+        },
+        "parameters_format": {
+          "num_parameters": [
+            "int"
+          ],
+          "init": [
+            "float"
+          ]
+        }
+      },
+
+      "ReLU": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {},
+        "parameters_format": {}
+      },
+
+      "ReLU6": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {},
+        "parameters_format": {}
+      },
+
+      "RReLU": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {
+          "lower": 0.333333333333333,
+          "upper": 0.3333333333333333
+        },
+        "parameters_format": {
+          "lower": [
+            "float"
+          ],
+          "upper": [
+            "float"
+          ]
+        }
+      },
+
+      "SELU": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {},
+        "parameters_format": {}
+      },
+
+      "CELU": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {
+          "alpha": 1.0 
+        },
+        "parameters_format": {
+          "alpha": [
+            "float"
+          ]
+        }
+      },
+
+      "GELU": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {},
+        "parameters_format": {}
+      },
+
+      "Sigmoid": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {},
+        "parameters_format": {}
+      },
+
+      "SiLU": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {},
+        "parameters_format": {}
+      },
+
+      "Mish": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {},
+        "parameters_format": {}
+      },
+
+      "Softplus": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {
+          "beta": 1.0,
+          "threshold": 20.0
+        },
+        "parameters_format": {
+          "beta": [
+            "float"
+          ],
+          "threshold": [
+            "float"
+          ]
+        }
+      },
+
+      "Softshrink": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {
+          "lambd": 0.5 
+        },
+        "parameters_format": {
+          "lambd": [
+            "float"
+          ]
+        }
+      },
+
+      "Softsign": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {},
+        "parameters_format": {}
+      },
+
+      "Tanh": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {},
+        "parameters_format": {}
+      },
+
+      "Tanhshrink": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {},
+        "parameters_format": {}
+      },
+
+      "Softmin": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {
+          "dim": -1
+        },
+        "parameters_format": {
+          "dim": [
+            "int"
+          ]
+        }
+      },
+
+      "Softmax": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {
+          "dim": -1
+        },
+        "parameters_format": {
+          "dim": [
+            "int"
+          ]
+        }
+      },
+
+      "Softmax2d": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {},
+        "parameters_format": {}
+      },
+
+      "LogSoftmax": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {
+          "dim": -1
+        },
+        "parameters_format": {
+          "dim": [
+            "int"
+          ]
+        }
+      }
     }
+  }
 }

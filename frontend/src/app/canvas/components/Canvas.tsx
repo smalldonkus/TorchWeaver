@@ -4,6 +4,9 @@ import Box from "@mui/material/Box";
 import { ReactFlow, Background, Controls, useReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useEdgeReconnection } from '../hooks/useEdgeReconnection';
+import ErrorsButton from './ErrorsButton';
+import ExportButton from './ExportButton';
+import SaveButton from './SaveButton';
 
 interface Props {
   nodes: any[];
@@ -15,6 +18,9 @@ interface Props {
   onConnect: any;
   onSelectionChange: any;
   setEdges: (edges: any[] | ((prevEdges: any[]) => any[])) => void;
+  handleExport?: () => void;
+  handleSave?: () => void;
+  errorMessages?: string[];
 }
 
 export default function Canvas({
@@ -26,7 +32,10 @@ export default function Canvas({
   OnEdgesDelete,
   onConnect,
   onSelectionChange,
-  setEdges
+  setEdges,
+  handleExport,
+  handleSave,
+  errorMessages
 }: Props) {
   const { onReconnectStart, onReconnect, onReconnectEnd } = useEdgeReconnection(setEdges);
 
@@ -38,6 +47,7 @@ export default function Canvas({
         background: "#ffffff",
         borderRadius: 2,
         boxShadow: 1,
+        position: "relative",
       }}
     >
       <ReactFlow
@@ -60,6 +70,14 @@ export default function Canvas({
         <Controls />
         <Background color="#aaa" gap={16} />
       </ReactFlow>
+      {/* Fixed action buttons */}
+      <ErrorsButton errorMessages={errorMessages || []} />
+      {handleExport && (
+        <ExportButton handleExport={handleExport} />
+      )}
+      {handleSave && (
+        <SaveButton handleSave={handleSave} />
+      )}
     </Box>
   );
 }

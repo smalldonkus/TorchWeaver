@@ -66,7 +66,18 @@ export default function AppBarHeader({ open, setOpen, openErrorBox, setOpenError
                     <MenuIcon />
                 </IconButton>
                 {/* App title */}
-                <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>
+                <Typography 
+                    variant="h5" 
+                    noWrap 
+                    sx={{ 
+                        flexGrow: 1, 
+                        color: 'white', 
+                        fontWeight: 700, 
+                        fontSize: '1.5rem', 
+                        fontFamily: 'inherit',
+                        textShadow: '0 2px 8px rgba(0,0,0,0.12)'
+                    }}
+                >
                     TorchWeaver Canvas
                 </Typography>
                 {/* "Undo" button that undoes the last "significant" action */}
@@ -104,7 +115,22 @@ export default function AppBarHeader({ open, setOpen, openErrorBox, setOpenError
                     Errors
                 </Button>
                 {/* "Return" button that opens the dropdown menu */}
-                <Button color="inherit" onClick={handleMenuClick}>
+                <Button 
+                    onClick={handleMenuClick}
+                    sx={{
+                        backgroundColor: "#FF7700",
+                        color: "white",
+                        fontSize: "1.1rem",
+                        padding: "10px 20px",
+                        borderRadius: "8px",
+                        fontWeight: 600,
+                        fontFamily: 'inherit',
+                        textTransform: 'none',
+                        '&:hover': {
+                            backgroundColor: '#f88f34ff',
+                        }
+                    }}
+                >
                     Return
                 </Button>
                 {/* Dropdown menu with navigation options */}
@@ -128,7 +154,7 @@ export default function AppBarHeader({ open, setOpen, openErrorBox, setOpenError
                         onClick={() => {
                             handleMenuClose();
                             router.push("/login");
-                        }}
+                        }}  
                     >
                         Logout
                     </MenuItem>
@@ -137,3 +163,38 @@ export default function AppBarHeader({ open, setOpen, openErrorBox, setOpenError
         </StyledAppBar>
     );
 }
+
+// {/* "Undo" button that undoes the last "significant" action */}
+//                 <Box
+//                     sx={{
+//                         display: "flex", 
+//                         flexDirection:"row", 
+//                         gap: "10px",
+//                         border:"1px dashed white",
+//                         borderRadius: "10px",
+//                         alignItems: "center",
+//                         mr:2
+//                     }}>
+//                     <IconButton
+//                         color="inherit"
+//                         aria-label="open drawer"
+//                         onClick={doUndo}
+//                         edge="end"
+//                         sx={{ml: 0.5, mr: 0.5}}
+//                     >
+//                         <UndoIcon />
+//                     </IconButton>
+//                     <IconButton
+//                         color="inherit"
+//                         aria-label="open drawer"
+//                         onClick={doRedo}
+//                         edge="end"
+//                         sx={{mr: 0.5}}
+//                     >
+//                         <RedoIcon />
+//                     </IconButton>
+//                 </Box>
+//                 {/* "Error" button that opens the Errors drawer  */}
+//                 <Button variant={errorButtonVariant} color="error" onClick={handleErrorClick} sx={{mr:1}}>
+//                     Errors
+//                 </Button>
