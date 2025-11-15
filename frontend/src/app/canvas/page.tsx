@@ -37,6 +37,8 @@ export default function CanvasPage() {
   const [nodes, setNodes] = useState<any[]>(initialNodes);
   // State for the edges (connections) in the canvas
   const [edges, setEdges] = useState<any[]>(initialEdges);
+  // State for the name of network
+  const [name, setName] = useState<string>("Untitled");
 
   const nodeTypes = {
     torchNode : TorchNode
@@ -67,6 +69,10 @@ export default function CanvasPage() {
           console.log("Network data structure validation:");
           console.log("- Has nodes array:", Array.isArray(data.network.nodes));
           console.log("- Has edges array:", Array.isArray(data.network.edges));
+
+          if (data.network.name) {
+            setName(data.network.name);
+          }
           
           if (data.network.nodes && data.network.nodes.length > 0) {
             console.log("Sample node structure:", data.network.nodes[0]);
@@ -639,6 +645,7 @@ export default function CanvasPage() {
   const handleSave = useSave(
     nodes, 
     edges,
+    name,
     (msg) => showSnackbar(msg, 'success'),
     (msg) => showSnackbar(msg, 'error')
   );
@@ -737,7 +744,7 @@ export default function CanvasPage() {
     <Box sx={{ display: "flex" }}>
       <CssBaseline /> {/* Resets CSS for consistent styling */}
       {/* Top app bar/header */}
-      <AppBarHeader open={open} setOpen={setOpen} openErrorBox={openErrorBox} setOpenErrorBox={setOpenErrorBox}/>
+      <AppBarHeader open={open} setOpen={setOpen} openErrorBox={openErrorBox} setOpenErrorBox={setOpenErrorBox} name={name} setName={setName}/>
       {/* Sidebar with menu and export functionality */}
       <Sidebar
         open={open}

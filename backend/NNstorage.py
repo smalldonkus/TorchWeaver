@@ -81,14 +81,18 @@ class NNStorage:
         conn = sqlite3.connect(self.db_path)
         cur = conn.cursor()
         if user_auth0_id:
-            cur.execute("SELECT json_data FROM networks WHERE id = ? AND user_auth0_id = ?", (network_id, user_auth0_id))
+            cur.execute("SELECT name, json_data FROM networks WHERE id = ? AND user_auth0_id = ?", (network_id, user_auth0_id))
         else:
-            cur.execute("SELECT json_data FROM networks WHERE id = ?", (network_id,))
+            cur.execute("SELECT name, json_data FROM networks WHERE id = ?", (network_id,))
+        
         row = cur.fetchone()
         conn.close()
         if not row:
             return None
-        return json.loads(row[0])
+        name, json_data = row
+        network = json.loads(json_data)
+        network["name"] = name
+        return network
 
     def delete_network(self, network_id, user_auth0_id: str = None):
         """Delete a saved network. If user_auth0_id is given, only delete if it matches."""

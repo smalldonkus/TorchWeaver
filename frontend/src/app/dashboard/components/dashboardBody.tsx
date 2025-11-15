@@ -175,7 +175,7 @@ export default function dashboardBody() {
                                         <CardContent>
                                             <Typography variant="h6" sx={{ color: 'text' , flexGrow: 1}}>{network.title}</Typography>
                                             <Typography variant="body2" sx={{ color: 'text.secondary', flexGrow: 1 }}>
-                                                <span>Last Accessed: {network.lastAccessed}</span>
+                                                <span>Created: {network.lastAccessed}</span>
                                                 <span style={{ marginLeft: 30 }}>Owned By: {network.Owner}</span>
                                             </Typography>
                                         </CardContent>
@@ -190,7 +190,7 @@ export default function dashboardBody() {
                     ))}
                 </Box>
             </>
-            <Fab color="primary" aria-label="add" onClick={() => handleNew()} sx={{
+            <Fab color="warning" aria-label="add" onClick={() => handleNew()} sx={{ //warning color just happened to match theme
                 position: "fixed",     // stay fixed on the screens
                 bottom: 35,            // 35px from bottom
                 left: 35,               // 35px from right

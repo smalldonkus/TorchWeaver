@@ -13,8 +13,13 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Fade from "@mui/material/Fade";
 import MenuIcon from "@mui/icons-material/Menu";
+import Avatar from '@mui/material/Avatar';
+import Stack from '@mui/material/Stack';
+
 // Import a styled AppBar component
 import { AppBar as StyledAppBar } from "../utils/styled";
+import { Box, Input } from "@mui/material";
+import NamingBox from "./NamingBox";
 
 // Define the props for this component
 interface Props {
@@ -22,10 +27,12 @@ interface Props {
     setOpen: (val: boolean) => void; // Function to set the open state
     openErrorBox: boolean;
     setOpenErrorBox: (val: boolean) => void;
+    name: string
+    setName: React.Dispatch<React.SetStateAction<string>>
 }
 
 // Main AppBarHeader component
-export default function AppBarHeader({ open, setOpen, openErrorBox, setOpenErrorBox}: Props) {
+export default function AppBarHeader({ open, setOpen, openErrorBox, setOpenErrorBox, name, setName}: Props) {
     // State to control the anchor element for the dropdown menu
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     // Next.js router for navigation
@@ -61,35 +68,31 @@ export default function AppBarHeader({ open, setOpen, openErrorBox, setOpenError
                     <MenuIcon />
                 </IconButton>
                 {/* App title */}
-                <Typography 
-                    variant="h5" 
-                    noWrap 
-                    sx={{ 
-                        flexGrow: 1, 
-                        color: 'white', 
-                        fontWeight: 700, 
-                        fontSize: '1.5rem', 
-                        fontFamily: 'inherit',
-                        textShadow: '0 2px 8px rgba(0,0,0,0.12)'
-                    }}
-                >
-                    TorchWeaver Canvas
-                </Typography>
-                {/* "Return" button that opens the dropdown menu */}
+                {/* Clickable Logo */}
+                <Box
+                    component="img"
+                    src="/7945d26d-5a29-472d-905f-c96a4022f7ef.png"
+                    alt="Torchweaver logo"
+                    sx={{ height: 40, cursor: 'pointer' }}
+                    onClick={() => window.location.href = '/'} // navigate back to home when logo is pressed
+                />
+                <NamingBox value={name} onChange={setName}/>
                 <Button 
                     onClick={handleMenuClick}
                     sx={{
                         backgroundColor: "#FF7700",
                         color: "white",
                         fontSize: "1.1rem",
-                        padding: "10px 20px",
+                        left: "95vw",
+                        position: "fixed",
                         borderRadius: "8px",
                         fontWeight: 600,
                         fontFamily: 'inherit',
                         textTransform: 'none',
                         '&:hover': {
-                            backgroundColor: '#f88f34ff',
+                        backgroundColor: '#f88f34ff',
                         }
+                        
                     }}
                 >
                     Return

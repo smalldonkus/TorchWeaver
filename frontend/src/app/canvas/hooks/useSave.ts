@@ -3,6 +3,7 @@ import { useUser } from "@auth0/nextjs-auth0"
 export default function useSave(
   nodes: any[], 
   edges: any[],
+  name: string,
   onSuccess?: (message: string) => void,
   onError?: (message: string) => void
 ) {
@@ -50,7 +51,7 @@ export default function useSave(
         },
         body: JSON.stringify({
           nn_id: id || null, // must match backend param name
-          name: `My Project #${id ? ' ' + id : ''}`,
+          name: name,
           network: exportData,
           user: {
             id: user.sub,
