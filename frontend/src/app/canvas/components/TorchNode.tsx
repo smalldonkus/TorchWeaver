@@ -1,5 +1,5 @@
 import { Box, Button, Grid, MenuItem, Popover, Stack, TextField, Typography} from "@mui/material";
-import { useState, useEffect} from "react"
+import { useState, useEffect, useCallback} from "react"
 import ErrorIcon from '@mui/icons-material/Error';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useParameterHandling } from "../hooks/useParameterHandling";
@@ -18,6 +18,8 @@ export default function TorchNode(props) {
   const [canEdit, setCanEdit] = useState<Boolean>(false) // two states, "view" | "edit"
 
   const [updateNodeParameter, setUpdateNodeParameter]         = useState<Function>(() => {});
+  const [updateUndoListWhenUpdateNodeParameterIsCalled, 
+        setUpdateUndoListWhenUpdateNodeParameterIsCalled]     = useState<Function>(() => {});
   const [updateNodeType, setUpdateNodeType]                   = useState<Function>(() => {});
   const [updateNodeOperationType, setUpdateNodeOperationType] = useState<Function>(() => {});
   const [deleteNode, setDeleteNode]                           = useState<Function>(() => {});
@@ -31,7 +33,7 @@ export default function TorchNode(props) {
   const isErrorPopoverOpen = Boolean(anchorEP);
   const idEP = isErrorPopoverOpen ? "error-popover" : undefined;
 
-  const hasError = props.data.errors.length != 0
+  const [hasError, setHasError] = useState<boolean>(false); 
 
   const openErrorPopover = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEP(event.currentTarget);
@@ -42,7 +44,11 @@ export default function TorchNode(props) {
   
   const toggleState = () => {
     setCanEdit(!canEdit);
-  }
+  };
+
+  useEffect(() => {
+    setHasError(props.data.errors.length == 0 ? false : true);
+  }, [props.data.errors]);
 
   // initialise setters for the node
   useEffect(() => {
@@ -51,6 +57,8 @@ export default function TorchNode(props) {
     setUpdateNodeType(          () => setters.updateNodeType);
     setUpdateNodeOperationType( () => setters.updateNodeOperationType);
     setDeleteNode(              () => setters.deleteNode);
+    setUpdateUndoListWhenUpdateNodeParameterIsCalled(
+                                () => setters.handleSetUndoListWhenUpdateNodeParameterIsCalled);
 
     const localDefaults = props.data.getDefaults();
     setDefaultLayers(localDefaults.defaultLayers);
@@ -136,7 +144,7 @@ export default function TorchNode(props) {
         updateParameters(props.data.parameters || {});
         setHasPendingChanges(false);
     }
-  }, [props.id, canEdit]); // may need to be expanded
+  }, [props.id, canEdit, props.data.operationType, props.data.type, props.data.parameters]); // may need to be expanded
 
   // Initialize selected class based on current type
   useEffect(() => {
@@ -243,6 +251,7 @@ export default function TorchNode(props) {
       }      
       // Apply specific type change if different
       else if (selectedSpecificType && selectedSpecificType !== props.data.type) {
+        console.log("called");
         updateNodeType(props.id, selectedOperationType, selectedSpecificType, parameters);
       }
       else {
@@ -250,6 +259,7 @@ export default function TorchNode(props) {
         Object.entries(parameters).forEach(([key, value]) => {
             updateNodeParameter(props.id, key, value);
         });
+        updateUndoListWhenUpdateNodeParameterIsCalled();
       }
       // Reset pending changes
       setHasPendingChanges(false);
