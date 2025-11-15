@@ -12,6 +12,7 @@ interface OperationsData {
   layers: any;
   tensorOps: any;
   activators: any;
+  inputs: any;
 }
 
 const API_BASE_URL = 'http://localhost:5000';
@@ -20,7 +21,8 @@ export function useOperationDefinitions() {
   const [operations, setOperations] = useState<OperationsData>({
     layers: {},
     tensorOps: {},
-    activators: {}
+    activators: {},
+    inputs: {}
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +44,8 @@ export function useOperationDefinitions() {
         setOperations({
           layers: data.layers || {},
           tensorOps: data.tensorOps || {},
-          activators: data.activators || {}
+          activators: data.activators || {},
+          inputs: data.inputs || {}
         });
       } catch (err) {
         console.error('Failed to fetch operation definitions:', err);
@@ -52,7 +55,8 @@ export function useOperationDefinitions() {
         setOperations({
           layers: {},
           tensorOps: {},
-          activators: {}
+          activators: {},
+          inputs: {}
         });
       } finally {
         setLoading(false);

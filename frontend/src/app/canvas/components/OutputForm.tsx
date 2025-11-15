@@ -4,27 +4,31 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import { generateUniqueNodeId } from "../utils/idGenerator";
+import { createNode } from "./TorchNodeCreator";
 
 interface Props {
   nodes: any[];
   setNodes: (val: any) => void;
+  getSetters: () => any;
+  getDefaults: () => any; // for editing within a node (TN)
 }
 
-export default function OutputForm({ nodes, setNodes }: Props) {
+export default function OutputForm({ nodes, setNodes, getSetters, getDefaults }: Props) {
   const addOutput = () => {
     const newId = generateUniqueNodeId("output", nodes);
+    const newNode = createNode(
+      newId,
+      nodes.length, // posModifier
+      "Output", // label
+      "Output", // operation type
+      "Output", // type
+      {}, // parameters
+      getSetters,
+      getDefaults
+    )
     setNodes([
       ...nodes,
-      {
-        id: newId,
-        position: { x: 300, y: 100 + nodes.length * 60 },
-        data: {
-          label: "Output",
-          operationType: "Output",
-          parameters: {},
-          outgoing_edges_count: 0 // Initialize with 0 outgoing edges (outputs typically have 0)
-        },
-      },
+      newNode
     ]);
   };
 

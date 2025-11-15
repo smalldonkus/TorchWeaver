@@ -161,7 +161,7 @@ export default function dashboardBody() {
                 {/* Neural Network grid */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, justifyContent: "center" }}>
                     {visibleNetworks.map((network) => (
-                        <Card key={network.id} sx={{ maxWidth: 800 }}>
+                        <Card key={network.id} sx={{ maxWidth: 750 }}>
                             <CardActionArea onClick={() => handleNetworkClick(network.id)}>
                                 <CardMedia
                                     component="img"

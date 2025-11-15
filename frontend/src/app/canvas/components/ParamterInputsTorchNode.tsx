@@ -6,6 +6,7 @@ import Chip from "@mui/material/Chip";
 import { validateParameter, getParameterHelperText } from "../utils/parameterValidation";
 import { useNodeDefinitions, NodeType } from "../hooks/useNodeDefinitions";
 import { useVariablesInfo } from "../hooks/useVariablesInfo";
+import { Grid, Popover, Typography } from "@mui/material";
 
 interface ParameterInputsProps {
   operationType: "Layer" | "TensorOp" | "Activator" | "Input";
@@ -13,8 +14,15 @@ interface ParameterInputsProps {
   parameters: Record<string, any>;
   onParameterChange: (parameterKey: string, value: any) => void;
   onValidationChange?: (hasErrors: boolean) => void;
+  gridSizes: any;
   nodeDefinition?: any; // Add node definition to access ChannelLinks
 }
+
+/*
+    Different verions from ParameterInputs to:
+    A. return a grid box only
+    B. Only display helper info on hover
+*/
 
 export default function ParameterInputs({
   operationType,
@@ -22,6 +30,7 @@ export default function ParameterInputs({
   parameters,
   onParameterChange,
   onValidationChange,
+  gridSizes,
   nodeDefinition
 }: ParameterInputsProps) {
   // Get the correct backend endpoint name for the operation type
@@ -46,6 +55,7 @@ export default function ParameterInputs({
   
   // State for parameter validation errors
   const [parameterErrors, setParameterErrors] = useState<{ [key: string]: string }>({});
+
 
   // Notify parent component when validation state changes
   useEffect(() => {
@@ -105,8 +115,21 @@ export default function ParameterInputs({
     return null;
   }
 
+
+
+  // Helper function to get description for a single type
+  const getTypeDescription = (type: string): string => {
+    const typeInfo = variablesInfo.find(info => info.type === type);
+    return typeInfo ? typeInfo.input_description : `Enter ${type} value`;
+  };
+
+  // State to track which chip popover is open
+  const [chipPopoverAnchor, setChipPopoverAnchor] = useState<HTMLElement | null>(null);
+  const [chipPopoverType, setChipPopoverType] = useState<string | null>(null);
+  const isChipPopoverOpen = Boolean(chipPopoverAnchor);
+
   return (
-    <>
+    <Grid container spacing={2} columns={gridSizes.column}>
       {Object.keys(parameters).map((parameterKey, i) => {
         const expectedTypes = getParameterFormat(nodeType, parameterKey);
         const hasError = parameterErrors[parameterKey];
@@ -114,42 +137,71 @@ export default function ParameterInputs({
         const isDisabled = isParameterDisabled(parameterKey);
         
         return (
-          <Box key={i} sx={{ mb: 2 }}>
-            <TextField
-              label={parameterKey}
-              value={parameters[parameterKey]}
-              onChange={(e) => updateParam(parameterKey, e.target.value)}
-              error={!!hasError}
-              disabled={isDisabled}
-              fullWidth
-              size="small"
-              helperText={isDisabled ? "Parameter inherited from parent node" : undefined}
-            />
-            
-            {/* Show expected types as chips */}
-            {expectedTypes.length > 0 && !isDisabled && (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 0.5 }}>
-                {expectedTypes.map((type) => (
-                  <Chip
-                    key={type}
-                    label={type}
+            <Grid key={i} size={gridSizes.item}>
+                <Box key={i} sx={{ mb: 2 }}>
+                    <TextField
+                    label={parameterKey}
+                    value={parameters[parameterKey]}
+                    onChange={(e) => updateParam(parameterKey, e.target.value)}
+                    error={!!hasError}
+                    disabled={isDisabled}
+                    fullWidth
                     size="small"
-                    variant="outlined"
-                    sx={{ fontSize: "0.7rem", height: "20px" }}
-                  />
-                ))}
-              </Box>
-            )}
-            
-            {/* Helper text */}
-            {!isDisabled && (
-              <FormHelperText error={!!hasError}>
-                {helperText}
-              </FormHelperText>
-            )}
-          </Box>
+                    className="nodrag"
+                    helperText={isDisabled ? "Parameter inherited from parent node" : undefined}
+                    />
+                    
+                    {/* Show expected types as chips */}
+                    {expectedTypes.length > 0 && !isDisabled && (
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 0.5 }}>
+                        {expectedTypes.map((type, typeIndex) => (
+                          <div key={type}>
+                              <Chip
+                                  label={type}
+                                  size="small"
+                                  variant="outlined"
+                                  onClick={(e) => {
+                                    setChipPopoverAnchor(e.currentTarget);
+                                    setChipPopoverType(type);
+                                  }}
+                                  sx={{ fontSize: "0.7rem", height: "20px" }}
+                                  className="nodrag"
+                              />
+                          </div>
+                        ))}
+                        {/* Single Popover for all chips, shows info for selected type */}
+                        <Popover
+                          open={isChipPopoverOpen}
+                          onClose={() => {
+                            setChipPopoverAnchor(null);
+                            setChipPopoverType(null);
+                          }}
+                          anchorEl={chipPopoverAnchor}
+                          anchorOrigin={{
+                              vertical: "center",
+                              horizontal: "right"
+                          }}
+                          sx={{
+                            padding: "12px",
+                            maxWidth: "1500px"
+                          }}
+                        >
+                          <Typography sx={{ p: 1 }} variant="subtitle2">
+                            {chipPopoverType ? getTypeDescription(chipPopoverType) : ""}
+                          </Typography>
+                        </Popover>
+                    </Box>
+                    )}
+                    
+                    {/* Helper text */}
+                    {/* <FormHelperText error={!!hasError}>
+                    {helperText}
+                    </FormHelperText> */}
+                    {/* Will be added back in, in a different way */}
+                </Box>
+            </Grid>
         );
       })}
-    </>
+    </Grid>
   );
 }

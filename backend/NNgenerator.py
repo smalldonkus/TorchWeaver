@@ -95,7 +95,11 @@ def generate_init_method(nodes, db):
                 # Generate parameter string
                 param_strings = []
                 for param_name, param_value in parameters.items():
-                    param_strings.append(f"{param_name}={param_value}")
+                    # Handle "None" string - convert to Python None without quotes
+                    if isinstance(param_value, str) and param_value == "None":
+                        param_strings.append(f"{param_name}=None")
+                    else:
+                        param_strings.append(f"{param_name}={param_value}")
                 
                 param_str = ", ".join(param_strings)
                 
@@ -129,11 +133,26 @@ def generate_forward_method(nodes, input_nodes, db):
         elif operation_type in ["Layer", "Activator"]:
             # Layer/Activator nodes call the defined layer
             if parent:
-                if isinstance(parent, list):
-                    # Multiple inputs (shouldn't happen for layers, but handle it)
-                    parent_str = parent[0]  # Use first parent
+                # Check if this layer has multiple inputs (like Bilinear)
+                layer_def = find_layer_definition(node_type, db)
+                code_gen = layer_def.get("codeGeneration", {}) if layer_def else {}
+                parent_parameter_format = code_gen.get("parentParameterFormat", "separate")
+                
+                if isinstance(parent, list) and len(parent) > 1:
+                    # Multiple inputs - format based on configuration
+                    if parent_parameter_format == "tuple":
+                        # Format as tuple: self.layer((input1, input2))
+                        parent_str = f"({', '.join(parent)})"
+                    else:  # separate
+                        # Format as separate arguments: self.layer(input1, input2)
+                        parent_str = ', '.join(parent)
+                elif isinstance(parent, list):
+                    # Single input in a list
+                    parent_str = parent[0]
                 else:
+                    # Single input as string
                     parent_str = parent
+                
                 lines.append(f"        {node_id} = self.{node_id}({parent_str})")
         
         elif operation_type == "TensorOp":
@@ -198,7 +217,10 @@ def generate_tensor_operation(node, db):
     # Generate parameter string
     param_strings = []
     for param_name, param_value in all_parameters.items():
-        if isinstance(param_value, str):
+        # Handle "None" string - convert to Python None without quotes
+        if isinstance(param_value, str) and param_value == "None":
+            param_strings.append(f"{param_name}=None")
+        elif isinstance(param_value, str):
             param_strings.append(f"{param_name}='{param_value}'")
         else:
             param_strings.append(f"{param_name}={param_value}")
@@ -223,8 +245,12 @@ def generate_tensor_operation(node, db):
         else:
             # Fallback if outgoing_edges_count is not available
             return f"        {node_id}_outputs = {library}.{node_type}({call_params})"
+    elif operation_pattern == "transpose":
+        # Transpose operations take a single input tensor and parameters
+        # Format: x = torch.mean(x, dim=1)
+        return f"        {node_id} = {library}.{node_type}({call_params})"
     else:
-        # Regular tensor operation
+        # Regular tensor operation (merge pattern)
         return f"        {node_id} = {library}.{node_type}({call_params})"
 
 def find_layer_definition(layer_type, db):

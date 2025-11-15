@@ -17,10 +17,11 @@ interface Props {
     defaultLayers: any; // Changed from any[] to any for new structure
     defaultActivators: any; // Changed from any[] to any for new structure
     defaultTensorOps: any; // Changed from any[] to any for new structure
+    defaultInputs: any; // Input definitions data structure
     // allows the update of layerType
-    updateNodeType: (targetID: any, valA: any, valB: any) => void;
+    updateNodeType: (targetID: any, valA: any, valB: any, valC: any) => void;
     // allows for the update of operationType
-    updateNodeOperationType: (targetID: any, val: any) => void;
+    updateNodeOperationType: (targetID: any, valA: any, valB: any,  valC: any) => void;
     // allows for the update of node paramters
     updateNodeParameter: (targetID: any, valA: any, valB: any) => void;
     // allows for the deletion of the selectedNode
@@ -28,7 +29,7 @@ interface Props {
 }
 
 // The LayerForm component allows users to add a new layer to the canvas
-export default function EditLayerForm({selectedNodes, defaultActivators, defaultTensorOps, defaultLayers, updateNodeType, updateNodeOperationType, updateNodeParameter , deleteNode}: Props) {
+export default function EditLayerForm({selectedNodes, defaultActivators, defaultTensorOps, defaultLayers, defaultInputs, updateNodeType, updateNodeOperationType, updateNodeParameter , deleteNode}: Props) {
     
     // Use parameter handling hook
     const { 
@@ -63,6 +64,9 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
             case "Activator":
                 data = defaultActivators;
                 break;
+            case "Input":
+                data = defaultInputs;
+                break;
             default:
                 return [];
         }
@@ -82,26 +86,13 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
             case "Activator":
                 data = defaultActivators;
                 break;
+            case "Input":
+                data = defaultInputs;
+                break;
             default:
                 return [];
         }
         return data?.data?.[className] ? Object.keys(data.data[className]) : [];
-    };
-
-    // Helper function to get the first item from hierarchical data
-    const getFirstItemFromData = (data: any) => {
-        if (!data || !data.data) return null;
-        
-        for (const [className, classItems] of Object.entries(data.data)) {
-            for (const [itemType, itemData] of Object.entries(classItems as any)) {
-                return {
-                    type: itemType,
-                    class: className,
-                    ...(itemData as any)
-                };
-            }
-        }
-        return null;
     };
 
     // Initialize state when selectedNode changes
@@ -109,7 +100,6 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
         if (selectedNode) {
             setSelectedOperationType(selectedNode.data.operationType || "");
             setSelectedSpecificType(selectedNode.data.type || "");
-            // Always load fresh parameters from the node (this will be the updated parameters after apply)
             updateParameters(selectedNode.data.parameters || {});
             setHasPendingChanges(false);
         }
@@ -128,7 +118,7 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
                 }
             }
         }
-    }, [selectedOperationType, selectedSpecificType, defaultLayers, defaultTensorOps, defaultActivators]);
+    }, [selectedOperationType, selectedSpecificType, defaultLayers, defaultTensorOps, defaultActivators, defaultInputs]);
 
     // Early return AFTER all hooks are declared
     if (!selectedNode) {
@@ -144,17 +134,6 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
         setSelectedOperationType(newOperationType);
         setSelectedClass("");
         setSelectedSpecificType("");
-        
-        // Load default parameters for the new operation type's first available option
-        const newDefault = 
-            newOperationType === "Layer" ? getFirstItemFromData(defaultLayers) :
-            newOperationType === "TensorOp" ? getFirstItemFromData(defaultTensorOps) :
-            newOperationType === "Activator" ? getFirstItemFromData(defaultActivators) : null;
-        
-        if (newDefault) {
-            updateParameters(newDefault.parameters || {});
-        }
-        
         setHasPendingChanges(true);
     };
 
@@ -162,37 +141,12 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
     const handleClassChange = (newClass: string) => {
         setSelectedClass(newClass);
         setSelectedSpecificType("");
-        
-        // Load parameters for the first type in the new class
-        const data = 
-            selectedOperationType === "Layer" ? defaultLayers :
-            selectedOperationType === "TensorOp" ? defaultTensorOps :
-            selectedOperationType === "Activator" ? defaultActivators : null;
-        
-        if (data?.data?.[newClass]) {
-            const firstType = Object.keys(data.data[newClass])[0];
-            const typeData = data.data[newClass][firstType];
-            updateParameters(typeData?.parameters || {});
-        }
-        
         setHasPendingChanges(true);
     };
 
     // Handle specific type change
     const handleSpecificTypeChange = (newSpecificType: string) => {
         setSelectedSpecificType(newSpecificType);
-        
-        // Load default parameters for the new specific type
-        const data = 
-            selectedOperationType === "Layer" ? defaultLayers :
-            selectedOperationType === "TensorOp" ? defaultTensorOps :
-            selectedOperationType === "Activator" ? defaultActivators : null;
-        
-        if (data?.data?.[selectedClass]?.[newSpecificType]) {
-            const typeData = data.data[selectedClass][newSpecificType];
-            updateParameters(typeData?.parameters || {});
-        }
-        
         setHasPendingChanges(true);
     };
 
@@ -205,30 +159,47 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
     // Apply all pending changes
     const handleApplyEdit = () => {
         if (!selectedNode) return;
-        
-        const hasOperationTypeChange = selectedOperationType && selectedOperationType !== selectedNode.data.operationType;
-        const hasSpecificTypeChange = selectedSpecificType && selectedSpecificType !== selectedNode.data.type;
-        
-        // Apply operation type change if different
-        if (hasOperationTypeChange) {
-            updateNodeOperationType(selectedNode.id, selectedOperationType);
+       
+        if ((selectedOperationType && selectedOperationType !== selectedNode.data.operationType)
+            &&
+            (selectedSpecificType  && selectedSpecificType  !== selectedNode.data.type)){
+            updateNodeOperationType(selectedNode.id, selectedOperationType, selectedSpecificType, parameters);
+        }      
+        // Apply specific type change if different
+        if (selectedSpecificType && selectedSpecificType !== selectedNode.data.type) {
+            updateNodeType(selectedNode.id, selectedOperationType, selectedSpecificType, parameters);
         }
-        
-        // Apply specific type change if different (and no operation type change)
-        else if (hasSpecificTypeChange) {
-            updateNodeType(selectedNode.id, selectedOperationType, selectedSpecificType);
-        }
-        
-        // Only apply parameter changes if no type changes occurred
-        // (Type changes automatically set default parameters)
-        else {
-            Object.entries(parameters).forEach(([key, value]) => {
-                updateNodeParameter(selectedNode.id, key, value);
-            });
-        }
-        
+        // Apply parameter changes
+        Object.entries(parameters).forEach(([key, value]) => {
+            updateNodeParameter(selectedNode.id, key, value);
+        });
         // Reset pending changes
         setHasPendingChanges(false);
+    };
+
+    // Helper function to get current node definition
+    const getCurrentNodeDefinition = () => {
+        if (!selectedOperationType || !selectedClass || !selectedSpecificType) return null;
+        
+        let dataSource;
+        switch (selectedOperationType) {
+            case "Layer":
+                dataSource = defaultLayers;
+                break;
+            case "TensorOp":
+                dataSource = defaultTensorOps;
+                break;
+            case "Activator":
+                dataSource = defaultActivators;
+                break;
+            case "Input":
+                dataSource = defaultInputs;
+                break;
+            default:
+                return null;
+        }
+        
+        return dataSource?.data?.[selectedClass]?.[selectedSpecificType] || null;
     };
 
     return (
@@ -249,6 +220,7 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
                         <MenuItem key={"Layer"} value={"Layer"}>{"Layer"}</MenuItem>
                         <MenuItem key={"TensorOp"} value={"TensorOp"}>{"Tensor Operation"}</MenuItem>
                         <MenuItem key={"Activator"} value={"Activator"}>{"Activator"}</MenuItem>
+                        <MenuItem key={"Input"} value={"Input"}>{"Input"}</MenuItem>
                 </TextField>
 
                 {selectedOperationType && (
@@ -287,11 +259,12 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
                 
                 {selectedSpecificType && parameters && (
                     <ParameterInputs
-                        operationType={selectedOperationType as "Layer" | "TensorOp" | "Activator"}
+                        operationType={selectedOperationType as "Layer" | "TensorOp" | "Activator" | "Input"}
                         nodeType={selectedSpecificType}
                         parameters={parameters}
                         onParameterChange={handleParameterChangeWithPending}
                         onValidationChange={handleValidationChange}
+                        nodeDefinition={getCurrentNodeDefinition()}
                     />
                 )}
                 
@@ -317,4 +290,3 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
             </Box>
     );
 }
-

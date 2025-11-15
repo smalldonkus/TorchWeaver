@@ -4,7 +4,9 @@ import { useState, useCallback, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import CssBaseline from "@mui/material/CssBaseline";
-import { applyNodeChanges, applyEdgeChanges, addEdge, OnSelectionChangeFunc, Node, Edge, MarkerType} from "@xyflow/react";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
+import { applyNodeChanges, applyEdgeChanges, addEdge, OnSelectionChangeFunc, Node, Edge, MarkerType, ReactFlowProvider } from "@xyflow/react";
 
 import { initialNodes, initialEdges } from "./utils/constants";
 import { Main, DrawerHeader } from "./utils/styled";
@@ -14,16 +16,20 @@ import Canvas from "./components/Canvas";
 import useExport from "./hooks/useExport";
 import useOperationDefinitions from "./hooks/useOperationDefinitions";
 import { generateUniqueNodeId } from "./utils/idGenerator";
+import { determineCanInheritFromParent, linkParametersToChannels } from "./components/TorchNodeCreator";
+import { propagateChannelInheritance, findNodeDefinition, handleInheritFromParentChange } from "./utils/channelPropagation";
 
 import useParse from "./hooks/useParse";
 import ErrorBox from "./components/ErrorBox";
 import useSave from "./hooks/useSave";
 
+import TorchNode from "./components/TorchNode";
+
 // Main page component for the canvas feature
 export default function CanvasPage() {
 
   // Fetch operation definitions from backend
-  const { layers: defaultLayers, tensorOps: defaultTensorOps, activators: defaultActivators, loading: operationsLoading, error: operationsError } = useOperationDefinitions();
+  const { layers: defaultLayers, tensorOps: defaultTensorOps, activators: defaultActivators, inputs: defaultInputs, loading: operationsLoading, error: operationsError } = useOperationDefinitions();
 
   // State to control if the sidebar is open
   const [open, setOpen] = useState(true);
@@ -31,6 +37,10 @@ export default function CanvasPage() {
   const [nodes, setNodes] = useState<any[]>(initialNodes);
   // State for the edges (connections) in the canvas
   const [edges, setEdges] = useState<any[]>(initialEdges);
+
+  const nodeTypes = {
+    torchNode : TorchNode
+  };
   
   // Load saved network if available
   useEffect(() => {
@@ -67,13 +77,28 @@ export default function CanvasPage() {
             console.log("- Nodes:", data.network.nodes.length);
             console.log("- Edges:", data.network.edges.length);
 
+            // Wait for defaults to load before processing nodes
+            if (!defaultLayers || !defaultTensorOps || !defaultActivators || !defaultInputs) {
+              return;
+            }
+
             // Ensure edges include markerEnd for arrows and nodes have expected fields
             const normalizedEdges = data.network.edges.map((edge: any) => ({
               ...edge,
               markerEnd: edge.markerEnd || { type: MarkerType.Arrow }
             }));
 
-            setNodes(data.network.nodes);
+            // Add getSetters and getDefaults functions to loaded nodes (they're not serialized)
+            const normalizedNodes = data.network.nodes.map((node: any) => ({
+              ...node,
+              data: {
+                ...node.data,
+                getSetters: getSetters,
+                getDefaults: getDefaults
+              }
+            }));
+
+            setNodes(normalizedNodes);
             setEdges(normalizedEdges);
           } else {
             console.error("Invalid network structure:", data.network);
@@ -87,7 +112,7 @@ export default function CanvasPage() {
       }
     }
     fetchNetwork();
-  }, []);  // Add arrows to all existing edges on component mount
+  }, [defaultLayers, defaultTensorOps, defaultActivators, defaultInputs]);  // Re-run when defaults are loaded
 
 
   useEffect(() => {
@@ -101,6 +126,7 @@ export default function CanvasPage() {
       setEdges(edgesWithArrows);
     }
   }, []); // Only run once on mount
+
   // State for which menu is selected in the sidebar
   const [selectedMenu, setSelectedMenu] = useState("Layers");
   // state for the currently selected Nodes, only the first used currently
@@ -115,6 +141,25 @@ export default function CanvasPage() {
   const [errorMsgs, seterrorMsgs] = useState<any[]>([]);
   // used for opening the error drawer
   const [openErrorBox, setOpenErrorBox] = useState(false);
+
+  // Snackbar state for success/error messages
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error' | 'warning' | 'info';
+  }>({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
+
+  const showSnackbar = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   // Handler for when nodes are changed (moved, edited, etc.)
   const onNodesChange = useCallback(
@@ -157,11 +202,103 @@ export default function CanvasPage() {
       
       // Update outgoing edge counts for affected nodes
       updateOutgoingEdgeCounts(newEdges);
+
+      // Handle inheritance when connection is made
+      setTimeout(() => {
+        setEdges((currentEdges) => {
+          setNodes((currentNodes) => {
+            // find the target node of the new connection
+            const targetNode = currentNodes.find(node => node.id === params.target);
+            // if the target node can inherit from parent, update its parameters
+            if (targetNode && targetNode.data.can_inherit_from_parent) {
+              // Find the source node
+              const sourceNode = currentNodes.find(node => node.id === params.source);
+              
+              if (sourceNode) {
+                
+                const nodeDefinition = findNodeDefinition(
+                  targetNode.data.operationType,
+                  targetNode.data.type,
+                  defaultLayers,
+                  defaultTensorOps,
+                  defaultActivators,
+                  defaultInputs
+                );
+                
+                // Will need to include the new edge for max calculation
+                const edgesIncludingNew = [...currentEdges, { source: params.source, target: params.target }];
+              
+              const updatedNodes = currentNodes.map(node => {
+                if (node.id === params.target) {
+                  let inheritedData = { ...node.data };
+                  
+                  const canEditChannels = nodeDefinition?.parseCheck?.CanEditChannels;
+                  
+                  if (!canEditChannels) {
+                    // Pass-through node with potentially multiple parents: use max output channels
+                    const maxParentChannels = getMaxParentOutputChannels(params.target, currentNodes, edgesIncludingNew);
+                    if (maxParentChannels !== null) {
+                      inheritedData.inputChannels = maxParentChannels;
+                      inheritedData.outputChannels = maxParentChannels;
+                    }
+                  } else {
+                    // Editable node: use single parent's output
+                    inheritedData.inputChannels = sourceNode.data.outputChannels;
+                    
+                    // Update linked parameters
+                    const channelLinks = nodeDefinition?.parseCheck?.ChannelLinks || [];
+                    channelLinks.forEach((link: any) => {
+                      if (link.inputParam) {
+                        inheritedData.parameters = {
+                          ...inheritedData.parameters,
+                          [link.inputParam]: sourceNode.data.outputChannels
+                        };
+                      }
+                    });
+                  }
+                  
+                  return { ...node, data: inheritedData };
+                }
+                return node;
+              });
+              
+              const updatedTargetNode = updatedNodes.find(node => node.id === params.target);
+              
+              if (updatedTargetNode) {
+                setTimeout(() => {
+                  setEdges((currentEdges) => {
+                    setNodes((propagationNodes) => {
+                      return propagateChannelInheritance(
+                        params.target,
+                        updatedTargetNode.data.outputChannels,
+                        propagationNodes,
+                        currentEdges,
+                        defaultLayers,
+                        defaultTensorOps,
+                        defaultActivators,
+                        defaultInputs
+                      );
+                    });
+                    return currentEdges;
+                  });
+                }, 0);
+              }
+              
+              return updatedNodes;
+            }
+          }
+          
+          return currentNodes;
+          });
+          return currentEdges;
+        });
+      }, 0);
     },
-    [edges]
+    [edges, defaultLayers, defaultTensorOps, defaultActivators, defaultInputs]
   );
 
   useEffect(() => {
+    updateOutgoingEdgeCounts(edges); // was creating errors in delete nodes (do not know why, hopefully this doesn't break anything)
     useParse(nodes, edges).then((e) => {setErrors(e)});
   }, [edges]) // having this sit inside other functions causes issues
 
@@ -186,6 +323,27 @@ export default function CanvasPage() {
     );
   };
 
+  // Helper function to get max output channels from all parent nodes
+  const getMaxParentOutputChannels = (nodeId: string, currentNodes: any[], currentEdges: any[]): number | null => {
+    // Find all parent edges (edges pointing to this node)
+    const parentEdges = currentEdges.filter(edge => edge.target === nodeId);
+    
+    if (parentEdges.length === 0) return null;
+    
+    // Get all parent nodes' output channels
+    const parentOutputChannels = parentEdges
+      .map(edge => {
+        const parentNode = currentNodes.find(node => node.id === edge.source);
+        return parentNode?.data.outputChannels;
+      })
+      .filter(channels => channels !== undefined && channels !== null);
+    
+    if (parentOutputChannels.length === 0) return null;
+    
+    // Return the maximum
+    return Math.max(...parentOutputChannels);
+  };
+
   const onSelectionChange: OnSelectionChangeFunc = useCallback(
     ({nodes, edges}) => {
       setSelectedNodes((nodes));
@@ -208,12 +366,93 @@ export default function CanvasPage() {
   );
 
   const updateNodeParameter = (elementID: string, parameterKey: string, parameterValue: any) => {
-    setNodes((oldNodes: any[]) =>
-      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, parameters : {...(e.data.parameters || {}), [parameterKey] : parameterValue}}} : e)
-    );
-    setSelectedNodes((oldNodes: any[]) =>
-      oldNodes.map(e => e.id === elementID ? {...e, data: {...e.data, parameters : {...(e.data.parameters || {}), [parameterKey] : parameterValue}}} : e)
-    );
+    
+    setNodes((oldNodes: any[]) => {
+      const updatedNodes = oldNodes.map(e => {
+        if (e.id === elementID) {
+          // Update the parameter
+          const updatedParameters = {...(e.data.parameters || {}), [parameterKey]: parameterValue};
+          
+          // Get node definition to check for channel editing capabilities
+          const nodeDefinition = findNodeDefinition(
+            e.data.operationType, 
+            e.data.type,
+            defaultLayers,
+            defaultTensorOps,
+            defaultActivators,
+            defaultInputs
+          );
+          
+          let updatedData = {
+            ...e.data, 
+            parameters: updatedParameters
+          };
+          
+          // Check if this node can edit channels and if the changed parameter affects channels
+          if (nodeDefinition?.parseCheck?.CanEditChannels && e.data.operationType !== "Output") {
+            const channelLinks = nodeDefinition.parseCheck.ChannelLinks || [];
+            
+            // Check if the changed parameter is linked to input or output channels
+            channelLinks.forEach((link: any) => {
+              if (link.inputParam === parameterKey) {
+                // Update inputChannels
+                console.log("Updating inputChannels due to parameter change");
+                updatedData.inputChannels = parameterValue;
+              }
+              if (link.outputParam === parameterKey) {
+                // Update outputChannels  
+                updatedData.outputChannels = parameterValue;
+
+                // Trigger propagation after this update completes
+                setTimeout(() => {
+                  setEdges((currentEdges) => {
+                    setNodes((currentNodes) => {
+                      // Propagate channel inheritance to children
+                      const propagatedNodes = propagateChannelInheritance(
+                        elementID,
+                        parameterValue,
+                        currentNodes,
+                        currentEdges,
+                        defaultLayers,
+                        defaultTensorOps,
+                        defaultActivators,
+                        defaultInputs
+                      );
+                      return propagatedNodes;
+                    });
+                    return currentEdges; // Don't modify edges
+                  });
+                }, 0);
+
+              }
+            });
+            
+            // Also update can_inherit_from_parent if inherit_from_parent parameter changed
+            if (parameterKey === 'inherit_from_parent') {
+              updatedData.can_inherit_from_parent = parameterValue;
+
+              // When inherit_from_parent is set to true, inherit from parent node
+              if (parameterValue === true) {
+                handleInheritFromParentChange(
+                  elementID,
+                  setEdges,
+                  setNodes,
+                  defaultLayers,
+                  defaultTensorOps,
+                  defaultActivators,
+                  defaultInputs
+                );
+              }
+            }
+          }
+          
+          return {...e, data: updatedData};
+        }
+        return e;
+      });
+      
+      return updatedNodes;
+    });
   }
 
   // Helper function to find a type in the new hierarchical structure
@@ -234,44 +473,119 @@ export default function CanvasPage() {
     return null;
   };
 
-  const updateNodeType = (elementID: string, operationType: string, newtype: string) => {
-    const newDefault = 
-      operationType === "Layer" ? findTypeInData(defaultLayers, newtype) :
-      operationType === "TensorOp" ? findTypeInData(defaultTensorOps, newtype) :
-      operationType === "Activator" ? findTypeInData(defaultActivators, newtype) : null;
+  const updateNodeType = (elementID: string, operationType: string, newType: string, newParameters: any) => {
+
+    const newDefault =
+      operationType === "Input" ? findTypeInData(defaultInputs, newType) :
+      operationType === "Layer" ? findTypeInData(defaultLayers, newType) :
+      operationType === "TensorOp" ? findTypeInData(defaultTensorOps, newType) :
+      operationType === "Activator" ? findTypeInData(defaultActivators, newType) : null;
     
     if (!newDefault) return;
     
-    // Generate new ID based on operation type
-    const operationPrefix = 
-      operationType === "Layer" ? "layer" :
-      operationType === "TensorOp" ? "tensorop" :
-      operationType === "Activator" ? "activator" : "node";
-    
-    const newNodeId = generateUniqueNodeId(operationPrefix, nodes);
-      
-    // Update nodes with new ID and properties
-    setNodes((oldNodes: any[]) =>
-      oldNodes.map(e => e.id === elementID ? {...e, 
-        id: newNodeId,
-        data: {...e.data, type: newtype, label: newtype, parameters : newDefault.parameters || {}}} : e)
-    );
-    
-    // Update selected nodes
-    setSelectedNodes((oldNodes: any[]) =>
-      oldNodes.map(e => e.id === elementID ? {...e, 
-        id: newNodeId,
-        data: {...e.data, type: newtype, label: newtype, parameters : newDefault.parameters || {}}} : e)
-    );
-    
-    // Update all edges that reference the old node ID
-    setEdges((oldEdges: any[]) =>
-      oldEdges.map(edge => ({
-        ...edge,
-        source: edge.source === elementID ? newNodeId : edge.source,
-        target: edge.target === elementID ? newNodeId : edge.target
-      }))
-    );
+    // Use setTimeout to access current state
+    setTimeout(() => {
+      setEdges((currentEdges) => {
+        setNodes((currentNodes) => {
+          // Generate new ID based on operation type
+          const operationPrefix = 
+            operationType === "Input" ? "input" :
+            operationType === "Layer" ? "layer" :
+            operationType === "TensorOp" ? "tensorop" :
+            operationType === "Activator" ? "activator" : "node";
+          
+          const newNodeId = generateUniqueNodeId(operationPrefix, currentNodes);
+          
+          // Calculate hidden attributes for the new type
+          let channelData = linkParametersToChannels(newDefault, newParameters || {});
+          const canInherit = determineCanInheritFromParent(newDefault, newParameters || {});
+          
+          // Check if node should inherit from parent
+          if (canInherit) {
+            const canEditChannels = newDefault?.parseCheck?.CanEditChannels;
+            
+            if (!canEditChannels) {
+              // Pass-through node with potentially multiple parents: use max output channels
+              const maxParentChannels = getMaxParentOutputChannels(elementID, currentNodes, currentEdges);
+              if (maxParentChannels !== null) {
+                channelData.inputChannels = maxParentChannels;
+                channelData.outputChannels = maxParentChannels;
+              }
+            } else {
+              // Editable node: use single parent's output
+              const parentEdge = currentEdges.find(edge => edge.target === elementID);
+              if (parentEdge) {
+                const parentNode = currentNodes.find(node => node.id === parentEdge.source);
+                if (parentNode && parentNode.data.outputChannels !== undefined) {
+                  // Update input channels to match parent's output
+                  channelData.inputChannels = parentNode.data.outputChannels;
+                  
+                  // Update linked input parameter
+                  const channelLinks = newDefault?.parseCheck?.ChannelLinks || [];
+                  const inputLink = channelLinks.find((link: any) => link.inputParam);
+                  if (inputLink && newParameters) {
+                    newParameters[inputLink.inputParam] = parentNode.data.outputChannels;
+                    // Recalculate with updated parameters
+                    channelData = linkParametersToChannels(newDefault, newParameters);
+                  }
+                }
+              }
+            }
+          }
+          
+          // Update nodes with new ID and properties
+          const updatedNodes = currentNodes.map(e => e.id === elementID ? {...e, 
+            id: newNodeId,
+            data: {
+              ...e.data, 
+              type: newType, 
+              label: newType, 
+              parameters: newParameters || {},
+              inputChannels: channelData.inputChannels,
+              outputChannels: channelData.outputChannels,
+              can_inherit_from_parent: canInherit
+            }} : e);
+          
+          // Update selected nodes
+          setSelectedNodes((oldNodes: any[]) =>
+            oldNodes.map(e => e.id === elementID ? {...e, 
+              id: newNodeId,
+              data: {...e.data, type: newType, label: newType, parameters : newParameters || {}}} : e)
+          );
+          
+          // Update edges with new node ID
+          setEdges((oldEdges: any[]) =>
+            oldEdges.map(edge => ({
+              ...edge,
+              source: edge.source === elementID ? newNodeId : edge.source,
+              target: edge.target === elementID ? newNodeId : edge.target
+            }))
+          );
+          
+          // Propagate new output channels to children
+          setTimeout(() => {
+            setEdges((edges) => {
+              setNodes((nodes) => {
+                return propagateChannelInheritance(
+                  newNodeId,
+                  channelData.outputChannels,
+                  nodes,
+                  edges,
+                  defaultLayers,
+                  defaultTensorOps,
+                  defaultActivators,
+                  defaultInputs
+                );
+              });
+              return edges;
+            });
+          }, 0);
+          
+          return updatedNodes;
+        });
+        return currentEdges;
+      });
+    }, 0);
   }
 
   // Helper function to get the first item from hierarchical data
@@ -290,73 +604,45 @@ export default function CanvasPage() {
     return null;
   };
 
-  const updateNodeOperationType = (elementID: string, newOperationType: string) => {
-    const newDefault = 
-      newOperationType === "Layer" ? getFirstItemFromData(defaultLayers) :
-      newOperationType === "TensorOp" ? getFirstItemFromData(defaultTensorOps) :
-      newOperationType === "Activator" ? getFirstItemFromData(defaultActivators) : null;
-    
-    if (!newDefault) return;
-    
-    // Generate new ID based on operation type
-    const operationPrefix = 
-      newOperationType === "Layer" ? "layer" :
-      newOperationType === "TensorOp" ? "tensorop" :
-      newOperationType === "Activator" ? "activator" : "node";
-    
-    const newNodeId = generateUniqueNodeId(operationPrefix, nodes);
-      
-    // Update nodes with new ID and properties
-    setNodes((oldNodes: any[]) =>
-      oldNodes.map(e => e.id === elementID ? {...e, 
-        id: newNodeId,
-        data: {...e.data, type: newDefault.type, label: newDefault.type,
-        operationType: newOperationType, parameters: newDefault.parameters || {}}} : e)
-    );
-    
-    // Update selected nodes
-    setSelectedNodes((oldNodes: any[]) =>
-      oldNodes.map(e => e.id === elementID ? {...e, 
-        id: newNodeId,
-        data: {...e.data, type: newDefault.type, label: newDefault.type,
-        operationType: newOperationType, parameters: newDefault.parameters || {}}} : e)
-    );
-    
-    // Update all edges that reference the old node ID
-    setEdges((oldEdges: any[]) =>
-      oldEdges.map(edge => ({
-        ...edge,
-        source: edge.source === elementID ? newNodeId : edge.source,
-        target: edge.target === elementID ? newNodeId : edge.target
-      }))
-    );
+  const updateNodeOperationType = (elementID: string, newOperationType: string, newSpecificType: string, newParameters: any) => {
+    // Simply delegate to updateNodeType which handles everything including inheritance
+    updateNodeType(elementID, newOperationType, newSpecificType, newParameters);
   }
+
 
   const deleteNode = (elementID: string) => {
     // Remove the node from nodes state
     setNodes(oldNodes =>
       oldNodes.filter((e) => e.id !== elementID)
     );
-    
     // Remove the node from selected nodes
     setSelectedNodes(oldNodes =>
       oldNodes.filter((e) => e.id !== elementID)
     );
-    
-    // Remove all edges connected to this node (both incoming and outgoing)
-    const newEdges = edges.filter((edge) => edge.source !== elementID && edge.target !== elementID);
-    setEdges(newEdges);
-    
-    // Update outgoing edge counts for remaining nodes
-    updateOutgoingEdgeCounts(newEdges);
-  }
+    // remove edges from node
+    setEdges (oldEdges =>
+      oldEdges.filter((e) => !(e.source === elementID || e.target === elementID))
+    );
+  };
 
   // Custom hook to handle exporting the current canvas state
-  const handleExport = useExport(nodes, edges, defaultLayers, defaultTensorOps, defaultActivators);
+  const handleExport = useExport(
+    nodes, 
+    edges, 
+    defaultLayers, 
+    defaultTensorOps, 
+    defaultActivators,
+    (msg) => showSnackbar(msg, 'success'),
+    (msg) => showSnackbar(msg, 'error')
+  );
 
-  const handleSave = useSave(nodes, edges);
+  const handleSave = useSave(
+    nodes, 
+    edges,
+    (msg) => showSnackbar(msg, 'success'),
+    (msg) => showSnackbar(msg, 'error')
+  );
 
-  
   const unpackErrorIds = (errors: any[]) => {
     const rtn: any[] = [];
     errors.forEach((value) => {
@@ -367,22 +653,64 @@ export default function CanvasPage() {
     return rtn;
   }
 
-  const inErrorColour = "#d32f2f"
-  const stdColour = "#ffffff"
+  const getAllNodeErrors = (errors: any[], eID) => {
+    const rtn: any[] = [];
+    errors.forEach((v) => {
+      if (v.flaggedNodes != null && v.flaggedNodes.length != 0){
+        if (v.flaggedNodes.includes(eID)) {rtn.push(v.errorMsg)};
+      }
+    });
+    return rtn;
+  }
+
   // updates state variables when errors are added
   useEffect( () => {
       seterrorOpen(errors.length == 0 ? false : true);
       seterrorMsgs(errors.map((e) => e.errorMsg));
+
+      // fills/updates/clears the errors array of each node, if of type: "torchNode"
+      setNodes((oldNodes) =>
+        oldNodes.map((e) => {
+          // find all errors associated with this node
+          const errorsMsgArr = getAllNodeErrors(errors, e.id);
+          return {
+            ...e,
+            data: {
+              ...e.data,
+              errors : errorsMsgArr
+            }            
+          }
+        })
+      );
+
+      // set the border of each "error'd" node to red
       const errorIDs: any[] = unpackErrorIds(errors);
-      console.log(errorIDs)
       setNodes((oldNodes) => 
         oldNodes.map((e) => errorIDs.includes(e.id) ? 
-          {...e, style: {...e.style, background: inErrorColour}}
+          {...e, style: {...e.style, border: "1px solid #d32f2f"}}
           :
-          {...e, style: {...e.style, background: stdColour}})
+          {...e, style: {...e.style, border: "1px solid black"}})
       );
   }, [errors]);
 
+
+  const getSetters = () => {
+    return {
+      updateNodeParameter     : updateNodeParameter,
+      updateNodeType          : updateNodeType,
+      updateNodeOperationType : updateNodeOperationType,
+      deleteNode              : deleteNode
+    }
+  }
+
+  const getDefaults = () => {
+    return {
+      defaultActivators: defaultActivators, 
+      defaultTensorOps: defaultTensorOps, 
+      defaultLayers: defaultLayers,
+      defaultInputs: defaultInputs
+    }
+  }
 
   // Show loading state while fetching operations
   if (operationsLoading) {
@@ -425,25 +753,49 @@ export default function CanvasPage() {
         updateNodeOperationType={updateNodeOperationType}
         updateNodeParameter={updateNodeParameter}
         deleteNode={deleteNode}
+        getSetters={getSetters}
+        getDefaults={getDefaults}
         defaultLayers={defaultLayers}
         defaultTensorOps={defaultTensorOps}
         defaultActivators={defaultActivators}
+        defaultInputs={defaultInputs}
       />
       {/* Main content area for the canvas */}
       <Main open={open}>
         <DrawerHeader /> {/* Spacer for the header */}
         {/* Canvas component where nodes and edges are displayed and edited */}
-        <Canvas
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onSelectionChange={onSelectionChange}
-          setEdges={setEdges}
-        />
+        <ReactFlowProvider>
+          <Canvas
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onSelectionChange={onSelectionChange}
+            setEdges={setEdges}
+            handleExport={handleExport}
+            handleSave={handleSave}
+            errorMessages={errorMsgs}
+          />
+        </ReactFlowProvider>
       </Main>
       <ErrorBox key={"errorBox"} isOpen={openErrorBox} setOpen={setOpenErrorBox} messages={errorMsgs}/>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={5000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

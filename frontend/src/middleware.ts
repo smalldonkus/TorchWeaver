@@ -1,9 +1,11 @@
 import type { NextRequest } from "next/server";
 import { auth0 } from "./app/lib/auth0";
 
+// Middleware needed by auth0 to operate with their integration (built with their set-up instructions for use)
 export async function middleware(request: NextRequest) {
   return await auth0.middleware(request);
 }
+
 
 export const config = {
   matcher: [

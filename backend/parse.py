@@ -1,54 +1,156 @@
 
 from NNdatabase import NNDataBase
 
-CRUDE_REPORT = True
-DEBUG = True
+
+CRUDE_REPORT = False
 
 class ParseError:
 
-    def __init__(self, desc, nodes:list=None):
+    def __init__(self, desc, nodeIDs:list[str]=None):
         self.desc = desc
-        self.nodes     = None if nodes is None else [n["id"] for n in nodes]
-        self.nodesDesc = None if nodes is None else [f"{n["data"].get("type", "Unknown")} {n["id"]}" for n in nodes]
+        self.nodes = None if nodeIDs is None else nodeIDs
 
-    def report(self, ID):
-        nodesS = "No nodes"
-        if self.nodesDesc is not None:
-            nodesS = ", ".join(self.nodes)
-        return f"{ID}: {self.desc}, involving \'{nodesS}\'"
+    def report(self):
+        return self.desc
 
 def find(nodesList, nodeId):
     query = [n for n in nodesList if n["id"] == nodeId]
     return None if len(query) == 0 else query[0]
 
-def dfs(nodesList, origin):
+class Graph:
 
-    q = [origin]
-    v = [] # id list
+    def __init__(self, nodesList):
 
-    while len(q) != 0:
+        # ** TARJAN ** #
+        self.V = []
+        self.E = []
+        self.indices = {}
+        self.lowlink = {}
+        self.onStack = {}
 
-        n = q.pop()
+        self.index = 0
+        self.S = []
 
-        assert isinstance(n, dict)
+        self.SSCs = []
+        self.hasRunTarjan = False
+        # ** TARJAN ** #
 
-        if n["id"] in v: continue
-        v.append(n["id"])
+        # ** MATCHING INCOMING OUTGOING ** #
+        self.inputChannels = {}
+        self.outputChannels = {}
+        self.isOutput = {}
+        # ** MATCHING INCOMING OUTGOING ** #
 
-        # assumes children list contains only ID's
+        # populate graph
+        for n in nodesList:
+            self.V.append(n["id"])
+            for c in n["children"]:
+                self.E.append([n["id"], c])
 
-        for c in n["children"]:
-            child = find(nodesList, c)
-            if child is None: 
-                print(f"couldn't find {c} in nodes list")
+            # ** TARJAN ** #
+            self.indices[n["id"]] = None
+            self.lowlink[n["id"]] = None
+            self.onStack[n["id"]] = False
+            # ** TARJAN ** #
+            
+            # ** MATCHING INCOMING OUTGOING ** #
+            isOutput = n["data"]["operationType"] == "Output"
+            self.inputChannels[n["id"]]  = None if isOutput else n["data"]["inputChannels"]
+            self.outputChannels[n["id"]] = None if isOutput else n["data"]["outputChannels"]
+            # ** MATCHING INCOMING OUTGOING ** #
+
+            self.isOutput[n["id"]] = True if isOutput else False
+
+    # returing list in format [(parentInError, childInError), ...]
+    def hasMatchingInAndOut(self):
+        rtn = []
+        for v in self.V:
+
+            if self.inputChannels[v] is None: continue
+
+            for e in self.E:
+
+                if e[0] == v:
+                    w = e[1]
+                    if self.inputChannels[w] is None: continue
+
+                    if self.outputChannels[v] != self.inputChannels[w]:
+                        rtn.append((v,w))
+        print(rtn)
+        return rtn
+
+    def tarjan(self):
+        # puesdoCode: https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
+        assert len(self.S) == 0 and self.index == 0 # needs to be rePop'd everytime
+
+        for v in self.V:
+            if self.indices[v] is None:
+                self.strongConnect(v)
+
+        self.hasRunTarjan = True
+
+    def getInError(self):
+        assert self.hasRunTarjan
+
+        inErr = []
+        for ssc in self.SSCs:
+            if len(ssc) > 1:
+                for n in ssc:
+                    inErr.append(n)
+        return None if len(inErr) == 0 else inErr
+
+    def strongConnect(self, v):
+        
+        self.indices[v] = self.index
+        self.lowlink[v] = self.index
+        self.index += 1
+        self.S.append(v)
+        self.onStack[v] = True
+
+        for w in [e[1] for e in self.E if e[0] == v]:
+            
+            if self.indices[w] is None:
+                self.strongConnect(w) #recurse
+                self.lowlink[v] = min(self.lowlink[v], self.lowlink[w])
+            elif self.onStack[w]:
+                self.lowlink[v] = min(self.lowlink[v], self.indices[w])
+
+        if self.lowlink[v] == self.indices[v]:
+            cond = True
+            SCC = []
+            while cond:
+                w = self.S.pop()
+                self.onStack[w] = False
+                SCC.append(w)
+                cond = (w != v)
+            self.SSCs.append(SCC)
+    
+    def isPathFromInputToOutput(self, origin: str):
+        
+        q = [origin]
+        vst = [] # id list
+
+        while len(q) != 0:
+
+            n = q.pop()
+
+            if n in vst: 
                 continue
-            assert isinstance(child, dict)
-            if child["data"]["operationType"] == "Output":
-                if CRUDE_REPORT: print(f"Input {origin["id"]} found an output")
-                return True
-            q.append(child)
+            vst.append(n)
 
-    return False
+            # assumes children list contains only ID's
+
+            for e in self.E:
+                
+                if e[0] != n: continue
+
+                c = e[1]
+                if self.isOutput[c]: 
+                    return True                
+                    
+                q.append(c)
+
+        return False
 
 def parse(nodesList):
     
@@ -64,15 +166,29 @@ def parse(nodesList):
     inputs = [n for n in nodesList if (n["data"]["operationType"]).lower() == "input"]
     # checks for input existing
     if len(inputs) == 0:
-        errors.append(ParseError("No Input Node, defined", nodes=None))
+        errors.append(ParseError("Please define an Input", nodeIDs=None))
 
     # checks for input's Having a parent
     for n in inputs:
         if len(n.get("parents", [])) != 0:
-            errors.append(ParseError("Inputs cannot have a Parent", nodes=[n]))
+            errors.append(ParseError("Inputs cannot have a parent", nodeIDs=[n["id"]]))
+
+    outputs = [n for n in nodesList if (n["data"]["operationType"]).lower() == "output"]
+    if len(outputs) == 0:
+        errors.append(ParseError("Please define an Output", nodeIDs=None))
+    elif len(outputs) > 1:
+        errors.append(ParseError("Too many outputs, only one is permitted", nodeIDs=[n["id"] for n in outputs]))
+    
+    for n in outputs:
+        if len(n.get("children", [])) != 0:
+            errors.append(ParseError("Outputs cannot have children", nodeIDs=[n["id"]]))
+        if len(n.get("parents", [])) == 0:
+            errors.append(ParseError("Outputs need an a parent node", nodeIDs=[n["id"]]))
+        if len(n.get("parents", [])) > 1:
+            errors.append(ParseError(f"Output requires only one parent, currently has {len(n.get("parents", []))}", nodeIDs=[n["id"]]))
 
     # checks for maxInputs and minInputs being obeyed
-    print(" ".join([n["id"] for n in nodesList]))
+    # print(" ".join([n["id"] for n in nodesList]))
     for n in nodesList:
         if n["data"]["operationType"] == "Input": continue # checked elsewhere
         if n["data"]["operationType"] == "Output": continue # has no default
@@ -82,13 +198,13 @@ def parse(nodesList):
         # Find the default configuration for this node type using hierarchical lookup
         node_type = n["data"].get("type")
         if not node_type:
-            errors.append(ParseError(f"Node {n['id']} missing type field", nodes=[n]))
+            errors.append(ParseError(f"Node {n['id']} missing type field", nodeIDs=[n["id"]]))
             continue
             
         dflt = DB.find_definition(node_type)
         
         if dflt is None:
-            errors.append(ParseError(f"No default configuration found for node type {node_type}", nodes=[n]))
+            errors.append(ParseError(f"No default configuration found for node type {node_type}", nodeIDs=[n["id"]]))
             continue
             
         # Check parseCheck constraints if they exist
@@ -98,27 +214,81 @@ def parse(nodesList):
         
         parent_count = len(n.get("parents", []))
         if parent_count < int(min_inputs):
-            errors.append(ParseError(f"Node of Type {dflt['type']} requires at least {min_inputs} input{'s' if min_inputs > 1 else ''}, currently has {parent_count}", nodes=[n]))
+            errors.append(ParseError(f"{dflt['type']} requires at least {min_inputs} parent{'s' if min_inputs > 1 else ''}, currently has {parent_count}", nodeIDs=[n["id"]]))
         if parent_count > int(max_inputs):
-            errors.append(ParseError(f"Node of type {dflt['type']} requires less or equal to {max_inputs} input{'s' if max_inputs > 1 else ''}, currently has {parent_count}", nodes=[n]))
+            errors.append(ParseError(f"{dflt['type']} requires less or equal to {max_inputs} parent{'s' if max_inputs > 1 else ''}, currently has {parent_count}", nodeIDs=[n["id"]]))
 
-    # TODO: checks for path from input to output
-    inputs = [n for n in nodesList if n["data"]["operationType"] == "Input"]
-    # print(inputs)
-    pathCheck = [(dfs(nodesList, i), i) for i in inputs]
+    
+
+  
+    # check for cycles.
+    nG = Graph(nodesList)
+    nG.tarjan()
+    inErr = nG.getInError()
+    if inErr is not None:
+        errors.append(ParseError(f"This is node is part of a cycle", nodeIDs=inErr))
+
+    # get all inputs for graph
+    inputs = [n["id"] for n in nodesList if n["data"]["operationType"] == "Input"]
+   
+    pathCheck = [(nG.isPathFromInputToOutput(i), i) for i in inputs]
     for path in pathCheck:
-        if not path[0]: errors.append(ParseError(f"Input \'{path[1]["id"]}\' has no path to output", nodes=[path[1]]))
+        if not path[0]: errors.append(ParseError(f"This input has no path to an output", nodeIDs=[path[1]]))
 
-    # TODO: checks for matching number of dimensions from output to input
+    # check for matching inputChannels to outputChannels
+    inErr = nG.hasMatchingInAndOut()
+    if len(inErr) != 0:
+        for err in inErr:
+            errors.append(ParseError(f"Output dimensions of parent do not match this node's input dimensions, nodes such as activators/tensor operations, can inherit dimensions. You may need to go futher up the graph to fix this error.",
+                          nodeIDs=[err[1]]))
+            errors.append(ParseError(f"The output dimensions of this node do match the input dimensions of its children, nodes such as activators/tensor operations, can inherit dimensions. You may need to go futher up the graph to fix this error.",
+                          nodeIDs=[err[0]]))
 
     if CRUDE_REPORT:
         for i, e in enumerate(errors):
-            print(e.report(i + 1))
+            print(e.report())
 
     return [] if len(errors) == 0 else [
         {
-            "errorMsg" : e.report(i + 1),
+            "id": i + 1,
+            "errorMsg" : e.report(),
             "flaggedNodes" : e.nodes
         }
         for i, e in enumerate(errors)
     ]
+
+if __name__ == "__main__":
+    # test taken from here: https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
+    
+    """ ************ Tarjan Tests Begin ************ """
+    
+    NL1 = [
+        {"id" : "1", "children" : ["2"]},
+        {"id" : "2", "children" : ["3"]},
+        {"id" : "3", "children" : ["1"]},
+        {"id" : "4", "children" : ["2", "3", "5"]},
+        {"id" : "5", "children" : ["4", "6"]},
+        {"id" : "6", "children" : ["3", "7"]},
+        {"id" : "7", "children" : ["6"]},
+        {"id" : "8", "children" : ["5", "7", "8"]}
+    ]
+    G1 = Graph(NL1)
+    result = G1.tarjan()
+    print(G1.SSCs)
+    assert G1.SSCs == [['3', '2', '1'], ['7', '6'], ['5', '4'], ['8']]
+
+    NL2 = [
+        {"id" : "A", "children" : ["B"]},
+        {"id" : "B", "children" : ["C", "D"]},
+        {"id" : "C", "children" : ["E"]},
+        {"id" : "D", "children" : ["F"]},
+        {"id" : "E", "children" : ["C"]},
+        {"id" : "F", "children" : ["D", "G"]},
+        {"id" : "G", "children" : []},
+    ]
+    G2 = Graph(NL2)
+    G2.tarjan()
+    print(G2.SSCs)
+    assert G2.SSCs == [['E', 'C'], ['G'], ['F', 'D'], ['B'], ['A']]
+
+    """ ************ Tarjan Tests End ************ """

@@ -1,172 +1,258 @@
 {
-    "data": {
-        "Merge Tensor Operations": {
-            "cat": {
-                "library": "torch",
-                "parseCheck": {
-                    "maxInputs": 1000,
-                    "minInputs": 2,
-                    "maxOutputs": 1,
-                    "minOutputs": 1,
-                    "CanEditChannels": false,
-                    "ChannelLinks": []
-                },
-                "parameters": {
-                    "dim": 0
-                },
-                "parameters_format": {
-                    "dim": ["int"]
-                },
-                "codeGeneration": {
-                    "operationPattern": "merge",
-                    "parentParameterFormat": "tuple"
-                }
-            },
-            "stack": {
-                "library": "torch",
-                "parseCheck": {
-                    "maxInputs": 1000,
-                    "minInputs": 2,
-                    "maxOutputs": 1,
-                    "minOutputs": 1,
-                    "CanEditChannels": false,
-                    "ChannelLinks": []
-                },
-                "parameters": {
-                    "dim": 0
-                },
-                "parameters_format": {
-                    "dim": ["int"]
-                },
-                "codeGeneration": {
-                    "operationPattern": "merge",
-                    "parentParameterFormat": "tuple"
-                }
-            },
-            "add": {
-                "library": "torch",
-                "parseCheck": {
-                    "maxInputs": 1000,
-                    "minInputs": 2,
-                    "maxOutputs": 1,
-                    "minOutputs": 1,
-                    "CanEditChannels": false,
-                    "ChannelLinks": []
-                },
-                "parameters": {
-                    "alpha": 1
-                },
-                "parameters_format": {
-                    "alpha": ["float"]
-                },
-                "codeGeneration": {
-                    "operationPattern": "merge",
-                    "parentParameterFormat": "tuple"
-                }
-            },
-            "mul": {
-                "library": "torch",
-                "parseCheck": {
-                    "maxInputs": 1000,
-                    "minInputs": 2,
-                    "maxOutputs": 1,
-                    "minOutputs": 1,
-                    "CanEditChannels": false,
-                    "ChannelLinks": []
-                },
-                "parameters": {},
-                "parameters_format": {},
-                "codeGeneration": {
-                    "operationPattern": "merge",
-                    "parentParameterFormat": "separate"
-                }
-            },
-            "sub": {
-                "library": "torch",
-                "parseCheck": {
-                    "maxInputs": 1000,
-                    "minInputs": 2,
-                    "maxOutputs": 1,
-                    "minOutputs": 1,
-                    "CanEditChannels": false,
-                    "ChannelLinks": []
-                },
-                "parameters": {},
-                "parameters_format": {},
-                "codeGeneration": {
-                    "operationPattern": "merge",
-                    "parentParameterFormat": "separate"
-                }
-            },
-            "div": {
-                "library": "torch",
-                "parseCheck": {
-                    "maxInputs": 1000,
-                    "minInputs": 2,
-                    "maxOutputs": 1,
-                    "minOutputs": 1,
-                    "CanEditChannels": false,
-                    "ChannelLinks": []
-                },
-                "parameters": {},
-                "parameters_format": {
-
-                },
-                "codeGeneration": {
-                    "operationPattern": "merge",
-                    "parentParameterFormat": "separate"
-                }
+  "data": {
+    "Merge Tensor Operations": {
+      "cat": {
+        "library": "torch",
+        "parseCheck": {
+          "maxInputs": 1000,
+          "minInputs": 2,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": true,
+          "ChannelLinks": [
+            {
+              "inputParam": "dim",
+              "outputParam": "dim"
             }
+          ]
+        },
+        "parameters": {
+          "dim": 0
+        },
+        "parameters_format": {
+          "dim": [
+            "int"
+          ]
+        },
+        "codeGeneration": {
+          "operationPattern": "merge",
+          "parentParameterFormat": "tuple"
+        }
+      },
+      "stack": {
+        "library": "torch",
+        "parseCheck": {
+          "maxInputs": 1000,
+          "minInputs": 2,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": true,
+          "ChannelLinks": [
+            {
+              "inputParam": "dim",
+              "outputParam": "dim"
+            }
+          ]
+        },
+        "parameters": {
+          "dim": 0
+        },
+        "parameters_format": {
+          "dim": [
+            "int"
+          ]
+        },
+        "codeGeneration": {
+          "operationPattern": "merge",
+          "parentParameterFormat": "tuple"
+        }
+      },
+
+      "add": {
+        "library": "torch",
+        "parseCheck": {
+          "maxInputs": 1000,
+          "minInputs": 2,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {
+          "alpha": 1
+        },
+        "parameters_format": {
+          "alpha": [
+            "float"
+          ]
+        },
+        "codeGeneration": {
+          "operationPattern": "merge",
+          "parentParameterFormat": "tuple"
+        }
+      },
+  
+      "mul": {
+        "library": "torch",
+        "parseCheck": {
+          "maxInputs": 1000,
+          "minInputs": 2,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {},
+        "parameters_format": {},
+        "codeGeneration": {
+          "operationPattern": "merge",
+          "parentParameterFormat": "separate"
+        }
+      },
+      "sub": {
+        "library": "torch",
+        "parseCheck": {
+          "maxInputs": 1000,
+          "minInputs": 2,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {},
+        "parameters_format": {},
+        "codeGeneration": {
+          "operationPattern": "merge",
+          "parentParameterFormat": "separate"
+        }
+      },
+      "div": {
+        "library": "torch",
+        "parseCheck": {
+          "maxInputs": 1000,
+          "minInputs": 2,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {},
+        "parameters_format": {},
+        "codeGeneration": {
+          "operationPattern": "merge",
+          "parentParameterFormat": "separate"
+        }
+      },
+
+      "maximum": {
+        "library": "torch",
+        "parseCheck": {
+          "maxInputs": 1000,
+          "minInputs": 2,
+          "maxOutputs": 1,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {},
+        "parameters_format": {},
+        "codeGeneration": {
+          "operationPattern": "merge",
+          "parentParameterFormat": "separate"
+        }
+      }
+    },
+
+  
+    "Split Tensor Operations": {
+      "split": {
+        "library": "torch",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 2,
+          "CanEditChannels": true,
+          "ChannelLinks": [
+            {
+              "inputParam": "dim",
+              "outputParam": "dim"
+            }
+          ]
+        },
+        "parameters": {
+          "split_size_or_sections": 1,
+          "dim": 0
+        },
+        "parameters_format": {
+          "split_size_or_sections": [
+            "int",
+            "list"
+          ],
+          "dim": [
+            "int"
+          ]
+        },
+        "codeGeneration": {
+          "operationPattern": "split",
+          "parentParameterFormat": "tuple"
+        }
+      },
+      "chunk": {
+        "library": "torch",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 2,
+          "CanEditChannels": true,
+          "ChannelLinks": [
+            {
+              "inputParam": "dim",
+              "outputParam": "dim"
+            }
+          ]
+        },
+        "parameters": {
+          "chunks": 10,
+          "dim": 1
+        },
+        "parameters_format": {
+          "chunks": [
+            "int"
+          ],
+          "dim": [
+            "int"
+          ]
+        },
+        "codeGeneration": {
+          "operationPattern": "split",
+          "parentParameterFormat": "tuple"
+        }
+      }
+    },
+
+    "Transpose Tensor Operations": {
+      "mean": {
+        "library": "torch",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": true,
+          "ChannelLinks": [
+            {
+              "inputParam": "dim",
+              "outputParam": "dim"
+            }
+          ]
+        },
+        "parameters": {
+          "dim": 0
+        },
+        "parameters_format": {
+          "dim": [
+            "int",
+            "tuple"
+          ]
         },
 
-        "Split Tensor Operations": {
-            "split": {
-                "library": "torch",
-                "parseCheck": {
-                    "maxInputs": 1,
-                    "minInputs": 1,
-                    "maxOutputs": 1000,
-                    "minOutputs": 2,
-                    "CanEditChannels": false,
-                    "ChannelLinks": []
-                },
-                "parameters": {
-                    "split_size_or_sections": 1,
-                    "dim": 0
-                },
-                "parameters_format": {
-                    "split_size_or_sections": ["int", "list"],
-                    "dim": ["int"]
-                },
-                "codeGeneration": {
-                    "operationPattern": "split",
-                    "parentParameterFormat": "tuple"
-                }
-            },
-
-            "chunk": {
-                "library": "torch",
-                "parseCheck": {
-                    "maxInputs": 1,
-                    "minInputs": 1,
-                    "maxOutputs": 1000,
-                    "minOutputs": 2,
-                    "CanEditChannels": false,
-                    "ChannelLinks": []
-                },
-                "parameters": {
-                    "chunks": 10,
-                    "dim": 1
-                },
-                "parameters_format": {
-                    "chunks": ["int"],
-                    "dim": ["int"]
-                },
-                "codeGeneration": {
-                    "operationPattern": "split",
-                    "parentParameterFormat": "tuple"
-                }
-            }
+        "codeGeneration": {
+          "operationPattern": "transpose",
+          "parentParameterFormat": "separate"
         }
+      }
     }
+  }
 }

@@ -10,7 +10,7 @@ export interface HierarchicalNodeData {
   data: Record<string, Record<string, any>>;
 }
 
-export type NodeType = 'layers' | 'tensorops' | 'activators';
+export type NodeType = 'layers' | 'tensorops' | 'activators' | 'inputs';
 
 export const useNodeDefinitions = (nodeType: NodeType) => {
   const [nodeData, setNodeData] = useState<HierarchicalNodeData | null>(null);

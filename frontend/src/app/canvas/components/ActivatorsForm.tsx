@@ -9,14 +9,18 @@ import Button from "@mui/material/Button";
 import { generateUniqueNodeId } from "../utils/idGenerator";
 import ParameterInputs from "./ParameterInputs";
 import { useParameterHandling } from "../hooks/useParameterHandling";
+import { createNode } from "./TorchNodeCreator";
 
 interface Props {
   nodes: any[];
   setNodes: (val: any) => void;
   defaultActivators: any; // Changed from any[] to any to handle new structure
+  // for TorchNode functionality, allows it to update itself (TN)
+  getSetters: () => any;
+  getDefaults: () => any; // for editing within a node (TN)
 }
 
-export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: Props) {
+export default function ActivatorsForm({ nodes, setNodes, defaultActivators, getSetters, getDefaults}: Props) {
   // Use parameter handling hook
   const { 
     parameters, 
@@ -88,19 +92,20 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: P
     }
 
     const newId = generateUniqueNodeId("activator", nodes);
+    const newNode = createNode(
+        newId,
+        nodes.length, // posModifier
+        chosenActivator.type, // label
+        "Activator", // operation type
+        chosenActivator.type, // type
+        parameters,
+        getSetters,
+        getDefaults,
+        chosenActivator
+    );
     setNodes([
       ...nodes,
-      {
-        id: newId,
-        position: { x: 300, y: 100 + nodes.length * 60 },
-        data: {
-          label: chosenActivator.type,
-          operationType: "Activator",
-          type: chosenActivator.type,
-          parameters: parameters,
-          outgoing_edges_count: 0
-        },
-      },
+      newNode
     ]);
     
     // Reset to first selection after adding
@@ -165,6 +170,7 @@ export default function ActivatorsForm({ nodes, setNodes, defaultActivators }: P
           parameters={parameters}
           onParameterChange={handleParameterChange}
           onValidationChange={handleValidationChange}
+          nodeDefinition={chosenActivator}
         />
       )}
       

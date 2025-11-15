@@ -18,7 +18,7 @@ export const BackToTopButton = () => {
             sx={{
                 position: "fixed",     // stay fixed on the screens
                 bottom: 20,            // 20px from bottom
-                right: "47vw",             // 20px from right
+                right: "47vw",             // 47vw from the right
                 zIndex: 1000           // make sure it appears above other content
             }}>
             Back to Top
