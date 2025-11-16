@@ -41,6 +41,7 @@ export default function dashboardBody() {
 
                 const userId = user.sub;
                 const data = await getNeuralNetworks(userId);
+                console.log(data);
                 setNetworks(data);
                 setVisibleNetworks(NewSort("Alphabetical", data));  //Sets initial state of sort to A-Z
                 

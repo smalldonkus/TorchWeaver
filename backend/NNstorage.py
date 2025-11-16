@@ -20,13 +20,14 @@ class NNStorage:
                 updated_at TEXT,
                 json_data TEXT NOT NULL,
                 user_auth0_id TEXT,
-                favourited BOOLEAN DEFAULT 0
+                favourited BOOLEAN DEFAULT 0,
+                preview_base64 TEXT
             )
         """)
         conn.commit()
         conn.close()
 
-    def save_network(self, name, json_data, description=None, network_id=None, user_auth0_id=None):
+    def save_network(self, name, json_data, preview_base64, description=None, network_id=None, user_auth0_id=None):
         """
         Save or update a neural network structure with metadata.
 
@@ -44,9 +45,9 @@ class NNStorage:
                 # Update existing record
                 cur.execute("""
                     UPDATE networks
-                    SET name = ?, description = ?, updated_at = ?, json_data = ?, user_auth0_id = ?
+                    SET name = ?, description = ?, updated_at = ?, json_data = ?, user_auth0_id = ?, preview_base64 = ?
                     WHERE id = ?
-                """, (name, description, datetime.now().isoformat(), json.dumps(json_data), user_auth0_id, network_id))
+                """, (name, description, datetime.now().isoformat(), json.dumps(json_data), user_auth0_id, preview_base64, network_id))
                 conn.commit()
                 conn.close()
                 print(f"[DB] Updated network ID={network_id}")
@@ -54,9 +55,9 @@ class NNStorage:
 
         # Otherwise, insert a new record
         cur.execute("""
-            INSERT INTO networks (name, description, created_at, json_data, user_auth0_id)
-            VALUES (?, ?, ?, ?, ?)
-        """, (name, description, datetime.now().isoformat(), json.dumps(json_data), user_auth0_id))
+            INSERT INTO networks (name, description, created_at, json_data, user_auth0_id, preview_base64)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (name, description, datetime.now().isoformat(), json.dumps(json_data), user_auth0_id, preview_base64))
         conn.commit()
 
         new_id = cur.lastrowid
@@ -68,11 +69,11 @@ class NNStorage:
         """Return metadata for all saved networks for a given user."""
         conn = sqlite3.connect(self.db_path)
         cur = conn.cursor()
-        cur.execute("SELECT id, name, description, created_at, favourited FROM networks WHERE user_auth0_id = ? ORDER BY id DESC, created_at DESC", (user_auth0_id,))
+        cur.execute("SELECT id, name, description, created_at, favourited, preview_base64 FROM networks WHERE user_auth0_id = ? ORDER BY id DESC, created_at DESC", (user_auth0_id,))
         rows = cur.fetchall()
         conn.close()
         return [
-            {"id": r[0], "name": r[1], "description": r[2], "created_at": r[3], "favourited": r[4]}
+            {"id": r[0], "name": r[1], "description": r[2], "created_at": r[3], "favourited": r[4], "preview_base64": r[5]}
             for r in rows
         ]
 
@@ -81,17 +82,18 @@ class NNStorage:
         conn = sqlite3.connect(self.db_path)
         cur = conn.cursor()
         if user_auth0_id:
-            cur.execute("SELECT name, json_data FROM networks WHERE id = ? AND user_auth0_id = ?", (network_id, user_auth0_id))
+            cur.execute("SELECT name, preview_base64, json_data FROM networks WHERE id = ? AND user_auth0_id = ?", (network_id, user_auth0_id))
         else:
-            cur.execute("SELECT name, json_data FROM networks WHERE id = ?", (network_id,))
+            cur.execute("SELECT name, preview_base64, json_data FROM networks WHERE id = ?", (network_id,))
         
         row = cur.fetchone()
         conn.close()
         if not row:
             return None
-        name, json_data = row
+        name, preview_base64, json_data = row
         network = json.loads(json_data)
         network["name"] = name
+        network["preview_base64"] = preview_base64
         return network
 
     def delete_network(self, network_id, user_auth0_id: str = None):

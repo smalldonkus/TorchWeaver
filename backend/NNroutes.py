@@ -41,6 +41,7 @@ def saveNetwork():
 
         name = data.get("name")
         network_id = data.get("nn_id")
+        preview_base64 = data.get("preview")
         # Prefer authenticated user id from headers, fall back to payload
         user_auth0_id = get_user_id(request)
         if not user_auth0_id:
@@ -60,7 +61,7 @@ def saveNetwork():
             return jsonify({"error": "Missing 'name' or 'network' data"}), 400
 
         # Save network and get the ID back (storage will insert or update based on network_id)
-        saved_id = storage.save_network(name, json_data, description, network_id, user_auth0_id)
+        saved_id = storage.save_network(name, json_data, preview_base64, description, network_id, user_auth0_id)
         return jsonify({"success": True, "id": saved_id}), 200
     except Exception as e:
         print("[NNRoutes] Exception in save_network:")

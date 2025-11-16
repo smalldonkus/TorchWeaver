@@ -1,6 +1,6 @@
 "use client"; // Enables React Server Components with client-side interactivity
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -18,6 +18,8 @@ import useOperationDefinitions from "./hooks/useOperationDefinitions";
 import { generateUniqueNodeId } from "./utils/idGenerator";
 import { determineCanInheritFromParent, linkParametersToChannels } from "./components/TorchNodeCreator";
 import { propagateChannelInheritance, findNodeDefinition, handleInheritFromParentChange } from "./utils/channelPropagation";
+import * as htmlToImage from 'html-to-image';
+import { toPng } from 'html-to-image';
 
 import useParse from "./hooks/useParse";
 import ErrorBox from "./components/ErrorBox";
@@ -43,6 +45,8 @@ export default function CanvasPage() {
   const nodeTypes = {
     torchNode : TorchNode
   };
+
+  const canvasRef = useRef<HTMLDivElement>(null) //ref to canvas to save images
   
   // Load saved network if available
   useEffect(() => {
@@ -642,13 +646,19 @@ export default function CanvasPage() {
     (msg) => showSnackbar(msg, 'error')
   );
 
-  const handleSave = useSave(
-    nodes, 
-    edges,
-    name,
-    (msg) => showSnackbar(msg, 'success'),
-    (msg) => showSnackbar(msg, 'error')
-  );
+const handleSave = async () => { //gets screenshot of canvas then saves
+    if (canvasRef.current === null) return;
+
+    const dataURL = await toPng(canvasRef.current, { cacheBust: true, });
+    const base64Image = dataURL.replace(/^data:image\/png;base64,/, ''); // png to base64 conversion
+
+    save(nodes, edges, name, base64Image,
+      (msg) => showSnackbar(msg, 'success'),
+      (msg) => showSnackbar(msg, 'error')
+    )
+  };
+
+  const save = useSave(); //ensures hook is at the top 
 
   const unpackErrorIds = (errors: any[]) => {
     const rtn: any[] = [];
@@ -772,7 +782,8 @@ export default function CanvasPage() {
         <DrawerHeader /> {/* Spacer for the header */}
         {/* Canvas component where nodes and edges are displayed and edited */}
         <ReactFlowProvider>
-          <Canvas
+          <div ref={canvasRef}>
+            <Canvas
             nodes={nodes}
             edges={edges}
             nodeTypes={nodeTypes}
@@ -784,7 +795,8 @@ export default function CanvasPage() {
             handleExport={handleExport}
             handleSave={handleSave}
             errorMessages={errorMsgs}
-          />
+            />
+          </div>
         </ReactFlowProvider>
       </Main>
       <ErrorBox key={"errorBox"} isOpen={openErrorBox} setOpen={setOpenErrorBox} messages={errorMsgs}/>
