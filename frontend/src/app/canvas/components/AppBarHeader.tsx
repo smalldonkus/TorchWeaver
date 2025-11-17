@@ -23,14 +23,12 @@ import { Box } from "@mui/material";
 interface Props {
     open: boolean; // Whether the sidebar/drawer is open
     setOpen: (val: boolean) => void; // Function to set the open state
-    openErrorBox: boolean;
-    setOpenErrorBox: (val: boolean) => void;
     doUndo: () => void;
     doRedo: () => void;
 }
 
 // Main AppBarHeader component
-export default function AppBarHeader({ open, setOpen, openErrorBox, setOpenErrorBox, doUndo, doRedo}: Props) {
+export default function AppBarHeader({ open, setOpen, doUndo, doRedo}: Props) {
     // State to control the anchor element for the dropdown menu
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     // Next.js router for navigation
@@ -41,15 +39,6 @@ export default function AppBarHeader({ open, setOpen, openErrorBox, setOpenError
         setAnchorEl(e.currentTarget);
     // Close the menu
     const handleMenuClose = () => setAnchorEl(null);
-
-    // When the "Errors" button is clicked, open the Error's Drawer
-    const handleErrorClick = (e: React.MouseEvent<HTMLElement>) => {
-        setOpenErrorBox(!openErrorBox);
-    }
-
-    // const errorButtonVariant = hasError ? "contained" : "outlined";
-    const errorButtonVariant = "contained"; // TODO: style
-
 
     return (
         // The top app bar, styled and fixed position
@@ -110,10 +99,6 @@ export default function AppBarHeader({ open, setOpen, openErrorBox, setOpenError
                         <RedoIcon />
                     </IconButton>
                 </Box>
-                {/* "Error" button that opens the Errors drawer  */}
-                <Button variant={errorButtonVariant} color="error" onClick={handleErrorClick} sx={{mr:1}}>
-                    Errors
-                </Button>
                 {/* "Return" button that opens the dropdown menu */}
                 <Button 
                     onClick={handleMenuClick}

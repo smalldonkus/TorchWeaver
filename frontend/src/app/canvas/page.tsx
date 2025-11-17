@@ -20,7 +20,6 @@ import { determineCanInheritFromParent, linkParametersToChannels } from "./compo
 import { propagateChannelInheritance, findNodeDefinition, handleInheritFromParentChange } from "./utils/channelPropagation";
 
 import useParse from "./hooks/useParse";
-import ErrorBox from "./components/ErrorBox";
 import useSave from "./hooks/useSave";
 
 import TorchNode from "./components/TorchNode";
@@ -140,8 +139,6 @@ export default function CanvasPage() {
   // error UI variables
   const [errorOpen, seterrorOpen] = useState(false);
   const [errorMsgs, seterrorMsgs] = useState<any[]>([]);
-  // used for opening the error drawer
-  const [openErrorBox, setOpenErrorBox] = useState(false);
   
   // Snackbar state for success/error messages
   const [snackbar, setSnackbar] = useState<{
@@ -889,7 +886,7 @@ export default function CanvasPage() {
     <Box sx={{ display: "flex" }}>
       <CssBaseline /> {/* Resets CSS for consistent styling */}
       {/* Top app bar/header */}
-      <AppBarHeader open={open} setOpen={setOpen} openErrorBox={openErrorBox} setOpenErrorBox={setOpenErrorBox} doUndo={doUndo} doRedo={doRedo}/>
+      <AppBarHeader open={open} setOpen={setOpen} doUndo={doUndo} doRedo={doRedo}/>
       {/* Sidebar with menu and export functionality */}
       <Sidebar
         open={open}
@@ -933,7 +930,6 @@ export default function CanvasPage() {
           />
         </ReactFlowProvider>
       </Main>
-      <ErrorBox key={"errorBox"} isOpen={openErrorBox} setOpen={setOpenErrorBox} messages={errorMsgs}/>
       <Snackbar
         open={snackbar.open}
         autoHideDuration={5000}
