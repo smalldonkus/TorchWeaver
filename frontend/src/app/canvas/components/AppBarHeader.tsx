@@ -67,57 +67,64 @@ export default function AppBarHeader({ open, setOpen, doUndo, doRedo, name, setN
                     onClick={() => window.location.href = '/'} // navigate back to home when logo is pressed
                 />
                 <NamingBox value={name} onChange={setName}/>
-                {/* "Undo" button that undoes the last "significant" action */}
+                {/* Undo/Redo and Return buttons grouped on the right */}
                 <Box
                     sx={{
-                        display: "flex", 
-                        flexDirection:"row", 
-                        gap: "10px",
-                        border:"1px dashed white",
-                        borderRadius: "10px",
-                        alignItems: "center",
-                        mr:2
-                    }}>
-                    <IconButton
-                        color="inherit"
-                        aria-label="open drawer"
-                        onClick={doUndo}
-                        edge="end"
-                        sx={{ml: 0.5, mr: 0.5}}
-                    >
-                        <UndoIcon />
-                    </IconButton>
-                    <IconButton
-                        color="inherit"
-                        aria-label="open drawer"
-                        onClick={doRedo}
-                        edge="end"
-                        sx={{mr: 0.5}}
-                    >
-                        <RedoIcon />
-                    </IconButton>
-                </Box>
-                {/* "Return" button that opens the dropdown menu */}
-                <Button 
-                    onClick={handleMenuClick}
-                    sx={{
-                        backgroundColor: "#FF7700",
-                        color: "white",
-                        fontSize: "1.1rem",
-                        left: "95vw",
                         position: "fixed",
-                        borderRadius: "8px",
-                        fontWeight: 600,
-                        fontFamily: 'inherit',
-                        textTransform: 'none',
-                        '&:hover': {
-                        backgroundColor: '#f88f34ff',
-                        }
-                        
+                        right: "20px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px"
                     }}
                 >
-                    Return
-                </Button>
+                    {/* "Undo" button that undoes the last "significant" action */}
+                    <Box
+                        sx={{
+                            display: "flex", 
+                            flexDirection:"row", 
+                            gap: "10px",
+                            border:"1px dashed white",
+                            borderRadius: "10px",
+                            alignItems: "center"
+                        }}>
+                        <IconButton
+                            color="inherit"
+                            aria-label="undo"
+                            onClick={doUndo}
+                            edge="end"
+                            sx={{ml: 0.5, mr: 0.5}}
+                        >
+                            <UndoIcon />
+                        </IconButton>
+                        <IconButton
+                            color="inherit"
+                            aria-label="redo"
+                            onClick={doRedo}
+                            edge="end"
+                            sx={{mr: 0.5}}
+                        >
+                            <RedoIcon />
+                        </IconButton>
+                    </Box>
+                    {/* "Return" button that opens the dropdown menu */}
+                    <Button 
+                        onClick={handleMenuClick}
+                        sx={{
+                            backgroundColor: "#FF7700",
+                            color: "white",
+                            fontSize: "1.1rem",
+                            borderRadius: "8px",
+                            fontWeight: 600,
+                            fontFamily: 'inherit',
+                            textTransform: 'none',
+                            '&:hover': {
+                                backgroundColor: '#f88f34ff',
+                            }
+                        }}
+                    >
+                        Return
+                    </Button>
+                </Box>
                 {/* Dropdown menu with navigation options */}
                 <Menu
                     anchorEl={anchorEl}
