@@ -13,26 +13,25 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Fade from "@mui/material/Fade";
 import MenuIcon from "@mui/icons-material/Menu";
-import Avatar from '@mui/material/Avatar';
-import Stack from '@mui/material/Stack';
-
+import UndoIcon from '@mui/icons-material/Undo';
+import RedoIcon from '@mui/icons-material/Redo';
 // Import a styled AppBar component
 import { AppBar as StyledAppBar } from "../utils/styled";
-import { Box, Input } from "@mui/material";
+import { Box } from "@mui/material";
 import NamingBox from "./NamingBox";
 
 // Define the props for this component
 interface Props {
     open: boolean; // Whether the sidebar/drawer is open
     setOpen: (val: boolean) => void; // Function to set the open state
-    openErrorBox: boolean;
-    setOpenErrorBox: (val: boolean) => void;
+    doUndo: () => void;
+    doRedo: () => void;
     name: string
     setName: React.Dispatch<React.SetStateAction<string>>
 }
 
 // Main AppBarHeader component
-export default function AppBarHeader({ open, setOpen, openErrorBox, setOpenErrorBox, name, setName}: Props) {
+export default function AppBarHeader({ open, setOpen, doUndo, doRedo, name, setName}: Props) {
     // State to control the anchor element for the dropdown menu
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     // Next.js router for navigation
@@ -43,15 +42,6 @@ export default function AppBarHeader({ open, setOpen, openErrorBox, setOpenError
         setAnchorEl(e.currentTarget);
     // Close the menu
     const handleMenuClose = () => setAnchorEl(null);
-
-    // When the "Errors" button is clicked, open the Error's Drawer
-    const handleErrorClick = (e: React.MouseEvent<HTMLElement>) => {
-        setOpenErrorBox(!openErrorBox);
-    }
-
-    // const errorButtonVariant = hasError ? "contained" : "outlined";
-    const errorButtonVariant = "contained"; // TODO: style
-
 
     return (
         // The top app bar, styled and fixed position
@@ -77,6 +67,37 @@ export default function AppBarHeader({ open, setOpen, openErrorBox, setOpenError
                     onClick={() => window.location.href = '/'} // navigate back to home when logo is pressed
                 />
                 <NamingBox value={name} onChange={setName}/>
+                {/* "Undo" button that undoes the last "significant" action */}
+                <Box
+                    sx={{
+                        display: "flex", 
+                        flexDirection:"row", 
+                        gap: "10px",
+                        border:"1px dashed white",
+                        borderRadius: "10px",
+                        alignItems: "center",
+                        mr:2
+                    }}>
+                    <IconButton
+                        color="inherit"
+                        aria-label="open drawer"
+                        onClick={doUndo}
+                        edge="end"
+                        sx={{ml: 0.5, mr: 0.5}}
+                    >
+                        <UndoIcon />
+                    </IconButton>
+                    <IconButton
+                        color="inherit"
+                        aria-label="open drawer"
+                        onClick={doRedo}
+                        edge="end"
+                        sx={{mr: 0.5}}
+                    >
+                        <RedoIcon />
+                    </IconButton>
+                </Box>
+                {/* "Return" button that opens the dropdown menu */}
                 <Button 
                     onClick={handleMenuClick}
                     sx={{
@@ -127,3 +148,38 @@ export default function AppBarHeader({ open, setOpen, openErrorBox, setOpenError
         </StyledAppBar>
     );
 }
+
+// {/* "Undo" button that undoes the last "significant" action */}
+//                 <Box
+//                     sx={{
+//                         display: "flex", 
+//                         flexDirection:"row", 
+//                         gap: "10px",
+//                         border:"1px dashed white",
+//                         borderRadius: "10px",
+//                         alignItems: "center",
+//                         mr:2
+//                     }}>
+//                     <IconButton
+//                         color="inherit"
+//                         aria-label="open drawer"
+//                         onClick={doUndo}
+//                         edge="end"
+//                         sx={{ml: 0.5, mr: 0.5}}
+//                     >
+//                         <UndoIcon />
+//                     </IconButton>
+//                     <IconButton
+//                         color="inherit"
+//                         aria-label="open drawer"
+//                         onClick={doRedo}
+//                         edge="end"
+//                         sx={{mr: 0.5}}
+//                     >
+//                         <RedoIcon />
+//                     </IconButton>
+//                 </Box>
+//                 {/* "Error" button that opens the Errors drawer  */}
+//                 <Button variant={errorButtonVariant} color="error" onClick={handleErrorClick} sx={{mr:1}}>
+//                     Errors
+//                 </Button>

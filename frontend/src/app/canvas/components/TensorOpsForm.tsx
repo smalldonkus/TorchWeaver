@@ -13,7 +13,7 @@ import { createNode } from "./TorchNodeCreator";
 
 interface Props {
   nodes: any[];
-  setNodes: (val: any) => void;
+  addNode: (val: any) => void;
   defaultTensorOps: any; // Changed from any[] to any to handle new structure
 
   // for TorchNode functionality, allows it to update itself (TN)
@@ -21,7 +21,7 @@ interface Props {
   getDefaults: () => any[];
 }
 
-export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps, getSetters, getDefaults}: Props) {
+export default function TensorOpsForm({ nodes, addNode, defaultTensorOps, getSetters, getDefaults}: Props) {
   // Use parameter handling hook
   const { 
     parameters, 
@@ -104,7 +104,7 @@ export default function TensorOpsForm({ nodes, setNodes, defaultTensorOps, getSe
         getDefaults,
         chosenOp
     );
-    setNodes([
+    addNode([
       ...nodes,
       newNode
     ]);

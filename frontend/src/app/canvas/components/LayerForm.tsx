@@ -17,7 +17,7 @@ import {createNode} from "./TorchNodeCreator";
 // Define the props that this component expects
 interface Props {
     nodes: any[]; // List of current nodes (layers)
-    setNodes: (val: any) => void; // Function to update nodes
+    addNode: (val: any) => void; // Function to update nodes
     defaultLayers: any; // Layer data with global classes structure
 
     // for TorchNode functionality, allows it to update itself (TN)
@@ -26,7 +26,7 @@ interface Props {
 }
 
 // Main component for the Layer Form
-export default function LayerForm({ nodes, setNodes, defaultLayers, getSetters, getDefaults}: Props) {
+export default function LayerForm({ nodes, addNode, defaultLayers, getSetters, getDefaults}: Props) {
     // All hooks must be called before any conditional returns!
     
     // Use parameter handling hook
@@ -113,7 +113,7 @@ export default function LayerForm({ nodes, setNodes, defaultLayers, getSetters, 
             getDefaults,
             chosenDefault
         );
-        setNodes([
+        addNode([
             ...nodes,
             newNode
         ]);

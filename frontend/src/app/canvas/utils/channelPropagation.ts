@@ -48,7 +48,9 @@ export const findNodeDefinition = (
       return null;
   }
   
-  if (!dataSource?.data) return null;
+  if (!dataSource?.data) {
+    return null;
+  }
   
   // Search through all classes to find the specific type
   for (const [className, classItems] of Object.entries(dataSource.data)) {
@@ -70,7 +72,7 @@ export const propagateChannelInheritance = (
   defaultActivators: any,
   defaultInputs: any
 ): any[] => {
-  console.log(`🔄 Starting propagation from node ${parentNodeId} with ${parentOutputChannels} output channels`);
+  // console.log(`🔄 Starting propagation from node ${parentNodeId} with ${parentOutputChannels} output channels`);
   
   // Find all direct children of the parent node
   const childrenIds = currentEdges
@@ -171,7 +173,6 @@ export const handleInheritFromParentChange = (
       setNodes((currentNodes) => {
         // Find parent node via incoming edges
         const parentEdge = currentEdges.find(edge => edge.target === nodeId);
-        console.log(`Found parent edge for node ${nodeId}:`, parentEdge);
         
         if (parentEdge) {
           const parentNode = currentNodes.find(node => node.id === parentEdge.source);

@@ -39,6 +39,7 @@ class Graph:
         self.inputChannels = {}
         self.outputChannels = {}
         self.isOutput = {}
+        self.canInherit = {}
         # ** MATCHING INCOMING OUTGOING ** #
 
         # populate graph
@@ -57,6 +58,8 @@ class Graph:
             isOutput = n["data"]["operationType"] == "Output"
             self.inputChannels[n["id"]]  = None if isOutput else n["data"]["inputChannels"]
             self.outputChannels[n["id"]] = None if isOutput else n["data"]["outputChannels"]
+            # Check if node can inherit from parent (skip validation for these nodes)
+            self.canInherit[n["id"]] = n["data"].get("can_inherit_from_parent", False) or n["data"].get("parameters", {}).get("inherit_from_parent", False)
             # ** MATCHING INCOMING OUTGOING ** #
 
             self.isOutput[n["id"]] = True if isOutput else False
@@ -73,10 +76,12 @@ class Graph:
                 if e[0] == v:
                     w = e[1]
                     if self.inputChannels[w] is None: continue
+                    
+                    # Skip validation if child node can inherit (it will auto-match parent)
+                    if self.canInherit.get(w, False): continue
 
                     if self.outputChannels[v] != self.inputChannels[w]:
                         rtn.append((v,w))
-        print(rtn)
         return rtn
 
     def tarjan(self):
@@ -153,7 +158,7 @@ class Graph:
         return False
 
 def parse(nodesList):
-    
+
     # errors list
     """
         every error needs to have a unique ID and description, as errors are fixed, the ID's
@@ -188,12 +193,9 @@ def parse(nodesList):
             errors.append(ParseError(f"Output requires only one parent, currently has {len(n.get("parents", []))}", nodeIDs=[n["id"]]))
 
     # checks for maxInputs and minInputs being obeyed
-    # print(" ".join([n["id"] for n in nodesList]))
     for n in nodesList:
         if n["data"]["operationType"] == "Input": continue # checked elsewhere
         if n["data"]["operationType"] == "Output": continue # has no default
-
-        # print(n["parents"])
 
         # Find the default configuration for this node type using hierarchical lookup
         node_type = n["data"].get("type")
@@ -217,9 +219,6 @@ def parse(nodesList):
             errors.append(ParseError(f"{dflt['type']} requires at least {min_inputs} parent{'s' if min_inputs > 1 else ''}, currently has {parent_count}", nodeIDs=[n["id"]]))
         if parent_count > int(max_inputs):
             errors.append(ParseError(f"{dflt['type']} requires less or equal to {max_inputs} parent{'s' if max_inputs > 1 else ''}, currently has {parent_count}", nodeIDs=[n["id"]]))
-
-    
-
   
     # check for cycles.
     nG = Graph(nodesList)
@@ -230,7 +229,7 @@ def parse(nodesList):
 
     # get all inputs for graph
     inputs = [n["id"] for n in nodesList if n["data"]["operationType"] == "Input"]
-   
+    # check for path from inputs to output
     pathCheck = [(nG.isPathFromInputToOutput(i), i) for i in inputs]
     for path in pathCheck:
         if not path[0]: errors.append(ParseError(f"This input has no path to an output", nodeIDs=[path[1]]))
@@ -274,7 +273,6 @@ if __name__ == "__main__":
     ]
     G1 = Graph(NL1)
     result = G1.tarjan()
-    print(G1.SSCs)
     assert G1.SSCs == [['3', '2', '1'], ['7', '6'], ['5', '4'], ['8']]
 
     NL2 = [
@@ -288,7 +286,6 @@ if __name__ == "__main__":
     ]
     G2 = Graph(NL2)
     G2.tarjan()
-    print(G2.SSCs)
     assert G2.SSCs == [['E', 'C'], ['G'], ['F', 'D'], ['B'], ['A']]
 
     """ ************ Tarjan Tests End ************ """

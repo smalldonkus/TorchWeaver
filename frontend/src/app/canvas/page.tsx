@@ -22,10 +22,10 @@ import * as htmlToImage from 'html-to-image';
 import { toPng } from 'html-to-image';
 
 import useParse from "./hooks/useParse";
-import ErrorBox from "./components/ErrorBox";
 import useSave from "./hooks/useSave";
 
 import TorchNode from "./components/TorchNode";
+import { stringify } from "querystring";
 
 // Main page component for the canvas feature
 export default function CanvasPage() {
@@ -149,9 +149,7 @@ export default function CanvasPage() {
   // error UI variables
   const [errorOpen, seterrorOpen] = useState(false);
   const [errorMsgs, seterrorMsgs] = useState<any[]>([]);
-  // used for opening the error drawer
-  const [openErrorBox, setOpenErrorBox] = useState(false);
-
+  
   // Snackbar state for success/error messages
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -170,6 +168,109 @@ export default function CanvasPage() {
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
   };
+  
+  const [undoList, setUndoList] = useState<any[]>([{n : [], e: []}]);
+  const [undoListIndex, setUndoListIndex] = useState<number>(0);
+  
+  /* CONCURRENCY PROTECTIONS */
+  // reference to nodes and edges
+  const nodesRef    = useRef(nodes);
+  const edgesRef    = useRef(edges);
+  const undoListRef = useRef(undoList);
+  const undoListIndexRef = useRef(undoListIndex);
+
+  // updates nodes and edges references
+  useEffect(() => {nodesRef.current = nodes}, [nodes]);
+  useEffect(() => {edgesRef.current = edges}, [edges]);
+  useEffect(() => {undoListRef.current = undoList}, [undoList]);
+  useEffect(() => {undoListIndexRef.current = undoListIndex}, [undoListIndex]);
+
+
+  const handleSetUndoList = (n, e, reRenderers?) => {
+
+    const currUndoList = undoListRef.current;
+    const currIndex = undoListIndexRef.current;
+    const appendObject = {
+      n : n,
+      e : e,
+    };
+
+    // console.log(currUndoList, currIndex, currIndex == currUndoList.length - 1);
+    if (currIndex == -1) {
+      setUndoListIndex(curr => curr + 1); // list is about to appended by one, so this works
+      setUndoList([appendObject]);
+    }
+
+    else if (currIndex == currUndoList.length - 1) {
+      setUndoListIndex(curr => curr + 1); // list is about to appended by one, so this works
+      setUndoList((curr) => [
+        ...curr,
+        appendObject
+      ]);
+    }
+    else if (currIndex < currUndoList.length - 1){
+      const slicedList = currUndoList.slice(0, currIndex + 1);
+      setUndoListIndex(curr => slicedList.length == 0 ? 0 : curr + 1);
+      setUndoList([
+        ...slicedList,
+        appendObject
+      ])
+    }
+    else {
+      console.error("unindented functionality in undo");
+    }
+  };
+
+  useEffect(() => {
+    const s: string[] = undoList.map((e) => e.n.length == 0 ? "nLen: 0, eLen: 0" : ", nLen: " + e.n.length + ", eLen: " + e.e.length);
+    console.log("undolist current: " + s.join(", "));
+    const s2: string[] = undoList.map((e) => "head: " + (e.n.length == 0 ? "noNode" : e.n[e.n.length - 1].data.label));
+    console.log("undolist current: " + s2.join(", "), ", uLI: " + undoListIndex);
+    console.log(nodesRef.current.map((e) => e.id).join(", "));
+    // if (undoList != undefined && undoList.length != 0 && undoList[undoListIndex].n.length != 0 && undoList[undoListIndex].n[0].data.label == "Conv2d"){
+    //   console.log(undoList[undoListIndex].n[0].data.parameters, undoList[undoListIndex].n[0].selected);
+    // }
+  }, [undoList, undoListIndex]);
+
+
+  const doUndo = () => {
+    // if empty
+    const currIndex = undoListIndexRef.current;
+
+    if ((currIndex == 0)) {
+      console.log("reached end of the undoList");
+      return;
+    };
+    const currEra = undoListRef.current[currIndex - 1];
+
+    setNodes(currEra.n);
+    setEdges(currEra.e);
+
+    // move the index one step towards the zeroth index
+    setUndoListIndex(currIndex == -1 ? currIndex : currIndex - 1);
+  }
+  const doRedo = () => {
+    const currUndoList = undoListRef.current;
+    const currIndex = undoListIndexRef.current;
+
+    if ((currIndex + 1 == currUndoList.length)) {
+      console.log("Upto date");
+      return;
+    };
+    const currEra = currUndoList[currIndex + 1];
+
+    setNodes(currEra.n);
+    setEdges(currEra.e);
+
+    // move the index one step towards the ending index
+    setUndoListIndex(currIndex + 1 == currUndoList.length ? currIndex : currIndex + 1);
+  };
+
+  const addNode = (toBeSetTo) => {
+    handleSetUndoList(toBeSetTo, edgesRef.current);
+    setNodes(toBeSetTo);
+  }
+
 
   // Handler for when nodes are changed (moved, edited, etc.)
   const onNodesChange = useCallback(
@@ -178,10 +279,20 @@ export default function CanvasPage() {
     (changes) => {
       const newNodes = applyNodeChanges(changes, nodes);
       setNodes(newNodes);
-      // Update outgoing edge counts for affected nodes
 
-      // update nodes when nodes update
-      useParse(nodes, edges).then((e) => {setErrors(e)});
+      if (changes != undefined && changes[0] != undefined && changes[0].type === "position"){
+        setUndoList(lst => lst.map( // for each era in lst
+          era => ({
+            n : era.n.map( // for node in era
+              (eraNode) => ({
+                ...eraNode,
+                position: changes[0].id === eraNode.id ? changes[0].position : eraNode.position
+              })
+            ),
+            e : era.e
+          })
+        ));
+      };
     },
     [nodes]
   );
@@ -190,7 +301,6 @@ export default function CanvasPage() {
     (changes) => {
       const newEdges = applyEdgeChanges(changes, edges);
       setEdges(newEdges);
-      
       // Update outgoing edge counts for affected nodes
       updateOutgoingEdgeCounts(newEdges);
     },
@@ -209,9 +319,12 @@ export default function CanvasPage() {
       };
       const newEdges = addEdge(edgeWithArrow, edges);
       setEdges(newEdges);
-      
+
       // Update outgoing edge counts for affected nodes
       updateOutgoingEdgeCounts(newEdges);
+
+      // strange functionality, but it cannot be avoided (at least i can't think how)
+      handleSetUndoList(nodesRef.current, newEdges);
 
       // Handle inheritance when connection is made
       setTimeout(() => {
@@ -219,8 +332,10 @@ export default function CanvasPage() {
           setNodes((currentNodes) => {
             // find the target node of the new connection
             const targetNode = currentNodes.find(node => node.id === params.target);
+            // Check both the flag AND the parameter (parameter takes precedence if recently changed)
+            const shouldInherit = targetNode?.data.can_inherit_from_parent || targetNode?.data.parameters?.inherit_from_parent;
             // if the target node can inherit from parent, update its parameters
-            if (targetNode && targetNode.data.can_inherit_from_parent) {
+            if (targetNode && shouldInherit) {
               // Find the source node
               const sourceNode = currentNodes.find(node => node.id === params.source);
               
@@ -274,28 +389,24 @@ export default function CanvasPage() {
               
               const updatedTargetNode = updatedNodes.find(node => node.id === params.target);
               
+              // Apply propagation if needed, using the already-updated nodes
+              let finalNodes = updatedNodes;
               if (updatedTargetNode) {
-                setTimeout(() => {
-                  setEdges((currentEdges) => {
-                    setNodes((propagationNodes) => {
-                      return propagateChannelInheritance(
-                        params.target,
-                        updatedTargetNode.data.outputChannels,
-                        propagationNodes,
-                        currentEdges,
-                        defaultLayers,
-                        defaultTensorOps,
-                        defaultActivators,
-                        defaultInputs
-                      );
-                    });
-                    return currentEdges;
-                  });
-                }, 0);
+                finalNodes = propagateChannelInheritance(
+                  params.target,
+                  updatedTargetNode.data.outputChannels,
+                  updatedNodes,  // Use updatedNodes, not a fresh state
+                  currentEdges,
+                  defaultLayers,
+                  defaultTensorOps,
+                  defaultActivators,
+                  defaultInputs
+                );
               }
               
-              return updatedNodes;
+              return finalNodes;
             }
+            return currentNodes;
           }
           
           return currentNodes;
@@ -307,10 +418,20 @@ export default function CanvasPage() {
     [edges, defaultLayers, defaultTensorOps, defaultActivators, defaultInputs]
   );
 
-  useEffect(() => {
-    updateOutgoingEdgeCounts(edges); // was creating errors in delete nodes (do not know why, hopefully this doesn't break anything)
-    useParse(nodes, edges).then((e) => {setErrors(e)});
-  }, [edges]) // having this sit inside other functions causes issues
+  const OnEdgesDelete = useCallback(
+    (delEdges) => {
+
+      if (delEdges.length == 0) {
+        console.log("delEdges empty")
+        return;
+      }
+      const localNodesRef = nodesRef.current;
+      const localEdgesRef = edgesRef.current; // this shit changes like no-one's business.
+      const trimmedEdges = localEdgesRef.filter((e) => !delEdges.some(e2 => e2.id === e.id));
+
+      handleSetUndoList(localNodesRef, trimmedEdges);
+    }, []
+  );
 
   // Function to update outgoing edge counts for all nodes
   const updateOutgoingEdgeCounts = (currentEdges: any[]) => {
@@ -375,8 +496,7 @@ export default function CanvasPage() {
     },[]
   );
 
-  const updateNodeParameter = (elementID: string, parameterKey: string, parameterValue: any) => {
-    
+  const updateNodeParameter = useCallback((elementID: string, parameterKey: string, parameterValue: any) => {
     setNodes((oldNodes: any[]) => {
       const updatedNodes = oldNodes.map(e => {
         if (e.id === elementID) {
@@ -394,7 +514,7 @@ export default function CanvasPage() {
           );
           
           let updatedData = {
-            ...e.data, 
+            ...e.data,
             parameters: updatedParameters
           };
           
@@ -406,7 +526,6 @@ export default function CanvasPage() {
             channelLinks.forEach((link: any) => {
               if (link.inputParam === parameterKey) {
                 // Update inputChannels
-                console.log("Updating inputChannels due to parameter change");
                 updatedData.inputChannels = parameterValue;
               }
               if (link.outputParam === parameterKey) {
@@ -460,10 +579,16 @@ export default function CanvasPage() {
         }
         return e;
       });
-      
       return updatedNodes;
     });
+  }, [defaultLayers, defaultTensorOps, defaultActivators, defaultInputs]);
+
+  const handleSetUndoListWhenUpdateNodeParameterIsCalled = (doReRender: () => void) => {
+    setTimeout(() => handleSetUndoList(nodesRef.current, edgesRef.current), 0);
   }
+  // useEffect(() => {
+  //   console.log(nodes.length);
+  // }, [handleSetUndoListWhenUpdateNodeParameterIsCalled]);
 
   // Helper function to find a type in the new hierarchical structure
   const findTypeInData = (data: any, targetType: string) => {
@@ -491,12 +616,13 @@ export default function CanvasPage() {
       operationType === "TensorOp" ? findTypeInData(defaultTensorOps, newType) :
       operationType === "Activator" ? findTypeInData(defaultActivators, newType) : null;
     
-    if (!newDefault) return;
-    
     // Use setTimeout to access current state
     setTimeout(() => {
+      // to forward to undofunction
+      let newNodes: any[] = [];
       setEdges((currentEdges) => {
         setNodes((currentNodes) => {
+
           // Generate new ID based on operation type
           const operationPrefix = 
             operationType === "Input" ? "input" :
@@ -590,11 +716,12 @@ export default function CanvasPage() {
               return edges;
             });
           }, 0);
-          
+          newNodes = updatedNodes;
           return updatedNodes;
         });
         return currentEdges;
       });
+      handleSetUndoList(newNodes, edgesRef.current);
     }, 0);
   }
 
@@ -619,20 +746,24 @@ export default function CanvasPage() {
     updateNodeType(elementID, newOperationType, newSpecificType, newParameters);
   }
 
-
   const deleteNode = (elementID: string) => {
     // Remove the node from nodes state
-    setNodes(oldNodes =>
-      oldNodes.filter((e) => e.id !== elementID)
-    );
+    let newNodes: any[] = [];
+    let newEdges: any[] = [];
+    setNodes((oldNodes) => {
+      newNodes = oldNodes.filter((e) => e.id !== elementID);
+      return newNodes;
+    });
     // Remove the node from selected nodes
     setSelectedNodes(oldNodes =>
       oldNodes.filter((e) => e.id !== elementID)
     );
     // remove edges from node
-    setEdges (oldEdges =>
-      oldEdges.filter((e) => !(e.source === elementID || e.target === elementID))
-    );
+    setEdges (oldEdges =>{
+      newEdges = oldEdges.filter((e) => !(e.source === elementID || e.target === elementID))
+      return newEdges;
+    });
+    handleSetUndoList(newNodes, newEdges);
   };
 
   // Custom hook to handle exporting the current canvas state
@@ -710,15 +841,28 @@ const handleSave = async () => { //gets screenshot of canvas then saves
       );
   }, [errors]);
 
+  // calls use parse using nodes and edges references 
+  const handleUseParse = () => {
+    if (nodesRef.current != undefined && edgesRef.current != undefined){
+      useParse(nodesRef.current, edgesRef.current).then(res => setErrors(res));
+    };
+  };
 
-  const getSetters = () => {
+  // calls use parse every 250ms
+  useEffect(() => {
+    const PARSE_INTERVAL = 50;
+    const parseIntervalID = setInterval(handleUseParse, PARSE_INTERVAL);
+  }, []);  
+
+  const getSetters = useCallback(() => {
     return {
       updateNodeParameter     : updateNodeParameter,
       updateNodeType          : updateNodeType,
       updateNodeOperationType : updateNodeOperationType,
-      deleteNode              : deleteNode
+      deleteNode              : deleteNode,
+      handleSetUndoListWhenUpdateNodeParameterIsCalled : handleSetUndoListWhenUpdateNodeParameterIsCalled
     }
-  }
+  }, [updateNodeParameter, updateNodeType, updateNodeOperationType, deleteNode, handleSetUndoListWhenUpdateNodeParameterIsCalled]);
 
   const getDefaults = () => {
     return {
@@ -728,6 +872,8 @@ const handleSave = async () => { //gets screenshot of canvas then saves
       defaultInputs: defaultInputs
     }
   }
+
+  
 
   // Show loading state while fetching operations
   if (operationsLoading) {
@@ -754,7 +900,7 @@ const handleSave = async () => { //gets screenshot of canvas then saves
     <Box sx={{ display: "flex" }}>
       <CssBaseline /> {/* Resets CSS for consistent styling */}
       {/* Top app bar/header */}
-      <AppBarHeader open={open} setOpen={setOpen} openErrorBox={openErrorBox} setOpenErrorBox={setOpenErrorBox} name={name} setName={setName}/>
+      <AppBarHeader open={open} setOpen={setOpen} doUndo={doUndo} doRedo={doRedo} name={name} setName={setName}/>
       {/* Sidebar with menu and export functionality */}
       <Sidebar
         open={open}
@@ -762,7 +908,7 @@ const handleSave = async () => { //gets screenshot of canvas then saves
         selectedMenu={selectedMenu}
         setSelectedMenu={setSelectedMenu}
         nodes={nodes}
-        setNodes={setNodes}
+        addNode={addNode}
         handleExport={handleExport}
         handleSave={handleSave}
         selectedNodes={selectedNodes}
@@ -789,6 +935,7 @@ const handleSave = async () => { //gets screenshot of canvas then saves
             nodeTypes={nodeTypes}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
+            OnEdgesDelete={OnEdgesDelete}
             onConnect={onConnect}
             onSelectionChange={onSelectionChange}
             setEdges={setEdges}
@@ -799,7 +946,6 @@ const handleSave = async () => { //gets screenshot of canvas then saves
           </div>
         </ReactFlowProvider>
       </Main>
-      <ErrorBox key={"errorBox"} isOpen={openErrorBox} setOpen={setOpenErrorBox} messages={errorMsgs}/>
       <Snackbar
         open={snackbar.open}
         autoHideDuration={5000}
