@@ -34,7 +34,22 @@ export default function OutputForm({ nodes, addNode, getSetters, getDefaults }: 
 
   return (
     <Box sx={{ p: 2 }}>
-      <Button variant="contained" fullWidth onClick={addOutput}>
+      <Button 
+          variant="contained" 
+          fullWidth 
+          onClick={addOutput}
+          sx={{ 
+              backgroundColor: '#202A44',
+              borderRadius: '8px',
+              textTransform: 'none',
+              fontWeight: 600,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              '&:hover': {
+                  backgroundColor: '#2d3a5e',
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+              }
+          }}
+      >
         Add Output
       </Button>
     </Box>

@@ -186,7 +186,22 @@ export default function LayerForm({ nodes, addNode, defaultLayers, getSetters, g
             )}
             
             {/* Button to add the new layer */}
-            <Button variant="contained" fullWidth onClick={addLayer}>
+            <Button 
+                variant="contained" 
+                fullWidth 
+                onClick={addLayer}
+                sx={{ 
+                    backgroundColor: '#202A44',
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    '&:hover': {
+                        backgroundColor: '#2d3a5e',
+                        boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+                    }
+                }}
+            >
                 Add Layer
             </Button>
         </Box>

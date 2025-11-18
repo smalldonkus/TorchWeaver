@@ -1,6 +1,7 @@
 "use client"; // Enables React Server Components with client-side interactivity
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -28,7 +29,7 @@ import TorchNode from "./components/TorchNode";
 import { stringify } from "querystring";
 
 // Main page component for the canvas feature
-export default function CanvasPage() {
+function CanvasPageContent() {
 
   // Fetch operation definitions from backend
   const { layers: defaultLayers, tensorOps: defaultTensorOps, activators: defaultActivators, inputs: defaultInputs, loading: operationsLoading, error: operationsError } = useOperationDefinitions();
@@ -48,12 +49,13 @@ export default function CanvasPage() {
 
   const canvasRef = useRef<HTMLDivElement>(null) //ref to canvas to save images
   
+  const searchParams = useSearchParams();
+
   // Load saved network if available
   useEffect(() => {
     async function fetchNetwork() {
-    const params = new URLSearchParams(window.location.search);
     // support either 'id' or 'network_id' query param (some code used network_id)
-    const id = params.get("id") || params.get("network_id");
+    const id = searchParams.get("id") || searchParams.get("network_id");
       if (!id) {
         console.log("No network ID in URL");
         return;
@@ -962,5 +964,14 @@ const handleSave = async () => { //gets screenshot of canvas then saves
         </Alert>
       </Snackbar>
     </Box>
+  );
+}
+
+// Wrap with Suspense to handle useSearchParams
+export default function CanvasPage() {
+  return (
+    <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><Typography>Loading...</Typography></Box>}>
+      <CanvasPageContent />
+    </Suspense>
   );
 }

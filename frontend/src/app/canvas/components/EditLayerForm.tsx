@@ -274,15 +274,35 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
                         fullWidth 
                         onClick={handleApplyEdit}
                         disabled={!hasPendingChanges || hasValidationErrors}
-                        sx={{ backgroundColor: 'primary.main' }}
+                        sx={{ 
+                            backgroundColor: '#202A44',
+                            borderRadius: '8px',
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                            '&:hover': {
+                                backgroundColor: '#2d3a5e',
+                                boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+                            }
+                        }}
                     >
                         Apply Edit
                     </Button>
                     <Button 
                         variant="contained" 
                         fullWidth 
-                        style={{backgroundColor: "red"}} 
                         onClick={deleteNodeLocal}
+                        sx={{
+                            backgroundColor: "#d32f2f",
+                            borderRadius: '8px',
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                            '&:hover': {
+                                backgroundColor: "#c62828",
+                                boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+                            }
+                        }}
                     >
                         Delete
                     </Button>
