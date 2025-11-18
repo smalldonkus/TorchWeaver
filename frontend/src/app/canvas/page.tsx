@@ -1,7 +1,7 @@
 "use client"; // Enables React Server Components with client-side interactivity
 
 import { useState, useCallback, useEffect, useRef, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -26,6 +26,7 @@ import useParse from "./hooks/useParse";
 import useSave from "./hooks/useSave";
 
 import TorchNode from "./components/TorchNode";
+import UnsavedChangesDialog from "./components/UnsavedChangesDialog";
 import { stringify } from "querystring";
 
 // Main page component for the canvas feature
@@ -42,6 +43,13 @@ function CanvasPageContent() {
   const [edges, setEdges] = useState<any[]>(initialEdges);
   // State for the name of network
   const [name, setName] = useState<string>("Untitled");
+  // Track last saved state to detect unsaved changes
+  const [lastSavedState, setLastSavedState] = useState<{nodes: any[], edges: any[], name: string} | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  // Dialog state for navigation warning
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const router = useRouter();
 
   const nodeTypes = {
     torchNode : TorchNode
@@ -112,6 +120,12 @@ function CanvasPageContent() {
 
             setNodes(normalizedNodes);
             setEdges(normalizedEdges);
+            // Set initial saved state after loading
+            setLastSavedState({
+              nodes: normalizedNodes,
+              edges: normalizedEdges,
+              name: data.network.name || "Untitled"
+            });
           } else {
             console.error("Invalid network structure:", data.network);
           }
@@ -786,12 +800,75 @@ const handleSave = async () => { //gets screenshot of canvas then saves
     const base64Image = dataURL.replace(/^data:image\/png;base64,/, ''); // png to base64 conversion
 
     save(nodes, edges, name, base64Image,
-      (msg) => showSnackbar(msg, 'success'),
+      (msg) => {
+        showSnackbar(msg, 'success');
+        // Update last saved state after successful save
+        setLastSavedState({
+          nodes: JSON.parse(JSON.stringify(nodes)),
+          edges: JSON.parse(JSON.stringify(edges)),
+          name: name
+        });
+        setHasUnsavedChanges(false);
+      },
       (msg) => showSnackbar(msg, 'error')
     )
   };
 
-  const save = useSave(); //ensures hook is at the top 
+  const save = useSave(); //ensures hook is at the top
+
+  // Track changes to detect unsaved modifications
+  useEffect(() => {
+    if (!lastSavedState) {
+      // No saved state yet, consider it as having changes if nodes/edges exist
+      setHasUnsavedChanges(nodes.length > 0 || edges.length > 0 || name !== "Untitled");
+      return;
+    }
+
+    // Compare current state with last saved state
+    const hasChanges = 
+      JSON.stringify(nodes) !== JSON.stringify(lastSavedState.nodes) ||
+      JSON.stringify(edges) !== JSON.stringify(lastSavedState.edges) ||
+      name !== lastSavedState.name;
+    
+    setHasUnsavedChanges(hasChanges);
+  }, [nodes, edges, name, lastSavedState]);
+
+  // Handle browser navigation/refresh warning
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = ''; // Modern browsers require this
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  // Handle custom navigation within the app
+  const handleNavigate = (url: string) => {
+    if (hasUnsavedChanges) {
+      setPendingNavigation(url);
+      setShowUnsavedDialog(true);
+    } else {
+      router.push(url);
+    }
+  };
+
+  const handleConfirmLeave = () => {
+    if (pendingNavigation) {
+      setHasUnsavedChanges(false); // Disable beforeunload warning
+      router.push(pendingNavigation);
+    }
+    setShowUnsavedDialog(false);
+    setPendingNavigation(null);
+  };
+
+  const handleCancelLeave = () => {
+    setShowUnsavedDialog(false);
+    setPendingNavigation(null);
+  }; 
 
   const unpackErrorIds = (errors: any[]) => {
     const rtn: any[] = [];
@@ -902,7 +979,7 @@ const handleSave = async () => { //gets screenshot of canvas then saves
     <Box sx={{ display: "flex" }}>
       <CssBaseline /> {/* Resets CSS for consistent styling */}
       {/* Top app bar/header */}
-      <AppBarHeader open={open} setOpen={setOpen} doUndo={doUndo} doRedo={doRedo} name={name} setName={setName}/>
+      <AppBarHeader open={open} setOpen={setOpen} doUndo={doUndo} doRedo={doRedo} name={name} setName={setName} hasUnsavedChanges={hasUnsavedChanges} onNavigate={handleNavigate}/>
       {/* Sidebar with menu and export functionality */}
       <Sidebar
         open={open}
@@ -963,6 +1040,13 @@ const handleSave = async () => { //gets screenshot of canvas then saves
           {snackbar.message}
         </Alert>
       </Snackbar>
+      
+      {/* Unsaved Changes Warning Dialog */}
+      <UnsavedChangesDialog
+        open={showUnsavedDialog}
+        onStay={handleCancelLeave}
+        onLeave={handleConfirmLeave}
+      />
     </Box>
   );
 }

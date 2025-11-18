@@ -28,14 +28,25 @@ interface Props {
     doRedo: () => void;
     name: string
     setName: React.Dispatch<React.SetStateAction<string>>
+    hasUnsavedChanges?: boolean; // Whether there are unsaved changes
+    onNavigate?: (url: string) => void; // Custom navigation handler
 }
 
 // Main AppBarHeader component
-export default function AppBarHeader({ open, setOpen, doUndo, doRedo, name, setName}: Props) {
+export default function AppBarHeader({ open, setOpen, doUndo, doRedo, name, setName, hasUnsavedChanges, onNavigate}: Props) {
     // State to control the anchor element for the dropdown menu
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     // Next.js router for navigation
     const router = useRouter();
+    
+    // Handle navigation with unsaved changes check
+    const handleNavigation = (url: string) => {
+        if (onNavigate && hasUnsavedChanges) {
+            onNavigate(url);
+        } else {
+            router.push(url);
+        }
+    };
 
     // When the "Return" button is clicked, open the menu
     const handleMenuClick = (e: React.MouseEvent<HTMLElement>) =>
@@ -64,7 +75,7 @@ export default function AppBarHeader({ open, setOpen, doUndo, doRedo, name, setN
                     src="/7945d26d-5a29-472d-905f-c96a4022f7ef.png"
                     alt="Torchweaver logo"
                     sx={{ height: 40, cursor: 'pointer' }}
-                    onClick={() => window.location.href = '/'} // navigate back to home when logo is pressed
+                    onClick={() => handleNavigation('/')} // navigate back to home when logo is pressed
                 />
                 <NamingBox value={name} onChange={setName}/>
                 {/* Undo/Redo and Return buttons grouped on the right */}
@@ -136,7 +147,7 @@ export default function AppBarHeader({ open, setOpen, doUndo, doRedo, name, setN
                     <MenuItem
                         onClick={() => {
                             handleMenuClose();
-                            router.push("/dashboard");
+                            handleNavigation("/dashboard");
                         }}
                     >
                         Return to Dashboard
@@ -145,7 +156,7 @@ export default function AppBarHeader({ open, setOpen, doUndo, doRedo, name, setN
                     <MenuItem
                         onClick={() => {
                             handleMenuClose();
-                            router.push("/login");
+                            handleNavigation("/login");
                         }}  
                     >
                         Logout
