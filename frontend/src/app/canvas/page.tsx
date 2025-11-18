@@ -322,8 +322,10 @@ export default function CanvasPage() {
           setNodes((currentNodes) => {
             // find the target node of the new connection
             const targetNode = currentNodes.find(node => node.id === params.target);
+            // Check both the flag AND the parameter (parameter takes precedence if recently changed)
+            const shouldInherit = targetNode?.data.can_inherit_from_parent || targetNode?.data.parameters?.inherit_from_parent;
             // if the target node can inherit from parent, update its parameters
-            if (targetNode && targetNode.data.can_inherit_from_parent) {
+            if (targetNode && shouldInherit) {
               // Find the source node
               const sourceNode = currentNodes.find(node => node.id === params.source);
               
@@ -377,28 +379,24 @@ export default function CanvasPage() {
               
               const updatedTargetNode = updatedNodes.find(node => node.id === params.target);
               
+              // Apply propagation if needed, using the already-updated nodes
+              let finalNodes = updatedNodes;
               if (updatedTargetNode) {
-                setTimeout(() => {
-                  setEdges((currentEdges) => {
-                    setNodes((propagationNodes) => {
-                      return propagateChannelInheritance(
-                        params.target,
-                        updatedTargetNode.data.outputChannels,
-                        propagationNodes,
-                        currentEdges,
-                        defaultLayers,
-                        defaultTensorOps,
-                        defaultActivators,
-                        defaultInputs
-                      );
-                    });
-                    return currentEdges;
-                  });
-                }, 0);
+                finalNodes = propagateChannelInheritance(
+                  params.target,
+                  updatedTargetNode.data.outputChannels,
+                  updatedNodes,  // Use updatedNodes, not a fresh state
+                  currentEdges,
+                  defaultLayers,
+                  defaultTensorOps,
+                  defaultActivators,
+                  defaultInputs
+                );
               }
               
-              return updatedNodes;
+              return finalNodes;
             }
+            return currentNodes;
           }
           
           return currentNodes;
@@ -488,7 +486,7 @@ export default function CanvasPage() {
     },[]
   );
 
-  const updateNodeParameter = (elementID: string, parameterKey: string, parameterValue: any) => {
+  const updateNodeParameter = useCallback((elementID: string, parameterKey: string, parameterValue: any) => {
     setNodes((oldNodes: any[]) => {
       const updatedNodes = oldNodes.map(e => {
         if (e.id === elementID) {
@@ -518,7 +516,6 @@ export default function CanvasPage() {
             channelLinks.forEach((link: any) => {
               if (link.inputParam === parameterKey) {
                 // Update inputChannels
-                console.log("Updating inputChannels due to parameter change");
                 updatedData.inputChannels = parameterValue;
               }
               if (link.outputParam === parameterKey) {
@@ -574,7 +571,7 @@ export default function CanvasPage() {
       });
       return updatedNodes;
     });
-  }
+  }, [defaultLayers, defaultTensorOps, defaultActivators, defaultInputs]);
 
   const handleSetUndoListWhenUpdateNodeParameterIsCalled = (doReRender: () => void) => {
     setTimeout(() => handleSetUndoList(nodesRef.current, edgesRef.current), 0);
@@ -848,7 +845,7 @@ export default function CanvasPage() {
       deleteNode              : deleteNode,
       handleSetUndoListWhenUpdateNodeParameterIsCalled : handleSetUndoListWhenUpdateNodeParameterIsCalled
     }
-  }, []);
+  }, [updateNodeParameter, updateNodeType, updateNodeOperationType, deleteNode, handleSetUndoListWhenUpdateNodeParameterIsCalled]);
 
   const getDefaults = () => {
     return {

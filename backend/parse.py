@@ -39,6 +39,7 @@ class Graph:
         self.inputChannels = {}
         self.outputChannels = {}
         self.isOutput = {}
+        self.canInherit = {}
         # ** MATCHING INCOMING OUTGOING ** #
 
         # populate graph
@@ -57,6 +58,8 @@ class Graph:
             isOutput = n["data"]["operationType"] == "Output"
             self.inputChannels[n["id"]]  = None if isOutput else n["data"]["inputChannels"]
             self.outputChannels[n["id"]] = None if isOutput else n["data"]["outputChannels"]
+            # Check if node can inherit from parent (skip validation for these nodes)
+            self.canInherit[n["id"]] = n["data"].get("can_inherit_from_parent", False) or n["data"].get("parameters", {}).get("inherit_from_parent", False)
             # ** MATCHING INCOMING OUTGOING ** #
 
             self.isOutput[n["id"]] = True if isOutput else False
@@ -73,6 +76,9 @@ class Graph:
                 if e[0] == v:
                     w = e[1]
                     if self.inputChannels[w] is None: continue
+                    
+                    # Skip validation if child node can inherit (it will auto-match parent)
+                    if self.canInherit.get(w, False): continue
 
                     if self.outputChannels[v] != self.inputChannels[w]:
                         rtn.append((v,w))
