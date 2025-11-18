@@ -175,7 +175,22 @@ export default function TensorOpsForm({ nodes, addNode, defaultTensorOps, getSet
         />
       )}
       
-      <Button variant="contained" fullWidth onClick={addTensorOp}>
+      <Button 
+          variant="contained" 
+          fullWidth 
+          onClick={addTensorOp}
+          sx={{ 
+              backgroundColor: '#202A44',
+              borderRadius: '8px',
+              textTransform: 'none',
+              fontWeight: 600,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              '&:hover': {
+                  backgroundColor: '#2d3a5e',
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+              }
+          }}
+      >
         Add Tensor Operation
       </Button>
     </Box>

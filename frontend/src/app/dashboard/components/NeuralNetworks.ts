@@ -18,14 +18,15 @@ export const getNeuralNetworks = async (userId?: string): Promise<NeuralNetworkI
       return [];
     }
     const data = await res.json();
-    // backend returns { networks: [ {id, name, description, created_at} ] }
+    console.log("data from NN.ts" + data.networks);
+    // backend returns { networks: [ {id, name, lastAccessed (created at at the moment), preview image, owner, favourited} ] }
     return (data.networks || []).map((n: any) => ({
       id: n.id,
-      title: `${n.name || `Network`} (ID: ${n.id})`,
+      title: n.name,
       lastAccessed: n.created_at ? new Date(n.created_at).toLocaleString() : '',
-      image: '/testnetwork.png',
+      image: n.preview_base64 ? `data:image/png;base64,${n.preview_base64}` : undefined,
       Owner: 'User',
-      Favourited: false
+      Favourited: n.favourited
     }));
   } catch (err) {
     console.error('Error fetching neural networks', err);

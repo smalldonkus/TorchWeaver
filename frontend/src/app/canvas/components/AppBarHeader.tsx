@@ -18,6 +18,7 @@ import RedoIcon from '@mui/icons-material/Redo';
 // Import a styled AppBar component
 import { AppBar as StyledAppBar } from "../utils/styled";
 import { Box } from "@mui/material";
+import NamingBox from "./NamingBox";
 
 // Define the props for this component
 interface Props {
@@ -25,14 +26,27 @@ interface Props {
     setOpen: (val: boolean) => void; // Function to set the open state
     doUndo: () => void;
     doRedo: () => void;
+    name: string
+    setName: React.Dispatch<React.SetStateAction<string>>
+    hasUnsavedChanges?: boolean; // Whether there are unsaved changes
+    onNavigate?: (url: string) => void; // Custom navigation handler
 }
 
 // Main AppBarHeader component
-export default function AppBarHeader({ open, setOpen, doUndo, doRedo}: Props) {
+export default function AppBarHeader({ open, setOpen, doUndo, doRedo, name, setName, hasUnsavedChanges, onNavigate}: Props) {
     // State to control the anchor element for the dropdown menu
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     // Next.js router for navigation
     const router = useRouter();
+    
+    // Handle navigation with unsaved changes check
+    const handleNavigation = (url: string) => {
+        if (onNavigate && hasUnsavedChanges) {
+            onNavigate(url);
+        } else {
+            router.push(url);
+        }
+    };
 
     // When the "Return" button is clicked, open the menu
     const handleMenuClick = (e: React.MouseEvent<HTMLElement>) =>
@@ -55,69 +69,73 @@ export default function AppBarHeader({ open, setOpen, doUndo, doRedo}: Props) {
                     <MenuIcon />
                 </IconButton>
                 {/* App title */}
-                <Typography 
-                    variant="h5" 
-                    noWrap 
-                    sx={{ 
-                        flexGrow: 1, 
-                        color: 'white', 
-                        fontWeight: 700, 
-                        fontSize: '1.5rem', 
-                        fontFamily: 'inherit',
-                        textShadow: '0 2px 8px rgba(0,0,0,0.12)'
-                    }}
-                >
-                    TorchWeaver Canvas
-                </Typography>
-                {/* "Undo" button that undoes the last "significant" action */}
+                {/* Clickable Logo */}
+                <Box
+                    component="img"
+                    src="/7945d26d-5a29-472d-905f-c96a4022f7ef.png"
+                    alt="Torchweaver logo"
+                    sx={{ height: 40, cursor: 'pointer' }}
+                    onClick={() => handleNavigation('/')} // navigate back to home when logo is pressed
+                />
+                <NamingBox value={name} onChange={setName}/>
+                {/* Undo/Redo and Return buttons grouped on the right */}
                 <Box
                     sx={{
-                        display: "flex", 
-                        flexDirection:"row", 
-                        gap: "10px",
-                        border:"1px dashed white",
-                        borderRadius: "10px",
+                        position: "fixed",
+                        right: "20px",
+                        display: "flex",
                         alignItems: "center",
-                        mr:2
-                    }}>
-                    <IconButton
-                        color="inherit"
-                        aria-label="open drawer"
-                        onClick={doUndo}
-                        edge="end"
-                        sx={{ml: 0.5, mr: 0.5}}
-                    >
-                        <UndoIcon />
-                    </IconButton>
-                    <IconButton
-                        color="inherit"
-                        aria-label="open drawer"
-                        onClick={doRedo}
-                        edge="end"
-                        sx={{mr: 0.5}}
-                    >
-                        <RedoIcon />
-                    </IconButton>
-                </Box>
-                {/* "Return" button that opens the dropdown menu */}
-                <Button 
-                    onClick={handleMenuClick}
-                    sx={{
-                        backgroundColor: "#FF7700",
-                        color: "white",
-                        fontSize: "1.1rem",
-                        padding: "10px 20px",
-                        borderRadius: "8px",
-                        fontWeight: 600,
-                        fontFamily: 'inherit',
-                        textTransform: 'none',
-                        '&:hover': {
-                            backgroundColor: '#f88f34ff',
-                        }
+                        gap: "10px"
                     }}
                 >
-                    Return
-                </Button>
+                    {/* "Undo" button that undoes the last "significant" action */}
+                    <Box
+                        sx={{
+                            display: "flex", 
+                            flexDirection:"row", 
+                            gap: "10px",
+                            border:"1px dashed white",
+                            borderRadius: "10px",
+                            alignItems: "center"
+                        }}>
+                        <IconButton
+                            color="inherit"
+                            aria-label="undo"
+                            onClick={doUndo}
+                            edge="end"
+                            sx={{ml: 0.5, mr: 0.5}}
+                        >
+                            <UndoIcon />
+                        </IconButton>
+                        <IconButton
+                            color="inherit"
+                            aria-label="redo"
+                            onClick={doRedo}
+                            edge="end"
+                            sx={{mr: 0.5}}
+                        >
+                            <RedoIcon />
+                        </IconButton>
+                    </Box>
+                    {/* "Return" button that opens the dropdown menu */}
+                    <Button 
+                        onClick={handleMenuClick}
+                        sx={{
+                            backgroundColor: "#FF7700",
+                            color: "white",
+                            fontSize: "1.1rem",
+                            borderRadius: "8px",
+                            fontWeight: 600,
+                            fontFamily: 'inherit',
+                            textTransform: 'none',
+                            '&:hover': {
+                                backgroundColor: '#f88f34ff',
+                            }
+                        }}
+                    >
+                        Return
+                    </Button>
+                </Box>
                 {/* Dropdown menu with navigation options */}
                 <Menu
                     anchorEl={anchorEl}
@@ -129,7 +147,7 @@ export default function AppBarHeader({ open, setOpen, doUndo, doRedo}: Props) {
                     <MenuItem
                         onClick={() => {
                             handleMenuClose();
-                            router.push("/dashboard");
+                            handleNavigation("/dashboard");
                         }}
                     >
                         Return to Dashboard
@@ -138,7 +156,7 @@ export default function AppBarHeader({ open, setOpen, doUndo, doRedo}: Props) {
                     <MenuItem
                         onClick={() => {
                             handleMenuClose();
-                            router.push("/login");
+                            handleNavigation("/login");
                         }}  
                     >
                         Logout

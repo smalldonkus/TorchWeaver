@@ -6,7 +6,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": true,
           "ChannelLinks": [
@@ -44,7 +44,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -68,7 +68,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -92,7 +92,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -140,7 +140,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -164,7 +164,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -189,7 +189,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": true,
           "ChannelLinks": [
@@ -249,7 +249,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": true,
           "ChannelLinks": [
@@ -302,7 +302,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": true,
           "ChannelLinks": [
@@ -362,7 +362,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": true,
           "ChannelLinks": [
@@ -427,7 +427,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": true,
           "ChannelLinks": [
@@ -492,7 +492,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": true,
           "ChannelLinks": [
@@ -557,7 +557,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -592,7 +592,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -634,7 +634,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -673,7 +673,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -712,7 +712,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -751,7 +751,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -790,7 +790,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -834,7 +834,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -878,7 +878,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -920,7 +920,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -962,7 +962,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -997,7 +997,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1032,7 +1032,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1067,7 +1067,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1087,7 +1087,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1107,7 +1107,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1127,7 +1127,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1147,7 +1147,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1167,7 +1167,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1209,7 +1209,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1229,7 +1229,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1249,7 +1249,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1269,7 +1269,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1289,7 +1289,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1309,7 +1309,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1329,7 +1329,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1349,7 +1349,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1369,7 +1369,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1394,7 +1394,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1419,7 +1419,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1444,7 +1444,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1464,7 +1464,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1484,7 +1484,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1506,7 +1506,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": true,
           "ChannelLinks": [
@@ -1550,7 +1550,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": true,
           "ChannelLinks": [
@@ -1594,7 +1594,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": true,
           "ChannelLinks": [
@@ -1638,7 +1638,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": true,
           "ChannelLinks": [
@@ -1678,7 +1678,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": true,
           "ChannelLinks": [
@@ -1722,7 +1722,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": true,
           "ChannelLinks": [
@@ -1766,7 +1766,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": true,
           "ChannelLinks": [
@@ -1810,7 +1810,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1842,7 +1842,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1873,7 +1873,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1904,7 +1904,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1954,7 +1954,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1974,7 +1974,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -1995,7 +1995,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -2038,7 +2038,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -2067,7 +2067,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -2097,7 +2097,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
@@ -2120,7 +2120,7 @@
         "parseCheck": {
           "maxInputs": 1,
           "minInputs": 1,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []

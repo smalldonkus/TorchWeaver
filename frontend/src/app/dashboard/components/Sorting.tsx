@@ -6,12 +6,10 @@ import MenuItem from '@mui/material/MenuItem';
 import * as React from 'react';
 import { NeuralNetworkInfo } from './NeuralNetworks';
 
-export const SortingBar = ({stateChanger}) => {
-    const [sorting, setSort] = React.useState("Alphabetical");
+export const SortingBar = ({sorting, stateChanger}) => {
 
     const handleChange = (event: SelectChangeEvent) => {
         const sortType = event.target.value 
-        setSort(sortType); //Sets the sorting to the new sort to appear on screen
         stateChanger(sortType); //sends input back to parent
     };
     
@@ -52,27 +50,34 @@ export function LogicalSort(sortType: string, NeuralNetworks: NeuralNetworkInfo[
     if(sortType === "AlphabeticalR") {
         return NeuralNetworks.toSorted((a, b) => b.title.localeCompare(a.title));
     }
-    if(sortType === "Oldest") {
-        return NeuralNetworks.toSorted((a, b) => {
-        const [dayA, monthA, yearA] = a.lastAccessed.split('/').map(Number);
-        const [dayB, monthB, yearB] = b.lastAccessed.split('/').map(Number);
-
-        const dateNumA = yearA * 10000 + monthA * 100 + dayA;
-        const dateNumB = yearB * 10000 + monthB * 100 + dayB;
-
-        return dateNumA - dateNumB;
-        });
-    }
-    if(sortType === "Newest") {
-        return NeuralNetworks.toSorted((a, b) => {
-        const [dayA, monthA, yearA] = a.lastAccessed.split('/').map(Number);
-        const [dayB, monthB, yearB] = b.lastAccessed.split('/').map(Number);
-
-        const dateNumA = yearA * 10000 + monthA * 100 + dayA;
-        const dateNumB = yearB * 10000 + monthB * 100 + dayB;
-
-        return dateNumB - dateNumA;
+    if (sortType === "Oldest") {
+    return NeuralNetworks.toSorted((a, b) => {
+        const timeA = parseCustomDate(a.lastAccessed).getTime();
+        const timeB = parseCustomDate(b.lastAccessed).getTime();
+        return timeA - timeB;
     });
-    }
+    ;
+}
+    if (sortType === "Newest") {
+    return NeuralNetworks.toSorted((a, b) => {
+        const timeA = parseCustomDate(a.lastAccessed).getTime();
+        const timeB = parseCustomDate(b.lastAccessed).getTime();
+        return timeB - timeA;
+    });
+}
     return NeuralNetworks;
+}
+
+
+function parseCustomDate(str: string): Date {
+    // Split into parts like ["06/11/2025", "2:50:41", "pm"]
+    const [datePart, timePart, ampm] = str.split(/[, ]+/);
+    const [day, month, year] = datePart.split('/').map(Number);
+    let [hour, minute, second] = timePart.split(':').map(Number);
+
+    const isPM = ampm.toLowerCase() === 'pm';
+    if (ampm.toLowerCase() === 'pm' && hour < 12) hour += 12;
+    if (ampm.toLowerCase() === 'am' && hour === 12) hour = 0;
+
+    return new Date(year, month - 1, day, hour, minute, second);
 }
