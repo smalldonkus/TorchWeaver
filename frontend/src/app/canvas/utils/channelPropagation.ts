@@ -123,14 +123,27 @@ export const propagateChannelInheritance = (
       // Node can edit channels, update linked parameters
       const channelLinks = childDefinition?.parseCheck?.ChannelLinks || [];
       let updatedParameters = { ...childNode.data.parameters };
+      let inputParam = null;
+      let outputParam = null;
       
       channelLinks.forEach((link: any) => {
         if (link.inputParam) {
+          inputParam = link.inputParam;
           updatedParameters[link.inputParam] = parentOutputChannels;
+        }
+        if (link.outputParam) {
+          outputParam = link.outputParam;
         }
       });
       
       updatedChildData.parameters = updatedParameters;
+      
+      // If input and output parameters are linked to the same parameter, update output channels too
+      if (inputParam && outputParam && inputParam === outputParam) {
+        updatedChildData.outputChannels = parentOutputChannels;
+        newChildOutputChannels = parentOutputChannels;
+        childOutputChannelsChanged = (childNode.data.outputChannels !== parentOutputChannels);
+      }
     }
     
     // Update the child node

@@ -578,15 +578,83 @@ function CanvasPageContent() {
 
               // When inherit_from_parent is set to true, inherit from parent node
               if (parameterValue === true) {
-                handleInheritFromParentChange(
-                  elementID,
-                  setEdges,
-                  setNodes,
-                  defaultLayers,
-                  defaultTensorOps,
-                  defaultActivators,
-                  defaultInputs
-                );
+                // Check if input and output channel parameters are the same (linked)
+                const channelLinks = nodeDefinition.parseCheck.ChannelLinks || [];
+                let inputParam = null;
+                let outputParam = null;
+                
+                channelLinks.forEach((link: any) => {
+                  if (link.inputParam) inputParam = link.inputParam;
+                  if (link.outputParam) outputParam = link.outputParam;
+                });
+                
+                const areChannelsLinked = (inputParam && outputParam && inputParam === outputParam);
+                
+                // If channels are linked, we need to propagate after inheritance
+                if (areChannelsLinked) {
+                  // Trigger handleInheritFromParentChange and then propagate
+                  setTimeout(() => {
+                    setEdges((currentEdges) => {
+                      setNodes((currentNodes) => {
+                        // Find parent node
+                        const parentEdge = currentEdges.find(edge => edge.target === elementID);
+                        if (parentEdge) {
+                          const parentNode = currentNodes.find(node => node.id === parentEdge.source);
+                          if (parentNode && parentNode.data.outputChannels !== undefined) {
+                            // Update the node with inherited values
+                            const updatedNodes = currentNodes.map(node => {
+                              if (node.id === elementID) {
+                                const updatedParameters = {
+                                  ...node.data.parameters
+                                };
+                                if (inputParam) {
+                                  updatedParameters[inputParam] = parentNode.data.outputChannels;
+                                }
+                                
+                                return {
+                                  ...node,
+                                  data: {
+                                    ...node.data,
+                                    inputChannels: parentNode.data.outputChannels,
+                                    outputChannels: parentNode.data.outputChannels,
+                                    parameters: updatedParameters
+                                  }
+                                };
+                              }
+                              return node;
+                            });
+                            
+                            // Propagate the output channel changes to children
+                            const propagatedNodes = propagateChannelInheritance(
+                              elementID,
+                              parentNode.data.outputChannels,
+                              updatedNodes,
+                              currentEdges,
+                              defaultLayers,
+                              defaultTensorOps,
+                              defaultActivators,
+                              defaultInputs
+                            );
+                            return propagatedNodes;
+                          }
+                        }
+                        return currentNodes;
+                      });
+                      return currentEdges;
+                    });
+                  }, 0);
+                } else {
+                  // Channels not linked, just use regular inherit logic
+                  handleInheritFromParentChange(
+                    elementID,
+                    setEdges,
+                    setNodes,
+                    defaultLayers,
+                    defaultTensorOps,
+                    defaultActivators,
+                    defaultInputs
+                  );
+                }
               }
             }
           }
