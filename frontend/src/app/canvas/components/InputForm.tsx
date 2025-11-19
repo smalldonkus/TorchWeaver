@@ -15,14 +15,14 @@ import { createNode } from "./TorchNodeCreator";
 // Define the props that this component expects
 interface Props {
   nodes: any[]; // List of current nodes
-  setNodes: (val: any) => void; // Function to update nodes
+  addNode: (val: any) => void; // Function to update nodes
   defaultInputs: any; // Input data with global classes structure
   getSetters: () => any; // for TorchNode functionality
   getDefaults: () => any; // for editing within a node
 }
 
 // Main component for the Input Form
-export default function InputForm({ nodes, setNodes, defaultInputs, getSetters, getDefaults}: Props) {
+export default function InputForm({ nodes, addNode, defaultInputs, getSetters, getDefaults}: Props) {
   // All hooks must be called before any conditional returns!
   
   // Use parameter handling hook
@@ -110,7 +110,7 @@ export default function InputForm({ nodes, setNodes, defaultInputs, getSetters, 
       chosenDefault
     );
     
-    setNodes([...nodes, newNode]);
+    addNode([...nodes, newNode]);
   };
 
   return (
@@ -168,7 +168,22 @@ export default function InputForm({ nodes, setNodes, defaultInputs, getSetters, 
       )}
 
       {/* Add Input Button */}
-      <Button variant="contained" fullWidth onClick={addInput}>
+      <Button 
+          variant="contained" 
+          fullWidth 
+          onClick={addInput}
+          sx={{ 
+              backgroundColor: '#202A44',
+              borderRadius: '8px',
+              textTransform: 'none',
+              fontWeight: 600,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              '&:hover': {
+                  backgroundColor: '#2d3a5e',
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+              }
+          }}
+      >
         Add Input
       </Button>
     </Box>

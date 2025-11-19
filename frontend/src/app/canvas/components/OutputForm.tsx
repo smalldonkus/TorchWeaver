@@ -8,12 +8,12 @@ import { createNode } from "./TorchNodeCreator";
 
 interface Props {
   nodes: any[];
-  setNodes: (val: any) => void;
+  addNode: (val: any) => void;
   getSetters: () => any;
   getDefaults: () => any; // for editing within a node (TN)
 }
 
-export default function OutputForm({ nodes, setNodes, getSetters, getDefaults }: Props) {
+export default function OutputForm({ nodes, addNode, getSetters, getDefaults }: Props) {
   const addOutput = () => {
     const newId = generateUniqueNodeId("output", nodes);
     const newNode = createNode(
@@ -26,7 +26,7 @@ export default function OutputForm({ nodes, setNodes, getSetters, getDefaults }:
       getSetters,
       getDefaults
     )
-    setNodes([
+    addNode([
       ...nodes,
       newNode
     ]);
@@ -34,7 +34,22 @@ export default function OutputForm({ nodes, setNodes, getSetters, getDefaults }:
 
   return (
     <Box sx={{ p: 2 }}>
-      <Button variant="contained" fullWidth onClick={addOutput}>
+      <Button 
+          variant="contained" 
+          fullWidth 
+          onClick={addOutput}
+          sx={{ 
+              backgroundColor: '#202A44',
+              borderRadius: '8px',
+              textTransform: 'none',
+              fontWeight: 600,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              '&:hover': {
+                  backgroundColor: '#2d3a5e',
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+              }
+          }}
+      >
         Add Output
       </Button>
     </Box>

@@ -17,7 +17,7 @@ import {createNode} from "./TorchNodeCreator";
 // Define the props that this component expects
 interface Props {
     nodes: any[]; // List of current nodes (layers)
-    setNodes: (val: any) => void; // Function to update nodes
+    addNode: (val: any) => void; // Function to update nodes
     defaultLayers: any; // Layer data with global classes structure
 
     // for TorchNode functionality, allows it to update itself (TN)
@@ -26,7 +26,7 @@ interface Props {
 }
 
 // Main component for the Layer Form
-export default function LayerForm({ nodes, setNodes, defaultLayers, getSetters, getDefaults}: Props) {
+export default function LayerForm({ nodes, addNode, defaultLayers, getSetters, getDefaults}: Props) {
     // All hooks must be called before any conditional returns!
     
     // Use parameter handling hook
@@ -113,7 +113,7 @@ export default function LayerForm({ nodes, setNodes, defaultLayers, getSetters, 
             getDefaults,
             chosenDefault
         );
-        setNodes([
+        addNode([
             ...nodes,
             newNode
         ]);
@@ -186,7 +186,22 @@ export default function LayerForm({ nodes, setNodes, defaultLayers, getSetters, 
             )}
             
             {/* Button to add the new layer */}
-            <Button variant="contained" fullWidth onClick={addLayer}>
+            <Button 
+                variant="contained" 
+                fullWidth 
+                onClick={addLayer}
+                sx={{ 
+                    backgroundColor: '#202A44',
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    '&:hover': {
+                        backgroundColor: '#2d3a5e',
+                        boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+                    }
+                }}
+            >
                 Add Layer
             </Button>
         </Box>

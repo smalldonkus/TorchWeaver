@@ -7,7 +7,12 @@ import * as React from 'react';
 import { NeuralNetworkInfo } from './NeuralNetworks';
 
 export const OwnershipBar = ({stateChanger}) => {
-    const [Ownership, setOwner] = React.useState("OwnedByAnyone");
+    const [Ownership, setOwner] = React.useState("OwnedByAnyone"); //Sets Owned by anyone as base value (visual only)
+
+
+    React.useEffect(() => {
+        stateChanger("OwnedByAnyone");            //Sets initial sort on mount
+    }, []);
 
     const handleChange = (event: SelectChangeEvent) => {
         const owner = event.target.value;

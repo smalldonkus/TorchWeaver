@@ -16,10 +16,13 @@ import { NeuralNetworkInfo, getNeuralNetworks, loadNetwork, deleteNetwork } from
 import { useUser } from '@auth0/nextjs-auth0/client';
 import CardActionArea from '@mui/material/CardActionArea';
 import DeleteButton from './DeleteButton';
+import Fab from '@mui/material/Fab';
+import AddIcon from '@mui/icons-material/Add';
 
 export default function dashboardBody() {
-    const [networks, setNetworks] = React.useState<NeuralNetworkInfo[]>([]);
+    const [networks, setNetworks] = React.useState<NeuralNetworkInfo[]>([]); //Don't access networks, unsure of what it does (probably nothing as i assume its local to this file)
     const [visibleNetworks, setVisibleNetworks] = React.useState<NeuralNetworkInfo[]>([]);
+    const [sorting, setSort] = React.useState("Alphabetical");
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
 
@@ -38,8 +41,10 @@ export default function dashboardBody() {
 
                 const userId = user.sub;
                 const data = await getNeuralNetworks(userId);
+                console.log(data);
                 setNetworks(data);
-                setVisibleNetworks(data);
+                setVisibleNetworks(NewSort("Alphabetical", data));  //Sets initial state of sort to A-Z
+                
                 setError(null);
             } catch (err) {
                 setError('Failed to load networks');
@@ -50,14 +55,6 @@ export default function dashboardBody() {
         };
         load();
     }, [user]);
-
-    const handleSortChange = (sortType: string) => {
-        setVisibleNetworks(NewSort(sortType, networks));
-    };
-
-    const handleSearch = (input: string) => {
-        setVisibleNetworks(searchFilter(input, networks));
-    };
 
     const handleNetworkClick = async (id: number) => {
         try {
@@ -72,6 +69,14 @@ export default function dashboardBody() {
         }
     };
 
+    const handleNew = async () => {
+        try {
+            window.location.href = `/canvas`;
+        } catch (err) {
+            console.error('Error creating new network', err);
+        }
+    }
+
     const handleDelete = async (id: number) => {
         try {
             const userId = user?.sub;
@@ -83,22 +88,55 @@ export default function dashboardBody() {
             console.error('Failed to delete network', err);
         }
     };
+
+    const handleSearch = async (input: string) => {
+        try {
+            const userId = user?.sub;
+            const networks = await getNeuralNetworks(userId);
+            const filtered = searchFilter(input, networks);
+            setVisibleNetworks(NewSort(sorting, filtered));
+        } catch (err) {
+            console.error('Failed to retrieve networks', err);
+        }
+    };
+
+    const handleSortChange = async (sortType: string) => {
+        try {
+            const userId = user?.sub;
+            const networks = await getNeuralNetworks(userId);
+            setSort(sortType);
+            setVisibleNetworks(NewSort(sortType, networks));
+        } catch (err) {
+            console.error('Failed to retrieve networks', err);
+        }
+    };
     //ownership sorting and searching are both destructive only one can happen at a time
     //Oscar note : i dont think this is fixable, sad
     const handleOwnershipSorting = async (sortType: string) => {
-        const owner = "A";
+        const owner = "User";
         const userId = user?.sub;
         const nets = await getNeuralNetworks(userId);
         setVisibleNetworks(NewList(owner, sortType, nets));
     };
 
-    //function to change favourited boolean in global if toggled
-    const handleFavourite = (title: string) => {
+    //favourite neural network, favourited networks show up first regardless of sorting (sorts 2 lists and appends unfavourited to favourited)
+    const handleFavourite = async (networkId: number) => {
+
         const updated = visibleNetworks.map((net) =>
-            net.title === title ? { ...net, Favourited: !net.Favourited } : net
+            net.id === networkId ? { ...net, Favourited: !net.Favourited } : net //Finds network and toggles favourite   
         );
         setVisibleNetworks(updated); // Updates visuals
-        // setNeuralNetworks(updated); // stores back into global
+        try {
+            await fetch('http://localhost:5000/favourite_network', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json'},
+                body: JSON.stringify({ id: networkId, favourited: updated.find(n => n.id === networkId)?.Favourited}) //changes the status of the favourite in the db
+            });
+        }
+        catch (err) {
+        console.error('Failed to update favourite status', err);
+        setVisibleNetworks(visibleNetworks); //Revert if failed
+    }
     }
 
     return (
@@ -108,7 +146,7 @@ export default function dashboardBody() {
                 <Box sx={{ display: "flex", flexWrap: "wrap", p: 4, justifyContent:"space-between"}}>
                     <SearchBar stateChanger={handleSearch}/>
                     {/* passes handlestatechange to child so it can re-render parent (this) */}
-                    <SortingBar stateChanger={handleSortChange}/> 
+                    <SortingBar sorting={sorting} stateChanger={handleSortChange}/> 
                     <OwnershipBar stateChanger={handleOwnershipSorting}/>
                 </Box>
 
@@ -123,7 +161,7 @@ export default function dashboardBody() {
                 {/* Neural Network grid */}
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, justifyContent: "center" }}>
                     {visibleNetworks.map((network) => (
-                        <Card key={network.id} sx={{ maxWidth: 800 }}>
+                        <Card key={network.id} sx={{ maxWidth: 750 }}>
                             <CardActionArea onClick={() => handleNetworkClick(network.id)}>
                                 <CardMedia
                                     component="img"
@@ -137,14 +175,14 @@ export default function dashboardBody() {
                                         <CardContent>
                                             <Typography variant="h6" sx={{ color: 'text' , flexGrow: 1}}>{network.title}</Typography>
                                             <Typography variant="body2" sx={{ color: 'text.secondary', flexGrow: 1 }}>
-                                                <span>Last Accessed: {network.lastAccessed}</span>
+                                                <span>Created: {network.lastAccessed}</span>
                                                 <span style={{ marginLeft: 30 }}>Owned By: {network.Owner}</span>
                                             </Typography>
                                         </CardContent>
                                         <CardActions>
                                             <FavouriteButton
                                                 isFavourite={network.Favourited}
-                                                onClick={() => handleFavourite(network.title)}/>
+                                                onClick={() => handleFavourite(network.id)}/>
                                             <DeleteButton onClick={() => handleDelete(network.id)}/>
                                         </CardActions>
                                 </Box>
@@ -152,7 +190,14 @@ export default function dashboardBody() {
                     ))}
                 </Box>
             </>
-
+            <Fab color="warning" aria-label="add" onClick={() => handleNew()} sx={{ //warning color just happened to match theme
+                position: "fixed",     // stay fixed on the screens
+                bottom: 35,            // 35px from bottom
+                left: 35,               // 35px from right
+                zIndex: 1000           // make sure it appears above other content
+            }}>
+                <AddIcon />
+            </Fab>
             <BackToTopButton/>
         </ Container>
     )

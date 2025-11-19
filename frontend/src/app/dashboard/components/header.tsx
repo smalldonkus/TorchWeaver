@@ -1,6 +1,4 @@
-import { Box, Container } from '@mui/material';
-import Avatar from '@mui/material/Avatar';
-import Button from '@mui/material/Button';
+import { Box } from '@mui/material';
 import Link from "next/link"
 import AuthenticationButton from '@/app/components/AuthenticationButton';
 
@@ -15,7 +13,6 @@ export default function Header() {
                 <Link href = "/">Torchweaver</Link>
                 <span className="titleSubtext">dashboard</span>
             </h1>
-
 
             <div className="toolbar">
                 <AuthenticationButton routes={possibleRoutes} />
