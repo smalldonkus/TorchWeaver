@@ -8,47 +8,47 @@ export default function Features() {
                 <h1 id="featuresTitle">Features</h1>
                 <div className="featureColumn">
                     <Component 
-                        image={"dnd.gif"}
+                        image={"feature4.gif"}
                         heading={"Drag-and-Drop Functionality"}
                         notes={"Easy visual framework that allows a user to construct their desirable neural network architecture with no hard-coding."}
                     />
                     <Component 
-                        image={"layers.gif"}
+                        image={"feature2.png"}
                         heading={"Pre-designed Selection of Layers and Tensors"}
                         notes={"Torchweaver comes with a range of pre-built nodes to place in layers and tensor operations of your choosing. Currently supports the full design of AlexNet."}
                     />
                     <Component 
-                        image={"export.png"}
+                        image={"feature3.jpg"}
                         heading={"Export Architecture Capabilities"}
                         notes={"When an architecture is visually completed with parameters filled, the code for the framework can be exported and generated with ready-to-go Pytorch, allowing quick use for model training."}
                     />
 
                     <Component 
-                        image={"background-img.jpg"}
+                        image={"feature1.png"}
                         heading={"Streamlined Access and Design"}
                         notes={"User responsive page design and streamlined access allows you to get creating straight away and with no pay-walls or significant loading times. Create now!"}
                     />
 
                     <Component 
-                        image={"dnd.gif"}
+                        image={"feature5.png"}
                         heading={"Saving and Loading Created NN Architectures"}
                         notes={"Our dashboard page allows a user to save their created canvas designs, and load them at a later date. Designs are only accessible to the user who created them."}
                     />
                     <Component 
-                        image={"layers.gif"}
+                        image={"feature6.png"}
                         heading={"Real-Time Error Checking"}
                         notes={"Our software allows a user to be aware of errors associated with their design while creating it, preventing some non-functional issues when exporting and helping the user experience."}
                     />
                     <Component 
-                        image={"export.png"}
+                        image={"feature7.png"}
                         heading={"Enforced Email Verification and User Protection"}
                         notes={"Maximum uptime for our website is maintained by enforcing user identifaction for database access, with a pen-tested and trusted integration with Auth0."}
                     />
 
                     <Component 
-                        image={"background-img.jpg"}
-                        heading={"Streamlined Access and Design"}
-                        notes={"User responsive page design and streamlined access allows you to get creating straight away and with no pay-walls or significant loading times. Create now!"}
+                        image={"feature8.png"}
+                        heading={"Undo and Redo Capabilities"}
+                        notes={"Made a mistake? Use our custom-created undo and redo functionality to fix up typos and errors."}
                     />
                 </div>
                 <a href="https://www.vecteezy.com/free-vector/orange-background">Orange Background Vectors by Vecteezy</a>
