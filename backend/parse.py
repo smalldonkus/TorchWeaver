@@ -39,7 +39,7 @@ class Graph:
         self.inputChannels = {}
         self.outputChannels = {}
         self.isOutput = {}
-        # self.canInherit = {}
+        self.canInherit = {}
         # ** MATCHING INCOMING OUTGOING ** #
 
         # populate graph
@@ -59,7 +59,7 @@ class Graph:
             self.inputChannels[n["id"]]  = None if isOutput else n["data"]["inputChannels"]
             self.outputChannels[n["id"]] = None if isOutput else n["data"]["outputChannels"]
             # Check if node can inherit from parent (skip validation for these nodes)
-            # self.canInherit[n["id"]] = n["data"].get("can_inherit_from_parent", False) or n["data"].get("parameters", {}).get("inherit_from_parent", False)
+            self.canInherit[n["id"]] = n["data"].get("can_inherit_from_parent", False) or n["data"].get("parameters", {}).get("inherit_from_parent", False)
             # ** MATCHING INCOMING OUTGOING ** #
 
             self.isOutput[n["id"]] = True if isOutput else False
@@ -75,10 +75,17 @@ class Graph:
 
                 if e[0] == v:
                     w = e[1]
+                    # Skip if the target node doesn't exist
+                    if w not in self.V: continue
                     if self.inputChannels[w] is None: continue
                     
                     # Skip validation if child node can inherit (it will auto-match parent)
-                    # if self.canInherit.get(w, False): continue
+                    if self.canInherit.get(w, False): continue
+                    
+                    # Skip validation for nodes with multiple parents (e.g., concat operations)
+                    # These nodes need special handling as they combine multiple inputs
+                    parent_count = sum(1 for edge in self.E if edge[1] == w)
+                    if parent_count > 1: continue
 
                     if self.outputChannels[v] != self.inputChannels[w]:
                         rtn.append((v,w))
@@ -113,6 +120,10 @@ class Graph:
         self.onStack[v] = True
 
         for w in [e[1] for e in self.E if e[0] == v]:
+            
+            # Skip if the target node doesn't exist in vertices
+            if w not in self.indices:
+                continue
             
             if self.indices[w] is None:
                 self.strongConnect(w) #recurse
@@ -150,6 +161,8 @@ class Graph:
                 if e[0] != n: continue
 
                 c = e[1]
+                # Skip if the target node doesn't exist
+                if c not in self.V: continue
                 if self.isOutput[c]: 
                     return True                
                     
@@ -235,13 +248,13 @@ def parse(nodesList):
         if not path[0]: errors.append(ParseError(f"This input has no path to an output", nodeIDs=[path[1]]))
 
     # check for matching inputChannels to outputChannels
-    # inErr = nG.hasMatchingInAndOut()
-    # if len(inErr) != 0:
-    #     for err in inErr:
-    #         errors.append(ParseError(f"Output dimensions of parent do not match this node's input dimensions, nodes such as activators/tensor operations, can inherit dimensions. You may need to go futher up the graph to fix this error.",
-    #                       nodeIDs=[err[1]]))
-    #         errors.append(ParseError(f"The output dimensions of this node do match the input dimensions of its children, nodes such as activators/tensor operations, can inherit dimensions. You may need to go futher up the graph to fix this error.",
-    #                       nodeIDs=[err[0]]))
+    inErr = nG.hasMatchingInAndOut()
+    if len(inErr) != 0:
+        for err in inErr:
+            errors.append(ParseError(f"Output dimensions of parent do not match this node's input dimensions, nodes such as activators/tensor operations, can inherit dimensions. You may need to go futher up the graph to fix this error.",
+                          nodeIDs=[err[1]]))
+            errors.append(ParseError(f"The output dimensions of this node do match the input dimensions of its children, nodes such as activators/tensor operations, can inherit dimensions. You may need to go futher up the graph to fix this error.",
+                          nodeIDs=[err[0]]))
 
     if CRUDE_REPORT:
         for i, e in enumerate(errors):

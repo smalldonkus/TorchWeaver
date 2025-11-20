@@ -754,23 +754,44 @@ function CanvasPageContent() {
           }
           
           // Update nodes with new ID and properties
-          const updatedNodes = currentNodes.map(e => e.id === elementID ? {...e, 
-            id: newNodeId,
-            data: {
-              ...e.data, 
-              type: newType, 
-              label: newType, 
-              parameters: newParameters || {},
-              inputChannels: channelData.inputChannels,
-              outputChannels: channelData.outputChannels,
-              can_inherit_from_parent: canInherit
-            }} : e);
+          const updatedNodes = currentNodes.map(e => {
+            if (e.id === elementID) {
+              return {
+                ...e, 
+                id: newNodeId,
+                data: {
+                  ...e.data,
+                  operationType: operationType,
+                  type: newType, 
+                  label: newType, 
+                  parameters: newParameters || {},
+                  inputChannels: channelData.inputChannels,
+                  outputChannels: channelData.outputChannels,
+                  can_inherit_from_parent: canInherit
+                }
+              };
+            }
+            return e;
+          });
           
           // Update selected nodes
           setSelectedNodes((oldNodes: any[]) =>
-            oldNodes.map(e => e.id === elementID ? {...e, 
-              id: newNodeId,
-              data: {...e.data, type: newType, label: newType, parameters : newParameters || {}}} : e)
+            oldNodes.map(e => {
+              if (e.id === elementID) {
+                return {
+                  ...e, 
+                  id: newNodeId,
+                  data: {
+                    ...e.data,
+                    operationType: operationType,
+                    type: newType, 
+                    label: newType, 
+                    parameters: newParameters || {}
+                  }
+                };
+              }
+              return e;
+            })
           );
           
           // Update edges with new node ID
