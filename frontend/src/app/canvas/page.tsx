@@ -726,8 +726,6 @@ function CanvasPageContent() {
       setNodes(propNodes);
       setEdges(updatedEdges);
       
-      const thing = updatedNodes.find((e) => e.id === newNodeId);
-
       if (updatedNodes == null){
         console.error("newNodes is null");
       } // CHANGE T.N
