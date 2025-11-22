@@ -78,7 +78,6 @@ export default function dashboardBody() {
     }
 
     const handleDelete = async (id: number) => {
-        if (!confirm('Delete this network?')) return;
         try {
             const userId = user?.sub;
             await deleteNetwork(id, userId);

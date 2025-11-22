@@ -15,6 +15,9 @@ storage = NNStorage()
 def get_user_id(req):
     user_id = None
 
+    if not user_id and 'header' in req.headers:
+        user_id = req.headers.get('header')
+
     try:
         data = req.get_json(silent=True) or {}
         if isinstance(data, dict):
@@ -24,12 +27,7 @@ def get_user_id(req):
     except Exception:
         user_id = None
 
-    # now swapped the logic to check db first then header
-    if not user_id and 'header' in req.headers:
-        user_id = req.headers.get('header')
-
     return user_id
-
 
 @NNRoutes .route('/save_network', methods=['POST'])
 def saveNetwork():
@@ -40,6 +38,7 @@ def saveNetwork():
         print("Printing payload:", data)
 
         name = data.get("name")
+        user_info = data.get("user", {})
         network_id = data.get("nn_id")
         preview_base64 = data.get("preview")
         # Prefer authenticated user id from headers, fall back to payload
@@ -88,9 +87,11 @@ def loadNetwork():
         if not network_id:
             return jsonify({"error": "Missing 'id' parameter"}), 400
         user_id = get_user_id(request)
+        if not user_id:
+            return jsonify({"error": "Unauthorized - missing user id"}), 401
         network = storage.load_network(network_id, user_id)
         if not network:
-            return jsonify({"error": "Network not found"}), 404
+            return jsonify({"error": "Network not found or access denied"}), 404
         
         print("Loading network:", network)  # Debug log
         # Ensure we have the correct structure

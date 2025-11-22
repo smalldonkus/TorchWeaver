@@ -190,7 +190,7 @@ def parse(nodesList):
         if len(n.get("parents", [])) == 0:
             errors.append(ParseError("Outputs need an a parent node", nodeIDs=[n["id"]]))
         if len(n.get("parents", [])) > 1:
-            errors.append(ParseError(f"Output requires only one parent, currently has {len(n.get("parents", []))}", nodeIDs=[n["id"]]))
+            errors.append(ParseError(f"Output requires only one parent, currently has {len(n.get('parents', []))}", nodeIDs=[n['id']]))
 
     # checks for maxInputs and minInputs being obeyed
     for n in nodesList:

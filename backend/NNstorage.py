@@ -1,6 +1,7 @@
 import sqlite3
 import json
 from datetime import datetime
+import uuid
 
 class NNStorage:
     def __init__(self, db_path="NN_storage.db"):
@@ -13,7 +14,7 @@ class NNStorage:
         cur = conn.cursor()
         cur.execute("""
             CREATE TABLE IF NOT EXISTS networks (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
                 description TEXT,
                 created_at TEXT,
@@ -54,13 +55,12 @@ class NNStorage:
                 return network_id
 
         # Otherwise, insert a new record
+        new_id = str(uuid.uuid4())
         cur.execute("""
-            INSERT INTO networks (name, description, created_at, json_data, user_auth0_id, preview_base64)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (name, description, datetime.now().isoformat(), json.dumps(json_data), user_auth0_id, preview_base64))
+            INSERT INTO networks (id, name, description, created_at, json_data, user_auth0_id, preview_base64)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (new_id, name, description, datetime.now().isoformat(), json.dumps(json_data), user_auth0_id, preview_base64))
         conn.commit()
-
-        new_id = cur.lastrowid
         conn.close()
         print(f"[DB] Saved new network ID={new_id} for user={user_auth0_id}")
         return new_id

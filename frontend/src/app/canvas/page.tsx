@@ -29,6 +29,7 @@ import TorchNode from "./components/TorchNode";
 import UnsavedChangesDialog from "./components/UnsavedChangesDialog";
 import { stringify } from "querystring";
 
+import { useUser } from "@auth0/nextjs-auth0";
 // Main page component for the canvas feature
 function CanvasPageContent() {
 
@@ -54,6 +55,8 @@ function CanvasPageContent() {
   const nodeTypes = {
     torchNode : TorchNode
   };
+  const { user, isLoading: userLoading } = useUser();
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const canvasRef = useRef<HTMLDivElement>(null) //ref to canvas to save images
   
@@ -69,11 +72,32 @@ function CanvasPageContent() {
         return;
       }
 
+      // Don't try to load until Auth0 has finished loading the user
+      if (userLoading) {
+        return;
+      }
+
       try {
         console.log("=== LOADING NETWORK ===");
         console.log("Fetching network ID:", id);
-        
-        const response = await fetch(`http://localhost:5000/load_network?id=${id}`);
+        const response = await fetch(`http://localhost:5000/load_network?id=${id}`, {
+          headers: {
+            "Content-Type": "application/json",
+            header: user?.sub || "",
+          },
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          console.error("Access denied — user does not own this network.");
+          setLoadError("You do not have permission to view this network.");
+          return;
+        }
+
+        if (response.status === 404) {
+          console.error("Network not found.");
+          setLoadError("Network not found or deleted.");
+          return;
+        }
         const data = await response.json();
 
         console.log("Raw response data:", data);
@@ -970,6 +994,42 @@ const handleSave = async () => { //gets screenshot of canvas then saves
         <Typography color="error" sx={{ mb: 2 }}>Failed to load operation definitions</Typography>
         <Typography variant="body2">{operationsError}</Typography>
         <Typography variant="body2" sx={{ mt: 1 }}>Please ensure the backend server is running on http://localhost:5000</Typography>
+      </Box>
+    );
+  }
+
+  // If loadError is set (e.g., access denied or not found), show error screen
+  if (loadError) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          textAlign: "center",
+          px: 3,
+        }}
+      >
+        <Typography variant="h5" color="error" sx={{ mb: 2 }}>
+          {loadError}
+        </Typography>
+        <Typography variant="body1" sx={{ mb: 3 }}>
+          You don’t have permission to view this network or it doesn’t exist.
+        </Typography>
+        <a href="/dashboard" style={{ textDecoration: "none" }}>
+          <Typography
+            sx={{
+              color: "#3b71e4",
+              fontWeight: "bold",
+              cursor: "pointer",
+              "&:hover": { textDecoration: "underline" },
+            }}
+          >
+            Return to Dashboard
+          </Typography>
+        </a>
       </Box>
     );
   }
