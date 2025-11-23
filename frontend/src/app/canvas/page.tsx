@@ -279,6 +279,51 @@ function CanvasPageContent() {
     // }
   }, [undoList, undoListIndex]);
 
+  // Helper function to recompute channel propagation for all nodes after undo/redo
+  const recomputeChannelPropagation = (restoredNodes: any[], restoredEdges: any[]) => {
+    // Find all nodes that can propagate (have outputChannels and children that inherit)
+    let updatedNodes = [...restoredNodes];
+    
+    // Build a set of nodes that should be propagated from
+    const nodesToPropagate = new Set<string>();
+    
+    restoredNodes.forEach(node => {
+      if (node.data.outputChannels !== undefined && node.data.outputChannels !== null) {
+        // Check if this node has any children that inherit from parent
+        const hasInheritingChildren = restoredEdges.some(edge => {
+          if (edge.source === node.id) {
+            const childNode = restoredNodes.find(n => n.id === edge.target);
+            return childNode?.data.can_inherit_from_parent === true;
+          }
+          return false;
+        });
+        
+        if (hasInheritingChildren) {
+          nodesToPropagate.add(node.id);
+        }
+      }
+    });
+    
+    // Propagate from each node that needs it
+    nodesToPropagate.forEach(nodeId => {
+      const node = updatedNodes.find(n => n.id === nodeId);
+      if (node && node.data.outputChannels !== undefined) {
+        updatedNodes = propagateChannelInheritance(
+          nodeId,
+          node.data.outputChannels,
+          updatedNodes,
+          restoredEdges,
+          defaultLayers,
+          defaultTensorOps,
+          defaultActivators,
+          defaultInputs
+        );
+      }
+    });
+    
+    // Update the state with recomputed nodes
+    setNodes(updatedNodes);
+  };
 
   const doUndo = () => {
     // if empty
@@ -295,6 +340,11 @@ function CanvasPageContent() {
 
     // move the index one step towards the zeroth index
     setUndoListIndex(currIndex == -1 ? currIndex : currIndex - 1);
+
+    // Re-run channel propagation to ensure consistency after undo
+    setTimeout(() => {
+      recomputeChannelPropagation(currEra.n, currEra.e);
+    }, 0);
   }
   const doRedo = () => {
     const currUndoList = undoListRef.current;
@@ -311,6 +361,11 @@ function CanvasPageContent() {
 
     // move the index one step towards the ending index
     setUndoListIndex(currIndex + 1 == currUndoList.length ? currIndex : currIndex + 1);
+
+    // Re-run channel propagation to ensure consistency after redo
+    setTimeout(() => {
+      recomputeChannelPropagation(currEra.n, currEra.e);
+    }, 0);
   };
 
   const addNode = (toBeSetTo) => {
