@@ -66,6 +66,15 @@ export default function Canvas({
         fitView
         style={{ backgroundColor: "#f7f9fb" }}
         attributionPosition="top-right"
+        defaultEdgeOptions={{
+          style: { strokeWidth: 2 },
+          markerEnd: {
+            type: 'arrow',
+            width: 16,
+            height: 16
+          }
+        }}
+        connectionLineStyle={{ strokeWidth: 2 }}
       >
         <Controls />
         <Background color="#aaa" gap={16} />

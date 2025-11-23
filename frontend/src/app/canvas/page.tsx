@@ -105,7 +105,8 @@ function CanvasPageContent() {
             // Ensure edges include markerEnd for arrows and nodes have expected fields
             const normalizedEdges = data.network.edges.map((edge: any) => ({
               ...edge,
-              markerEnd: edge.markerEnd || { type: MarkerType.Arrow }
+              style: { strokeWidth: 2, ...edge.style },
+              markerEnd: edge.markerEnd || { type: MarkerType.Arrow, width: 16, height: 16 }
             }));
 
             // Add getSetters and getDefaults functions to loaded nodes (they're not serialized)
@@ -145,8 +146,11 @@ function CanvasPageContent() {
     if (edges.length > 0) {
       const edgesWithArrows = edges.map(edge => ({
         ...edge,
+        style: { strokeWidth: 2, ...edge.style },
         markerEnd: {
           type: MarkerType.Arrow,
+          width: 16,
+          height: 16
         },
       }));
       setEdges(edgesWithArrows);
@@ -329,8 +333,11 @@ function CanvasPageContent() {
       // Add arrow marker to the new edge
       const edgeWithArrow = {
         ...params,
+        style: { strokeWidth: 2 },
         markerEnd: {
           type: MarkerType.Arrow,
+          width: 16,
+          height: 16
         },
       };
       const newEdges = addEdge(edgeWithArrow, edges);
