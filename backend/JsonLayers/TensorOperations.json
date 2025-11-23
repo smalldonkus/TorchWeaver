@@ -152,13 +152,8 @@
           "minInputs": 1,
           "maxOutputs": 1000,
           "minOutputs": 2,
-          "CanEditChannels": true,
-          "ChannelLinks": [
-            {
-              "inputParam": "dim",
-              "outputParam": "dim"
-            }
-          ]
+          "CanEditChannels": false,
+          "ChannelLinks": []
         },
         "parameters": {
           "split_size_or_sections": 1,
@@ -185,13 +180,8 @@
           "minInputs": 1,
           "maxOutputs": 1000,
           "minOutputs": 2,
-          "CanEditChannels": true,
-          "ChannelLinks": [
-            {
-              "inputParam": "dim",
-              "outputParam": "dim"
-            }
-          ]
+          "CanEditChannels": false,
+          "ChannelLinks": []
         },
         "parameters": {
           "chunks": 10,
@@ -220,13 +210,8 @@
           "minInputs": 1,
           "maxOutputs": 1000,
           "minOutputs": 1,
-          "CanEditChannels": true,
-          "ChannelLinks": [
-            {
-              "inputParam": "dim",
-              "outputParam": "dim"
-            }
-          ]
+          "CanEditChannels": false,
+          "ChannelLinks": []
         },
         "parameters": {
           "dim": 0

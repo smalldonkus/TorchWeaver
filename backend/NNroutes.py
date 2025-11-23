@@ -46,12 +46,7 @@ def saveNetwork():
         if not user_auth0_id:
             user_info = data.get("user")
             user_auth0_id = user_info.get("id") if user_info else None
-        # Ensure network_id is int or None
-        if network_id is not None:
-            try:
-                network_id = int(network_id)
-            except Exception:
-                network_id = None
+        # Keep network_id as string (UUID) - no conversion needed
 
         json_data = data.get("network")
         description = data.get("description", None)

@@ -166,7 +166,7 @@ function CanvasPageContent() {
       }
     }
     fetchNetwork();
-  }, [defaultLayers, defaultTensorOps, defaultActivators, defaultInputs]);  // Re-run when defaults are loaded
+  }, [defaultLayers, defaultTensorOps, defaultActivators, defaultInputs, searchParams, userLoading, user]);  // Re-run when defaults are loaded or URL/user changes
 
 
   useEffect(() => {
@@ -880,7 +880,9 @@ function CanvasPageContent() {
     (msg) => showSnackbar(msg, 'error')
   );
 
-const handleSave = async () => { //gets screenshot of canvas then saves
+  const save = useSave(); // Hook must be called before handleSave function
+
+  const handleSave = async () => { //gets screenshot of canvas then saves
     if (canvasRef.current === null) return;
 
     const dataURL = await toPng(canvasRef.current, { cacheBust: true, });
@@ -900,8 +902,6 @@ const handleSave = async () => { //gets screenshot of canvas then saves
       (msg) => showSnackbar(msg, 'error')
     )
   };
-
-  const save = useSave(); //ensures hook is at the top
 
   // Track changes to detect unsaved modifications
   useEffect(() => {

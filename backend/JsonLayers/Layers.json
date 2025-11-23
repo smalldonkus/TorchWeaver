@@ -2128,6 +2128,294 @@
         "parameters": {},
         "parameters_format": {}
       }
+    },
+
+    "Recurrent Layers": {
+      "RNN": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {
+          "input_size": 10,
+          "hidden_size": 20,
+          "num_layers": 1,
+          "bias": true,
+          "batch_first": false,
+          "dropout": 0.0,
+          "bidirectional": false
+        },
+        "parameters_format": {
+          "input_size": [
+            "int"
+          ],
+          "hidden_size": [
+            "int"
+          ],
+          "num_layers": [
+            "int"
+          ],
+          "bias": [
+            "boolean"
+          ],
+          "batch_first": [
+            "boolean"
+          ],
+          "dropout": [
+            "float"
+          ],
+          "bidirectional": [
+            "boolean"
+          ]
+        }
+      },
+
+      "LSTM": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {
+          "input_size": 10,
+          "hidden_size": 20,
+          "num_layers": 1,
+          "bias": true,
+          "batch_first": false,
+          "dropout": 0.0,
+          "bidirectional": false
+        },
+        "parameters_format": {
+          "input_size": [
+            "int"
+          ],
+          "hidden_size": [
+            "int"
+          ],
+          "num_layers": [
+            "int"
+          ],
+          "bias": [
+            "boolean"
+          ],
+          "batch_first": [
+            "boolean"
+          ],
+          "dropout": [
+            "float"
+          ],
+          "bidirectional": [
+            "boolean"
+          ]
+        }
+      },
+
+      "GRU": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {
+          "input_size": 10,
+          "hidden_size": 20,
+          "num_layers": 1,
+          "bias": true,
+          "batch_first": false,
+          "dropout": 0.0,
+          "bidirectional": false
+        },
+        "parameters_format": {
+          "input_size": [
+            "int"
+          ],
+          "hidden_size": [
+            "int"
+          ],
+          "num_layers": [
+            "int"
+          ],
+          "bias": [
+            "boolean"
+          ],
+          "batch_first": [
+            "boolean"
+          ],
+          "dropout": [
+            "float"
+          ],
+          "bidirectional": [
+            "boolean"
+          ]
+        }
+      },
+
+      "RNNCell": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {
+          "input_size": 10,
+          "hidden_size": 20,
+          "bias": true
+        },
+        "parameters_format": {
+          "input_size": [
+            "int"
+          ],
+          "hidden_size": [
+            "int"
+          ],
+          "bias": [
+            "boolean"
+          ]
+        }
+      },
+
+      "LSTMCell": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {
+          "input_size": 10,
+          "hidden_size": 20,
+          "bias": true
+        },
+        "parameters_format": {
+          "input_size": [
+            "int"
+          ],
+          "hidden_size": [
+            "int"
+          ],
+          "bias": [
+            "boolean"
+          ]
+        }
+      },
+
+      "GRUCell": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 1,
+          "minInputs": 1,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {
+          "input_size": 10,
+          "hidden_size": 20,
+          "bias": true
+        },
+        "parameters_format": {
+          "input_size": [
+            "int"
+          ],
+          "hidden_size": [
+            "int"
+          ],
+          "bias": [
+            "boolean"
+          ]
+        }
+      }
+    },
+
+    "Transformer Layers": {
+      "Transformer": {
+        "library": "torch.nn",
+        "parseCheck": {
+          "maxInputs": 2,
+          "minInputs": 2,
+          "maxOutputs": 1000,
+          "minOutputs": 1,
+          "CanEditChannels": false,
+          "ChannelLinks": []
+        },
+        "parameters": {
+          "d_model": 512,
+          "nhead": 8,
+          "num_encoder_layers": 6,
+          "num_decoder_layers": 6,
+          "dim_feedforward": 2048,
+          "dropout": 0.1,
+          "activation": "relu",
+          "custom_encoder": "None",
+          "custom_decoder": "None",
+          "layer_norm_eps": 1e-05,
+          "batch_first": false,
+          "norm_first": false,
+          "bias": true
+        },
+        "parameters_format": {
+          "d_model": [
+            "int"
+          ],
+          "nhead": [
+            "int"
+          ],
+          "num_encoder_layers": [
+            "int"
+          ],
+          "num_decoder_layers": [
+            "int"
+          ],
+          "dim_feedforward": [
+            "int"
+          ],
+          "dropout": [
+            "float"
+          ],
+          "activation": [
+            "string"
+          ],
+          "custom_encoder": [
+            "None"
+          ],
+          "custom_decoder": [
+            "None"
+          ],
+          "layer_norm_eps": [
+            "float"
+          ],
+          "batch_first": [
+            "boolean"
+          ],
+          "norm_first": [
+            "boolean"
+          ],
+          "bias": [
+            "boolean"
+          ]
+        }
+      }
     }
   }
 }
