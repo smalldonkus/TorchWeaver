@@ -126,10 +126,16 @@ class Graph:
                 continue
             
             if self.indices[w] is None:
-                self.strongConnect(w) #recurse
-                self.lowlink[v] = min(self.lowlink[v], self.lowlink[w])
+                try:
+                    self.strongConnect(w) #recurse
+                    self.lowlink[v] = min(self.lowlink[v], self.lowlink[w])
+                except KeyError:
+                    raise KeyError(f"{v}, {w}")
             elif self.onStack[w]:
-                self.lowlink[v] = min(self.lowlink[v], self.indices[w])
+                try:
+                    self.lowlink[v] = min(self.lowlink[v], self.indices[w])
+                except KeyError:
+                    raise KeyError(f"{v}, {w}")
 
         if self.lowlink[v] == self.indices[v]:
             cond = True
