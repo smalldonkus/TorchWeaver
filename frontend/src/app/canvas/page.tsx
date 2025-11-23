@@ -121,6 +121,9 @@ function CanvasPageContent() {
 
             setNodes(normalizedNodes);
             setEdges(normalizedEdges);
+            // Initialize undo list with loaded state
+            setUndoList([{n: normalizedNodes, e: normalizedEdges}]);
+            setUndoListIndex(0);
             // Set initial saved state after loading
             setLastSavedState({
               nodes: normalizedNodes,

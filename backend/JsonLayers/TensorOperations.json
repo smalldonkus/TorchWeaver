@@ -8,13 +8,8 @@
           "minInputs": 2,
           "maxOutputs": 1000,
           "minOutputs": 1,
-          "CanEditChannels": true,
-          "ChannelLinks": [
-            {
-              "inputParam": "dim",
-              "outputParam": "dim"
-            }
-          ]
+          "CanEditChannels": false,
+          "ChannelLinks": []
         },
         "parameters": {
           "dim": 0
@@ -36,13 +31,8 @@
           "minInputs": 2,
           "maxOutputs": 1000,
           "minOutputs": 1,
-          "CanEditChannels": true,
-          "ChannelLinks": [
-            {
-              "inputParam": "dim",
-              "outputParam": "dim"
-            }
-          ]
+          "CanEditChannels": false,
+          "ChannelLinks": []
         },
         "parameters": {
           "dim": 0
