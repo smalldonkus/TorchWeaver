@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+      - AUTH0_DOMAIN=https://dev-461larhhpk1j2kqd.us.auth0.com/
+      - API_AUDIENCE=http://127.0.0.1:5000
+    volumes:
+      - ./backend:/app
+    networks:
+      - appnet
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_BACKEND_URL=http://backend:5000
+      - AUTH0_SECRET=5598194c4236ed66ec653260e9eb4b57a03e82bfd81565a6e920d013112940a6
+      - APP_BASE_URL=http://localhost:3000/
+      - AUTH0_DOMAIN=https://dev-461larhhpk1j2kqd.us.auth0.com/
+      - AUTH0_CLIENT_ID=x3doTImgwIlP0XQs09l8s3ER3J9xUIBe
+      - AUTH0_CLIENT_SECRET=vhfzgjwCKq7cGq8hCiHsDdNaTD09mhGB2yoIZbzH4kYfOwk9-rx393yil2cynR1h
+    depends_on:
+      - backend
+    networks:
+      - appnet
+
+networks:
+  appnet:
+    driver: bridge
