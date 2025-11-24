@@ -51,6 +51,8 @@ Where the test files are located:
 
 ---
 
+Note: That you may see debugging statements like `console.log` in the test files. These were intentionally left in to show evidence of debugging during development.
+
 **Backend:**
 
 - `backend/tests/`
@@ -84,6 +86,10 @@ Where the test files are located:
 - Run a specific frontend test file:
   ```bash
   npm test -- src/app/dashboard/components/__tests__/SearchBar.test.tsx
+  ```
+- Run coverage report for frontend:
+  ```bash
+  npm test -- --coverage
   ```
 - Run all backend tests:
   ```bash
