@@ -24,6 +24,7 @@
           "parentParameterFormat": "tuple"
         }
       },
+  
       "stack": {
         "library": "torch",
         "parseCheck": {
@@ -51,7 +52,7 @@
       "add": {
         "library": "torch",
         "parseCheck": {
-          "maxInputs": 1000,
+          "maxInputs": 2,
           "minInputs": 2,
           "maxOutputs": 1000,
           "minOutputs": 1,
@@ -75,7 +76,7 @@
       "mul": {
         "library": "torch",
         "parseCheck": {
-          "maxInputs": 1000,
+          "maxInputs": 2,
           "minInputs": 2,
           "maxOutputs": 1000,
           "minOutputs": 1,
@@ -89,10 +90,11 @@
           "parentParameterFormat": "separate"
         }
       },
+
       "sub": {
         "library": "torch",
         "parseCheck": {
-          "maxInputs": 1000,
+          "maxInputs": 2,
           "minInputs": 2,
           "maxOutputs": 1000,
           "minOutputs": 1,
@@ -106,10 +108,11 @@
           "parentParameterFormat": "separate"
         }
       },
+
       "div": {
         "library": "torch",
         "parseCheck": {
-          "maxInputs": 1000,
+          "maxInputs": 2,
           "minInputs": 2,
           "maxOutputs": 1000,
           "minOutputs": 1,
@@ -127,9 +130,9 @@
       "maximum": {
         "library": "torch",
         "parseCheck": {
-          "maxInputs": 1000,
+          "maxInputs": 2,
           "minInputs": 2,
-          "maxOutputs": 1,
+          "maxOutputs": 1000,
           "minOutputs": 1,
           "CanEditChannels": false,
           "ChannelLinks": []
