@@ -54,13 +54,18 @@ export default function useSave() {
 
         if (result.success) {
           const successMessage = id
-            ? `Network #${id} updated successfully!`
-            : `Network saved successfully!`;
+            ? `"${name}" updated successfully!`
+            : `"${name}" saved successfully!`;
           if (onSuccess) onSuccess(successMessage);
           else alert(successMessage);
 
-          if (!id) {
-            setTimeout(() => (window.location.href = `/canvas?id=${result.id}`), 1500);
+          // Update URL with the returned ID without page reload
+          if (!id && result.id) {
+            // For new networks, update URL without reloading
+            window.history.replaceState({}, '', `/canvas?id=${result.id}`);
+          } else if (id && result.id && id !== result.id) {
+            // If ID changed (shouldn't happen but just in case), update URL
+            window.history.replaceState({}, '', `/canvas?id=${result.id}`);
           }
         } else {
           const errorMsg = `Error: ${result.error}`;

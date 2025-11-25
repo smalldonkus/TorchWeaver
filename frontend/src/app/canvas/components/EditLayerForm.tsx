@@ -147,6 +147,34 @@ export default function EditLayerForm({selectedNodes, defaultActivators, default
     // Handle specific type change
     const handleSpecificTypeChange = (newSpecificType: string) => {
         setSelectedSpecificType(newSpecificType);
+        
+        // Load default parameters for the new type
+        let dataSource;
+        switch (selectedOperationType) {
+            case "Layer":
+                dataSource = defaultLayers;
+                break;
+            case "TensorOp":
+                dataSource = defaultTensorOps;
+                break;
+            case "Activator":
+                dataSource = defaultActivators;
+                break;
+            case "Input":
+                dataSource = defaultInputs;
+                break;
+            default:
+                dataSource = null;
+        }
+        
+        const newTypeDefinition = dataSource?.data?.[selectedClass]?.[newSpecificType];
+        if (newTypeDefinition?.parameters) {
+            // The parameters object already contains the default values
+            updateParameters({ ...newTypeDefinition.parameters });
+        } else {
+            updateParameters({});
+        }
+        
         setHasPendingChanges(true);
     };
 

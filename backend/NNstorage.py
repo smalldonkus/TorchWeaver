@@ -69,7 +69,7 @@ class NNStorage:
         """Return metadata for all saved networks for a given user."""
         conn = sqlite3.connect(self.db_path)
         cur = conn.cursor()
-        cur.execute("SELECT id, name, description, created_at, favourited, preview_base64 FROM networks WHERE user_auth0_id = ? ORDER BY id DESC, created_at DESC", (user_auth0_id,))
+        cur.execute("SELECT id, name, description, created_at, favourited, preview_base64 FROM networks WHERE user_auth0_id = ? ORDER BY created_at DESC", (user_auth0_id,))
         rows = cur.fetchall()
         conn.close()
         return [
