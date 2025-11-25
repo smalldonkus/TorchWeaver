@@ -92,6 +92,9 @@ def generate_init_method(nodes, db):
             layer_def = find_layer_definition(node_type, db)
             
             if layer_def:
+                # Reorder parameters based on definition
+                parameters = reorder_parameters(parameters, layer_def)
+                
                 # Generate parameter string
                 param_strings = []
                 for param_name, param_value in parameters.items():
@@ -195,7 +198,13 @@ def generate_tensor_operation(node, db):
         default_parameters = op_config.get("parameters", {})
     
     # Merge default parameters with user parameters
-    all_parameters = {**default_parameters, **user_parameters}
+    all_parameters = {**user_parameters}
+    for key, value in default_parameters.items():
+        if key not in all_parameters:
+            all_parameters[key] = value
+    
+    # Reorder parameters based on definition
+    all_parameters = reorder_parameters(all_parameters, op_config)
     
     # Handle parent inputs
     if not parent:
@@ -256,5 +265,28 @@ def generate_tensor_operation(node, db):
 def find_layer_definition(layer_type, db):
     """Find layer definition in database using hierarchical lookup"""
     return db.find_definition(layer_type)
+
+def reorder_parameters(parameters, layer_def):
+    """Reorder parameters based on the layer definition's parameter order"""
+    if not layer_def or "parameters" not in layer_def:
+        return parameters
+    
+    # Get the expected parameter order from the definition
+    expected_order = list(layer_def["parameters"].keys())
+    
+    # Build a new dict with parameters in the expected order
+    ordered_params = {}
+    
+    # First, add parameters that exist in the expected order
+    for param_name in expected_order:
+        if param_name in parameters:
+            ordered_params[param_name] = parameters[param_name]
+    
+    # Then add any extra parameters that aren't in the definition
+    for param_name, param_value in parameters.items():
+        if param_name not in ordered_params:
+            ordered_params[param_name] = param_value
+    
+    return ordered_params
 
 

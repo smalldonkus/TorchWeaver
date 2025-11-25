@@ -173,7 +173,7 @@
         },
         "codeGeneration": {
           "operationPattern": "split",
-          "parentParameterFormat": "tuple"
+          "parentParameterFormat": "separate"
         }
       },
       "chunk": {
@@ -200,7 +200,7 @@
         },
         "codeGeneration": {
           "operationPattern": "split",
-          "parentParameterFormat": "tuple"
+          "parentParameterFormat": "separate"
         }
       }
     },
