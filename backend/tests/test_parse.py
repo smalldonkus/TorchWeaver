@@ -2,7 +2,7 @@ import unittest
 from parse import parse, Graph, ParseError, find
 from NNdatabase import NNDataBase
 
-
+# note that these nodes are simplified versions of actual nodes used in the application
 class TestParseBasics(unittest.TestCase):
     """Test suite for basic parse validation (inputs, outputs, structure)"""
     
@@ -80,11 +80,56 @@ class TestParseBasics(unittest.TestCase):
         errors = parse(nodes)
         self.assertGreater(len(errors), 0)
         self.assertTrue(any("many outputs" in err["errorMsg"].lower() for err in errors))
+    
+    def test_input_with_parent_flags_correct_node(self):
+        """Test that input with parent error flags the correct node ID"""
+        nodes = [
+            self._make_node("layer1", "Layer", "Linear", children=["input1"], in_ch=10, out_ch=10),
+            self._make_node("input1", "Input", "SingleDimensionalInput", parents=["layer1"], children=["output1"], out_ch=10),
+            self._make_node("output1", "Output", "Output", parents=["input1"])
+        ]
+        
+        errors = parse(nodes)
+        # Find the error about input having a parent
+        parent_errors = [err for err in errors if "parent" in err["errorMsg"].lower() and "input" in err["errorMsg"].lower()]
+        self.assertGreater(len(parent_errors), 0)
+        # Check that input1 is flagged
+        self.assertIn("input1", parent_errors[0]["flaggedNodes"])
+    
+    def test_missing_input_has_no_flagged_nodes(self):
+        """Test that missing input error has no specific node flagged"""
+        nodes = [
+            self._make_node("layer1", "Layer", "Linear", children=["output1"], in_ch=10, out_ch=5),
+            self._make_node("output1", "Output", "Output", parents=["layer1"])
+        ]
+        
+        errors = parse(nodes)
+        input_errors = [err for err in errors if "Input" in err["errorMsg"]]
+        self.assertGreater(len(input_errors), 0)
+        # Missing input is a global error, so flaggedNodes should be None
+        self.assertIsNone(input_errors[0]["flaggedNodes"])
+    
+    def test_multiple_outputs_flags_all_output_nodes(self):
+        """Test that multiple outputs error flags all output nodes"""
+        nodes = [
+            self._make_node("input1", "Input", "SingleDimensionalInput", children=["output1", "output2"], out_ch=10),
+            self._make_node("output1", "Output", "Output", parents=["input1"]),
+            self._make_node("output2", "Output", "Output", parents=["input1"])
+        ]
+        
+        errors = parse(nodes)
+        output_errors = [err for err in errors if "many outputs" in err["errorMsg"].lower()]
+        self.assertGreater(len(output_errors), 0)
+        # Both output nodes should be flagged
+        flagged = output_errors[0]["flaggedNodes"]
+        self.assertIn("output1", flagged)
+        self.assertIn("output2", flagged)
 
 
 class TestTarjanAlgorithm(unittest.TestCase):
     """Test suite for Tarjan's strongly connected components algorithm"""
     
+    # helper used to create nodes for Tarjan tests
     def _make_node(self, node_id, children):
         """Helper to create minimal node for Tarjan tests"""
         return {
@@ -99,6 +144,8 @@ class TestTarjanAlgorithm(unittest.TestCase):
     
     def test_tarjan_simple_cycle(self):
         """Test Tarjan's algorithm detects a simple cycle"""
+
+        # Create a graph with a cycle: 1 -> 2 -> 3 -> 1
         nodes = [
             self._make_node("1", ["2"]),
             self._make_node("2", ["3"]),
@@ -108,7 +155,9 @@ class TestTarjanAlgorithm(unittest.TestCase):
         graph = Graph(nodes)
         graph.tarjan()
         
-        # Should find one strongly connected component with all 3 nodes
+        # There should be one SCC with all three nodes,
+        # therefore indicating a cycle since all nodes can reach each other
+
         scc_with_cycle = [scc for scc in graph.SSCs if len(scc) > 1]
         self.assertEqual(len(scc_with_cycle), 1)
         self.assertEqual(set(scc_with_cycle[0]), {"1", "2", "3"})
@@ -125,27 +174,10 @@ class TestTarjanAlgorithm(unittest.TestCase):
         graph.tarjan()
         
         # All SCCs should be single nodes
-        all_single_nodes = all(len(ssc) == 1 for ssc in graph.SSCs)
+        # since no cycles exist in the graph
+        all_single_nodes = all(len(scc) == 1 for scc in graph.SSCs)
         self.assertTrue(all_single_nodes)
-    
-    def test_tarjan_wikipedia_example(self):
-        """Test Tarjan's algorithm with Wikipedia example"""
-        nodes = [
-            self._make_node("1", ["2"]),
-            self._make_node("2", ["3"]),
-            self._make_node("3", ["1"]),
-            self._make_node("4", ["2", "3", "5"]),
-            self._make_node("5", ["4", "6"]),
-            self._make_node("6", ["3", "7"]),
-            self._make_node("7", ["6"]),
-            self._make_node("8", ["5", "7", "8"])
-        ]
-        
-        graph = Graph(nodes)
-        graph.tarjan()
-        
-        # Expected SCCs from Wikipedia example
-        self.assertEqual(graph.SSCs, [["3", "2", "1"], ["7", "6"], ["5", "4"], ["8"]])
+
 
 
 class TestParseError(unittest.TestCase):

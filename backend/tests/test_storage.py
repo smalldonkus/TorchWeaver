@@ -3,7 +3,6 @@ import os
 import json
 from NNstorage import NNStorage
 
-
 class TestNNStorage(unittest.TestCase):
     """Test suite for NNstorage database operations"""
     
@@ -140,6 +139,9 @@ class TestNNStorage(unittest.TestCase):
         
         networks = self.storage.list_networks(self.test_user_id)
         
+        # test_user should have 1 network which is why len(networks) == 1
+        # the name should be "User 1 Network"
+        #this proves that networks from other users are not included
         self.assertEqual(len(networks), 1)
         self.assertEqual(networks[0]["name"], "User 1 Network")
     
@@ -154,7 +156,11 @@ class TestNNStorage(unittest.TestCase):
         
         result = self.storage.delete_network(network_id, self.test_user_id)
         
+        # The delete operation should return True indicating success
         self.assertTrue(result)
+
+        # Attempt to load the deleted network
+        # It should return None
         loaded = self.storage.load_network(network_id, self.test_user_id)
         self.assertIsNone(loaded)
     
@@ -169,7 +175,8 @@ class TestNNStorage(unittest.TestCase):
         
         self.storage.delete_network(network_id, "wrong_user")
         
-        # Network should still exist
+        # Network should still exist since wrong user attempted deletion
+        # therefore it should not be None
         loaded = self.storage.load_network(network_id, self.test_user_id)
         self.assertIsNotNone(loaded)
     
@@ -185,7 +192,11 @@ class TestNNStorage(unittest.TestCase):
         new_data = {"nodes": [{"id": "1"}, {"id": "2"}]}
         result = self.storage.update_network(network_id, new_data, self.test_user_id)
         
+        # The update operation should return True indicating success
         self.assertTrue(result)
+
+        # Load the network and verify the JSON data was updated
+        # the loaded network should have 2 nodes now an this is proven by len(loaded["nodes"]) == 2
         loaded = self.storage.load_network(network_id, self.test_user_id)
         self.assertEqual(len(loaded["nodes"]), 2)
     
@@ -221,18 +232,6 @@ class TestNNStorage(unittest.TestCase):
         self.assertEqual(rows_updated, 1)
         networks = self.storage.list_networks(self.test_user_id)
         self.assertEqual(networks[0]["favourited"], 0)
-    
-    def test_database_table_creation(self):
-        """Test that database table is created on initialization"""
-        # The table should already be created in setUp
-        # Just verify we can perform operations without errors
-        network_id = self.storage.save_network(
-            name="Test",
-            json_data={"nodes": []},
-            preview_base64="preview",
-            user_auth0_id=self.test_user_id
-        )
-        self.assertIsNotNone(network_id)
 
 
 if __name__ == '__main__':

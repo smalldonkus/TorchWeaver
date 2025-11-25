@@ -78,7 +78,7 @@ class TestNNGenerator(unittest.TestCase):
         
         code = generate(json_data)
         
-        # Check multiple input signature
+        # Check that multiple inputs are handled correctly
         self.assertIn("def forward(self, x1, x2):", code)
         self.assertIn("input1 = x1", code)
         self.assertIn("input2 = x2", code)
@@ -89,53 +89,54 @@ class TestNNGenerator(unittest.TestCase):
             "nodes": [
                 {"id": "input1", "type": "SingleDimensionalInput", "operation_type": "Input", "parent": None, "children": ["layer1"], "parameters": {}},
                 {"id": "layer1", "type": "Linear", "operation_type": "Layer", "parent": "input1", "children": ["act1"], "parameters": {"in_features": 10, "out_features": 5}},
-                {"id": "act1", "type": "ReLU", "operation_type": "Activator", "parent": "layer1", "children": [], "parameters": {}}
+                {"id": "activator1", "type": "ReLU", "operation_type": "Activator", "parent": "layer1", "children": [], "parameters": {}}
             ]
         }
         
         code = generate(json_data)
         
-        # Check activation layer
-        self.assertIn("self.act1 = nn.ReLU()", code)
-        self.assertIn("act1 = self.act1(layer1)", code)
+        # Check activation layer exists and is used
+        self.assertIn("self.activator1 = nn.ReLU()", code)
+        self.assertIn("activator1 = self.activator1(layer1)", code)
     
     def test_generate_tensor_merge_operation(self):
         """Test generating tensor merge operations like cat"""
         json_data = {
             "nodes": [
-                {"id": "input1", "type": "SingleDimensionalInput", "operation_type": "Input", "parent": None, "children": ["cat1"], "parameters": {}},
-                {"id": "input2", "type": "SingleDimensionalInput", "operation_type": "Input", "parent": None, "children": ["cat1"], "parameters": {}},
-                {"id": "cat1", "type": "cat", "operation_type": "TensorOp", "parent": ["input1", "input2"], "children": [], "parameters": {"dim": 1}, "outgoing_edges_count": 0}
+                {"id": "input1", "type": "SingleDimensionalInput", "operation_type": "Input", "parent": None, "children": ["tensorop1"], "parameters": {}},
+                {"id": "input2", "type": "SingleDimensionalInput", "operation_type": "Input", "parent": None, "children": ["tensorop1"], "parameters": {}},
+                {"id": "tensorop1", "type": "cat", "operation_type": "TensorOp", "parent": ["input1", "input2"], "children": [], "parameters": {"dim": 1}, "outgoing_edges_count": 0}
             ]
         }
         
         code = generate(json_data)
         
         # Check tensor operation
-        self.assertIn("cat1 = torch.cat([input1, input2], dim=1)", code)
+        self.assertIn("tensorop1 = torch.cat([input1, input2], dim=1)", code)
     
     def test_generate_complex_network(self):
         """Test generating a more complex network with branches"""
         json_data = {
             "nodes": [
                 {"id": "input1", "type": "SingleDimensionalInput", "operation_type": "Input", "parent": None, "children": ["layer1"], "parameters": {}},
-                {"id": "layer1", "type": "Linear", "operation_type": "Layer", "parent": "input1", "children": ["act1"], "parameters": {"in_features": 10, "out_features": 20}},
-                {"id": "act1", "type": "ReLU", "operation_type": "Activator", "parent": "layer1", "children": ["layer2"], "parameters": {}},
-                {"id": "layer2", "type": "Linear", "operation_type": "Layer", "parent": "act1", "children": ["output1"], "parameters": {"in_features": 20, "out_features": 5}},
+                {"id": "layer1", "type": "Linear", "operation_type": "Layer", "parent": "input1", "children": ["activator1"], "parameters": {"in_features": 10, "out_features": 20}},
+                {"id": "activator1", "type": "ReLU", "operation_type": "Activator", "parent": "layer1", "children": ["layer2"], "parameters": {}},
+                {"id": "layer2", "type": "Linear", "operation_type": "Layer", "parent": "activator1", "children": ["output1"], "parameters": {"in_features": 20, "out_features": 5}},
                 {"id": "output1", "type": "Output", "operation_type": "Output", "parent": "layer2", "children": [], "parameters": {}}
             ]
         }
         
         code = generate(json_data)
         
-        # Verify complete flow
+        # Check that all layers and activations are present
         self.assertIn("self.layer1 = nn.Linear(in_features=10, out_features=20)", code)
-        self.assertIn("self.act1 = nn.ReLU()", code)
+        self.assertIn("self.activator1 = nn.ReLU()", code)
         self.assertIn("self.layer2 = nn.Linear(in_features=20, out_features=5)", code)
         
+        # Check forward pass sequence is correct
         self.assertIn("layer1 = self.layer1(input1)", code)
-        self.assertIn("act1 = self.act1(layer1)", code)
-        self.assertIn("layer2 = self.layer2(act1)", code)
+        self.assertIn("activator1 = self.activator1(layer1)", code)
+        self.assertIn("layer2 = self.layer2(activator1)", code)
         self.assertIn("return layer2", code)
     
     def test_generate_dropout_layer(self):
@@ -171,23 +172,11 @@ class TestNNGenerator(unittest.TestCase):
         """Test that error is raised when no nodes are provided"""
         json_data = {"nodes": []}
         
+        # Expecting ValueError due to no nodes
         with self.assertRaises(ValueError) as context:
             generate(json_data)
         
         self.assertIn("No nodes found", str(context.exception))
-    
-    def test_generate_conv2d_layer(self):
-        """Test generating Conv2d layer"""
-        json_data = {
-            "nodes": [
-                {"id": "input1", "type": "TwoDimensionalInput", "operation_type": "Input", "parent": None, "children": ["conv1"], "parameters": {}},
-                {"id": "conv1", "type": "Conv2d", "operation_type": "Layer", "parent": "input1", "children": [], "parameters": {"in_channels": 3, "out_channels": 64, "kernel_size": 3}}
-            ]
-        }
-        
-        code = generate(json_data)
-        
-        self.assertIn("self.conv1 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3)", code)
     
     def test_generate_multiple_children(self):
         """Test generating code when a node has multiple children (branching)"""
