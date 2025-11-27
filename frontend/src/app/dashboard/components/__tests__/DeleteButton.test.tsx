@@ -23,53 +23,53 @@ describe('DeleteButton', () => {
     const button = screen.getByRole('button');
     await userEvent.click(button);
     
-    const dialogTitle = screen.getByText(/Are you sure you want to delete this neural network/i);
+    const dialogTitle = screen.getByText(/Delete Network/i);
     expect(dialogTitle).toBeInTheDocument();
   });
 
-  it('should show Yes and No buttons in dialog', async () => {
+  it('should show Delete and Cancel buttons in dialog', async () => {
     render(<DeleteButton onClick={mockOnClick} />);
     
     const button = screen.getByRole('button');
     await userEvent.click(button);
     
-    const yesButton = screen.getByRole('button', { name: /yes/i });
-    const noButton = screen.getByRole('button', { name: /no/i });
+    const deleteButton = screen.getByRole('button', { name: /delete/i });
+    const cancelButton = screen.getByRole('button', { name: /cancel/i });
     
-    expect(yesButton).toBeInTheDocument();
-    expect(noButton).toBeInTheDocument();
+    expect(deleteButton).toBeInTheDocument();
+    expect(cancelButton).toBeInTheDocument();
   });
 
-  it('should close dialog when No is clicked', async () => {
+  it('should close dialog when Cancel is clicked', async () => {
     render(<DeleteButton onClick={mockOnClick} />);
     
     const button = screen.getByRole('button');
     await userEvent.click(button);
     
-    const noButton = screen.getByRole('button', { name: /no/i });
-    await userEvent.click(noButton);
+    const cancelButton = screen.getByRole('button', { name: /cancel/i });
+    await userEvent.click(cancelButton);
     
     await waitFor(() => {
-      expect(screen.queryByText(/Are you sure you want to delete this neural network/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Delete Network/i)).not.toBeInTheDocument();
     });
     expect(mockOnClick).not.toHaveBeenCalled();
   });
 
-  it('should call onClick and close dialog when Yes is clicked', async () => {
+  it('should call onClick and close dialog when Delete is clicked', async () => {
     render(<DeleteButton onClick={mockOnClick} />);
     
     const button = screen.getByRole('button');
     await userEvent.click(button);
     
-    const yesButton = screen.getByRole('button', { name: /yes/i });
-    await userEvent.click(yesButton);
+    const deleteButton = screen.getByRole('button', { name: /delete/i });
+    await userEvent.click(deleteButton);
     
     await waitFor(() => {
       expect(mockOnClick).toHaveBeenCalledTimes(1);
     });
     
     await waitFor(() => {
-      expect(screen.queryByText(/Are you sure you want to delete this neural network/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Delete Network/i)).not.toBeInTheDocument();
     });
   });
 
@@ -79,8 +79,8 @@ describe('DeleteButton', () => {
     const button = screen.getByRole('button');
     await userEvent.click(button);
     
-    const noButton = screen.getByRole('button', { name: /no/i });
-    await userEvent.click(noButton);
+    const cancelButton = screen.getByRole('button', { name: /cancel/i });
+    await userEvent.click(cancelButton);
     
     expect(mockOnClick).not.toHaveBeenCalled();
   });
@@ -91,9 +91,9 @@ describe('DeleteButton', () => {
     const button = screen.getByRole('button');
     await userEvent.click(button);
     
-    const yesButton = screen.getByRole('button', { name: /yes/i });
+    const deleteButton = screen.getByRole('button', { name: /delete/i });
     
-    // Should not throw error when clicking Yes without onClick
-    expect(() => userEvent.click(yesButton)).not.toThrow();
+    // Should not throw error when clicking Delete without onClick
+    expect(() => userEvent.click(deleteButton)).not.toThrow();
   });
 });

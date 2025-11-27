@@ -26,11 +26,73 @@ function Popup(props: PopupProps) {
   };
 
   return (
-    <Dialog onClose={handleClose} open={open}>
-      <DialogTitle>Are you sure you want to delete this neural network?</DialogTitle>
-      <Box sx={{display: "flex", flexWrap: "wrap", justifyContent:"space-between", p: 4}}>
-        <Button onClick={handleClose}>No</Button>
-        <Button onClick={handleConfirm}>Yes</Button>
+    <Dialog 
+      onClose={handleClose} 
+      open={open}
+      PaperProps={{
+        sx: {
+          borderRadius: '12px',
+          padding: '8px',
+          fontFamily: 'inherit',
+        }
+      }}
+    >
+      <DialogTitle
+        sx={{
+          fontFamily: 'inherit',
+          fontWeight: 600,
+          fontSize: '1.4rem',
+          color: '#FF7700',
+        }}
+      >
+        Delete Network
+      </DialogTitle>
+      <Box sx={{px: 3, pb: 2}}>
+        <Box 
+          sx={{
+            fontFamily: 'inherit',
+            fontSize: '1rem',
+            color: '#333',
+            mb: 3,
+          }}
+        >
+          Are you sure you want to delete this network? This deletion cannot be undone.
+        </Box>
+        <Box sx={{display: "flex", gap: 2, justifyContent: "flex-end"}}>
+          <Button 
+            onClick={handleClose}
+            sx={{
+              fontFamily: 'inherit',
+              fontWeight: 575,
+              textTransform: 'none',
+              borderRadius: '7px',
+              padding: '7px 15px',
+              color: '#666',
+              '&:hover': {
+                backgroundColor: '#f0f0f0',
+              },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleConfirm}
+            variant="contained"
+            sx={{
+              fontFamily: 'inherit',
+              fontWeight: 575,
+              textTransform: 'none',
+              borderRadius: '7px',
+              padding: '7px 15px',
+              backgroundColor: '#d32f2f',
+              '&:hover': {
+                backgroundColor: "#26489cff",
+              },
+            }}
+          >
+            Delete
+          </Button>
+        </Box>
       </Box>
     </Dialog>
   );

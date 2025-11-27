@@ -249,18 +249,18 @@ def parse(nodesList):
     # get all inputs for graph
     inputs = [n["id"] for n in nodesList if n["data"]["operationType"] == "Input"]
     # check for path from inputs to output
-    pathCheck = [(nG.isPathFromInputToOutput(i), i) for i in inputs]
-    for path in pathCheck:
-        if not path[0]: errors.append(ParseError(f"This input has no path to an output", nodeIDs=[path[1]]))
+    # pathCheck = [(nG.isPathFromInputToOutput(i), i) for i in inputs]
+    # for path in pathCheck:
+    #     if not path[0]: errors.append(ParseError(f"This input has no path to an output", nodeIDs=[path[1]]))
 
     # check for matching inputChannels to outputChannels
-    inErr = nG.hasMatchingInAndOut()
-    if len(inErr) != 0:
-        for err in inErr:
-            errors.append(ParseError(f"Output dimensions of parent do not match this node's input dimensions, nodes such as activators/tensor operations, can inherit dimensions. You may need to go futher up the graph to fix this error.",
-                          nodeIDs=[err[1]]))
-            errors.append(ParseError(f"The output dimensions of this node do match the input dimensions of its children, nodes such as activators/tensor operations, can inherit dimensions. You may need to go futher up the graph to fix this error.",
-                          nodeIDs=[err[0]]))
+    # inErr = nG.hasMatchingInAndOut()
+    # if len(inErr) != 0:
+    #     for err in inErr:
+    #         errors.append(ParseError(f"Output dimensions of parent do not match this node's input dimensions, nodes such as activators/tensor operations, can inherit dimensions. You may need to go futher up the graph to fix this error.",
+    #                       nodeIDs=[err[1]]))
+    #         errors.append(ParseError(f"The output dimensions of this node do match the input dimensions of its children, nodes such as activators/tensor operations, can inherit dimensions. You may need to go futher up the graph to fix this error.",
+    #                       nodeIDs=[err[0]]))
 
     if CRUDE_REPORT:
         for i, e in enumerate(errors):

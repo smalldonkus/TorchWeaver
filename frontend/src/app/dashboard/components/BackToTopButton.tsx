@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Button } from "@mui/material";
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 export const BackToTopButton = () => {
     const scrollToTop = () => {
@@ -13,13 +14,25 @@ export const BackToTopButton = () => {
 
     return (
         <Button
-            variant="text"
+            variant="contained"
             onClick={scrollToTop}
+            startIcon={<KeyboardArrowUpIcon />}
             sx={{
-                position: "fixed",     // stay fixed on the screens
-                bottom: 20,            // 20px from bottom
-                right: "47vw",             // 47vw from the right
-                zIndex: 1000           // make sure it appears above other content
+                position: "fixed",
+                bottom: 20,
+                right: "47vw",
+                zIndex: 999,
+                backgroundColor: "#FF7700",
+                color: "white",
+                fontFamily: 'inherit',
+                fontWeight: 575,
+                borderRadius: '9px',
+                padding: '11px 18px',
+                textTransform: 'none',
+                boxShadow: 3,
+                "&:hover": {
+                    backgroundColor: "#26489cff",
+                },
             }}>
             Back to Top
         </Button>
