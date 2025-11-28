@@ -156,7 +156,7 @@ export default function AppBarHeader({ open, setOpen, doUndo, doRedo, name, setN
                     <MenuItem
                         onClick={() => {
                             handleMenuClose();
-                            handleNavigation("/login");
+                            handleNavigation("/auth/logout");
                         }}  
                     >
                         Logout
